@@ -13,13 +13,12 @@
 # limitations under the License.
 
 import ncps
-import coremltools as ct
-from . import LTCCell, MixedMemoryRNN
-from typing import Optional, Union
+from ncps.mlx import LTCCell, MixedMemoryRNN
+# import tensorflow as tf
+# from typing import Optional, Union
 
-
-class LTC(ct.models.MLModel):
-    name = "LTC"
+@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="LTC")
+class LTC(ncps.mini_keras.layers.RNN):  # Change from RNN to RNNBase
 
     def __init__(
         self,
@@ -42,10 +41,10 @@ class LTC(ct.models.MLModel):
 
         Examples::
 
-            >>> from ncps.mlx import LTC
+            >>> from ncps.tf import LTC
             >>>
             >>> rnn = LTC(50)
-            >>> x = ct.models.MLModel.random_uniform((2, 10, 20))  # (B,L,C)
+            >>> x = tf.random.uniform((2, 10, 20))  # (B,L,C)
             >>> y = rnn(x)
 
         .. Note::
@@ -53,12 +52,12 @@ class LTC(ct.models.MLModel):
 
         Examples::
 
-            >>> from ncps.mlx import LTC
+            >>> from ncps.tf import LTC
             >>> from ncps.wirings import NCP
             >>>
             >>> wiring = NCP(10, 10, 8, 6, 6, 4, 4)
             >>> rnn = LTC(wiring)
-            >>> x = ct.models.MLModel.random_uniform((2, 10, 20))  # (B,L,C)
+            >>> x = tf.random.uniform((2, 10, 20))  # (B,L,C)
             >>> y = rnn(x)
 
         :param units: Wiring (ncps.wirings.Wiring instance) or integer representing the number of (fully-connected) hidden units
@@ -103,22 +102,3 @@ class LTC(ct.models.MLModel):
             time_major,
             **kwargs,
         )
-
-    def get_config(self):
-        is_mixed_memory = isinstance(self.cell, MixedMemoryRNN)
-        cell: LTCCell = self.cell.rnn_cell if is_mixed_memory else self.cell
-        cell_config = cell.get_config()
-        config = super(LTC, self).get_config()
-        config["units"] = cell.wiring
-        config["mixed_memory"] = is_mixed_memory
-        return {**cell_config, **config}
-
-    @classmethod
-    def from_config(cls, config, custom_objects=None):
-        # The following parameters are recreated by the constructor
-        del config["cell"]
-        del config["wiring"]
-        wiring_class = getattr(ncps.wirings, config["units"]["class_name"])
-        units = wiring_class.from_config(config["units"]["config"])
-        del config["units"]
-        return cls(units, **config)

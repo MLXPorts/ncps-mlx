@@ -16,13 +16,13 @@ from __future__ import absolute_import
 from setuptools import setup, find_packages
 
 setup(
-    name="ncps",
-    version="1.0.1",
+    name="ncps-mlx",
+    version="1.0.0",
     packages=find_packages(),  # include/exclude arguments take * as wildcard, . for any sub-package names
-    description="Neural Circuit Policies for PyTorch, Tensorflow, and Keras V3",
-    url="https://github.com/mlech26l/ncps",
-    author="Mathias Lechner",
-    author_email="mlech26l@gmail.com",
+    description="Neural Circuit Policies for Apple MLX (fork)",
+    url="https://github.com/sydneypdx/ncps-hpc-limb",
+    author="Sydney Renee",
+    author_email="sydney@solace.ofharmony.ai",
     license="Apache License 2.0",
     # tensorflow and torch isn't a dependency because it would force the
     # download of the gpu version or the cpu version.
@@ -30,6 +30,7 @@ setup(
     install_requires=[
         "packaging",
         "future",
+        "mlx"
         # "networkx",
         # "matplotlib",
     ],

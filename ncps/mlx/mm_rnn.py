@@ -1,3 +1,5 @@
+# MLX Port by Sydney Renee in 2025
+# -- Original license information below --
 # Copyright 2022 Mathias Lechner and Ramin Hasani
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,13 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import numpy as np
-import coremltools as ct
-from typing import Optional, Union
+import ncps
+import mlx.core as mx
 
 
-class MixedMemoryRNN(ct.models.MLModel):
+@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="MixedMemoryRNN")
+class MixedMemoryRNN(ncps.mlx.RNN):
     def __init__(self, rnn_cell, forget_gate_bias=1.0, **kwargs):
         super().__init__(**kwargs)
 
@@ -38,7 +39,7 @@ class MixedMemoryRNN(ct.models.MLModel):
     def build(self, input_shape):
         input_dim = input_shape[-1]
         if isinstance(input_shape[0], tuple) or isinstance(
-            input_shape[0], np.ndarray
+            input_shape[0], mx.Shape
         ):
             # Nested tuple
             input_dim = input_shape[0][-1]
@@ -56,29 +57,29 @@ class MixedMemoryRNN(ct.models.MLModel):
         )
         self.bias = self.add_weight(
             shape=(4 * self.flat_size),
-            initializer=np.zeros,
+            initializer="zeros",
             name="bias",
         )
-
+        
         self.built = True
 
     def call(self, inputs, states, **kwargs):
         memory_state, ct_state = states
-        flat_ct_state = np.concatenate(ct_state, axis=-1)
+        flat_ct_state = mx.concatenate(ct_state, axis=-1)
         z = (
-            np.dot(inputs, self.input_kernel)
-            + np.dot(flat_ct_state, self.recurrent_kernel)
-            + self.bias
+            mx.matmul(inputs, self.input_kernel)  # Input contribution
+            + mx.matmul(flat_ct_state, self.recurrent_kernel)  # Recurrent contribution
+            + self.bias  # Bias term
         )
-        i, ig, fg, og = np.split(z, 4, axis=-1)
+        i, ig, fg, og = mx.split(z, 4, axis=-1)
 
-        input_activation = np.tanh(i)
-        input_gate = 1 / (1 + np.exp(-ig))
-        forget_gate = 1 / (1 + np.exp(-(fg + self.forget_gate_bias)))
-        output_gate = 1 / (1 + np.exp(-og))
+        input_activation = mx.tanh(i)  # Candidate memory content
+        input_gate = mx.sigmoid(ig)  # Controls how much new input is added to memory
+        forget_gate = mx.sigmoid(fg + self.forget_gate_bias)  # Controls how much memory to forget
+        output_gate = mx.sigmoid(og)  # Controls the output from the memory state
 
         new_memory_state = memory_state * forget_gate + input_activation * input_gate
-        ct_input = np.tanh(new_memory_state) * output_gate  # LSTM output = ODE input
+        ct_input = mx.tanh(new_memory_state) * output_gate  # LSTM-like output serves as ODE input
 
         if (isinstance(inputs, tuple) or isinstance(inputs, list)) and len(inputs) > 1:
             # Input is a tuple -> Ct cell input should also be a tuple
@@ -101,5 +102,6 @@ class MixedMemoryRNN(ct.models.MLModel):
 
     @classmethod
     def from_config(cls, config):
-        rnn_cell = ct.models.MLModel.deserialize(config["rnn_cell"])
+        rnn_cell = ncps.mlx.RNN.deserialize(config["rnn_cell"])
         return cls(rnn_cell=rnn_cell, **config)
+    

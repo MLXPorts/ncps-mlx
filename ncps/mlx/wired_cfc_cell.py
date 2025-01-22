@@ -1,13 +1,16 @@
 # Copyright 2022 Mathias Lechner. All rights reserved
 
-import coremltools as ct
-import numpy as np
-from .cfc_cell import lecun_tanh, CfCCell
+import mlx.core as mx
+
+from ncps.keras.cfc_cell import lecun_tanh
+from .cfc_cell import CfCCell
+
 from ncps.wirings import wirings
-from typing import Optional, Union
+import numpy as np
+import ncps
 
-
-class WiredCfCCell(ct.models.MLModel):
+@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="WiredCfCCell")
+class WiredCfCCell(ncps.mini_keras.layers.RNN):
     def __init__(
         self,
         wiring,
@@ -35,6 +38,10 @@ class WiredCfCCell(ct.models.MLModel):
     @property
     def state_size(self):
         return self._wiring.units
+        # return [
+        #     len(self._wiring.get_neurons_of_layer(i))
+        #     for i in range(self._wiring.num_layers)
+        # ]
 
     @property
     def input_size(self):
@@ -78,21 +85,22 @@ class WiredCfCCell(ct.models.MLModel):
             )
 
             cell_in_shape = (None, input_sparsity.shape[0])
+            cell.build(cell_in_shape)
             self._cfc_layers.append(cell)
 
-        self._layer_sizes = [l.units for l in self._cfc_layers]
+        self._layer_sizes = [layer.units for layer in self._cfc_layers]
         self.built = True
 
     def call(self, inputs, states, **kwargs):
         if isinstance(inputs, (tuple, list)):
             # Irregularly sampled mode
             inputs, t = inputs
-            t = np.reshape(t, [-1, 1])
+            t = mx.reshape(t, [-1, 1])
         else:
             # Regularly sampled mode (elapsed time = 1 second)
             t = 1.0
 
-        states = np.split(states[0], self._layer_sizes, axis=-1)
+        states = mx.split(states[0], self._layer_sizes, axis=-1)
         assert len(states) == self._wiring.num_layers
         new_hiddens = []
         for i, layer in enumerate(self._cfc_layers):
@@ -105,7 +113,7 @@ class WiredCfCCell(ct.models.MLModel):
         if self._wiring.output_dim != output.shape[-1]:
             output = output[:, 0 : self._wiring.output_dim]
 
-        new_hiddens = np.concatenate(new_hiddens, axis=-1)
+        new_hiddens = mx.concat(new_hiddens, axis=-1)
         return output, new_hiddens
 
     def get_config(self):

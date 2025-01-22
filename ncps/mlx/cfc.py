@@ -1,3 +1,5 @@
+# MLX Port by Sydney Renee in 2025
+# -- Original license information below --
 # Copyright 2022 Mathias Lechner and Ramin Hasani
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +16,12 @@
 
 
 import ncps
-from . import CfCCell, MixedMemoryRNN, WiredCfCCell
-import coremltools as ct
-from typing import Optional, Union
+from ncps.mlx import CfCCell, MixedMemoryRNN, WiredCfCCell  # Importing custom cell implementations
+from typing import Union
 
 
-class CfC(ct.models.MLModel):
+@ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="CfC")
+class CfC(ncps.mini_keras.layers.RNN):  # Now inherits from CfCCell instead of EnhancedLTCCell
     def __init__(
         self,
         units: Union[int, ncps.wirings.Wiring],
@@ -41,10 +43,10 @@ class CfC(ct.models.MLModel):
 
         Examples::
 
-            >>> from ncps.mlx import CfC
+            >>> from ncps.tf import CfC
             >>>
             >>> rnn = CfC(50)
-            >>> x = ct.models.MLModel.random_uniform((2, 10, 20))  # (B,L,C)
+            >>> x = mlx.random.uniform((2, 10, 20))  # (B,L,C)
             >>> y = rnn(x)
 
         :param units: Number of hidden units
@@ -62,7 +64,7 @@ class CfC(ct.models.MLModel):
         :param time_major: Whether the time or batch dimension is the first (0-th) dimension (default False)
         :param kwargs:
         """
-
+        
         if isinstance(units, ncps.wirings.Wiring):
             if backbone_units is not None:
                 raise ValueError(f"Cannot use backbone_units in wired mode")
@@ -84,7 +86,7 @@ class CfC(ct.models.MLModel):
                 backbone_dropout=backbone_dropout,
             )
         if mixed_memory:
-            cell = MixedMemoryRNN(cell)
+                cell = MixedMemoryRNN(cell)
         super(CfC, self).__init__(
             cell,
             return_sequences,
