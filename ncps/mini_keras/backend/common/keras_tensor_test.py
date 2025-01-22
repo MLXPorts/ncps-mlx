@@ -4,10 +4,10 @@ from unittest.mock import patch
 import numpy as np
 import tensorflow as tf
 
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.backend.common import keras_tensor
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend.common import keras_tensor
 
 
 class KerasTensorTest(testing.TestCase):
@@ -118,7 +118,7 @@ class KerasTensorTest(testing.TestCase):
         y = np.array([1, 2, 3])
         self.assertFalse(keras_tensor.is_keras_tensor(y))
 
-    @patch("keras.src.ops.Absolute.symbolic_call")
+    @patch("ncps.mini_keras.ops.Absolute.symbolic_call")
     def test_abs_method(self, mock_symbolic_call):
         mock_tensor = Mock()
         mock_symbolic_call.return_value = mock_tensor
@@ -127,51 +127,51 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x)
         self.assertEqual(abs_x, mock_tensor)
 
-    @patch("keras.src.ops.Negative.symbolic_call")
+    @patch("ncps.mini_keras.ops.Negative.symbolic_call")
     def test_neg_method(self, mock_method):
         self._test_unary_op_method(mock_method, lambda x: -x)
 
-    @patch("keras.src.ops.Subtract.symbolic_call")
+    @patch("ncps.mini_keras.ops.Subtract.symbolic_call")
     def test_sub_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x - y)
 
-    @patch("keras.src.ops.Multiply.symbolic_call")
+    @patch("ncps.mini_keras.ops.Multiply.symbolic_call")
     def test_mul_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x * y)
 
-    @patch("keras.src.ops.Matmul.symbolic_call")
+    @patch("ncps.mini_keras.ops.Matmul.symbolic_call")
     def test_matmul_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x @ y)
 
-    @patch("keras.src.ops.Power.symbolic_call")
+    @patch("ncps.mini_keras.ops.Power.symbolic_call")
     def test_pow_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x**y)
 
-    @patch("keras.src.ops.Mod.symbolic_call")
+    @patch("ncps.mini_keras.ops.Mod.symbolic_call")
     def test_mod_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x % y)
 
-    @patch("keras.src.ops.Less.symbolic_call")
+    @patch("ncps.mini_keras.ops.Less.symbolic_call")
     def test_lt_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x < y)
 
-    @patch("keras.src.ops.LogicalAnd.symbolic_call")
+    @patch("ncps.mini_keras.ops.LogicalAnd.symbolic_call")
     def test_and_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x & y)
 
-    @patch("keras.src.ops.LogicalOr.symbolic_call")
+    @patch("ncps.mini_keras.ops.LogicalOr.symbolic_call")
     def test_or_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x | y)
 
-    @patch("keras.src.ops.GetItem.symbolic_call")
+    @patch("ncps.mini_keras.ops.GetItem.symbolic_call")
     def test_getitem_method(self, mock_method):
         y = Mock()
         self._test_binary_op_method(mock_method, y, lambda x, y: x[y])
@@ -192,7 +192,7 @@ class KerasTensorTest(testing.TestCase):
         mock_method.assert_called_once_with(x, other)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Add.symbolic_call")
+    @patch("ncps.mini_keras.ops.Add.symbolic_call")
     def test_radd_method(self, mock_symbolic_call):
         """Test __radd__ method"""
         mock_tensor = Mock()
@@ -203,7 +203,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Subtract.symbolic_call")
+    @patch("ncps.mini_keras.ops.Subtract.symbolic_call")
     def test_rsub_method(self, mock_symbolic_call):
         """Test __rsub__ method"""
         mock_tensor = Mock()
@@ -214,7 +214,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Multiply.symbolic_call")
+    @patch("ncps.mini_keras.ops.Multiply.symbolic_call")
     def test_rmul_method(self, mock_symbolic_call):
         """Test __rmul__ method"""
         mock_tensor = Mock()
@@ -225,7 +225,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Matmul.symbolic_call")
+    @patch("ncps.mini_keras.ops.Matmul.symbolic_call")
     def test_rmatmul_method(self, mock_symbolic_call):
         """Test __rmatmul__ method"""
         mock_tensor = Mock()
@@ -236,7 +236,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Power.symbolic_call")
+    @patch("ncps.mini_keras.ops.Power.symbolic_call")
     def test_rpow_method(self, mock_symbolic_call):
         """Test __rpow__ method"""
         mock_tensor = Mock()
@@ -247,7 +247,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.FloorDivide.symbolic_call")
+    @patch("ncps.mini_keras.ops.FloorDivide.symbolic_call")
     def test_floordiv_method(self, mock_symbolic_call):
         """Test __floordiv__ method"""
         mock_tensor = Mock()
@@ -258,7 +258,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x, y)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.FloorDivide.symbolic_call")
+    @patch("ncps.mini_keras.ops.FloorDivide.symbolic_call")
     def test_rfloordiv_method(self, mock_symbolic_call):
         """Test __rfloordiv__ method"""
         mock_tensor = Mock()
@@ -269,7 +269,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Mod.symbolic_call")
+    @patch("ncps.mini_keras.ops.Mod.symbolic_call")
     def test_rmod_method(self, mock_symbolic_call):
         """Test __rmod__ method"""
         mock_tensor = Mock()
@@ -280,7 +280,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.LessEqual.symbolic_call")
+    @patch("ncps.mini_keras.ops.LessEqual.symbolic_call")
     def test_le_method(self, mock_symbolic_call):
         """Test __le__ method"""
         mock_tensor = Mock()
@@ -291,7 +291,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x, y)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Greater.symbolic_call")
+    @patch("ncps.mini_keras.ops.Greater.symbolic_call")
     def test_gt_method(self, mock_symbolic_call):
         """Test __gt__ method"""
         mock_tensor = Mock()
@@ -302,7 +302,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x, y)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.GreaterEqual.symbolic_call")
+    @patch("ncps.mini_keras.ops.GreaterEqual.symbolic_call")
     def test_ge_method(self, mock_symbolic_call):
         """Test __ge__ method"""
         mock_tensor = Mock()
@@ -313,7 +313,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x, y)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.NotEqual.symbolic_call")
+    @patch("ncps.mini_keras.ops.NotEqual.symbolic_call")
     def test_ne_method(self, mock_symbolic_call):
         """Test __ne__ method"""
         mock_tensor = Mock()
@@ -324,7 +324,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x, y)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.LogicalAnd.symbolic_call")
+    @patch("ncps.mini_keras.ops.LogicalAnd.symbolic_call")
     def test_rand_method(self, mock_symbolic_call):
         """Test __rand__ method"""
         mock_tensor = Mock()
@@ -335,7 +335,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.LogicalOr.symbolic_call")
+    @patch("ncps.mini_keras.ops.LogicalOr.symbolic_call")
     def test_ror_method(self, mock_symbolic_call):
         """Test __ror__ method"""
         mock_tensor = Mock()
@@ -346,7 +346,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.LogicalNot.symbolic_call")
+    @patch("ncps.mini_keras.ops.LogicalNot.symbolic_call")
     def test_invert_method(self, mock_symbolic_call):
         """Test __invert__ method"""
         mock_tensor = Mock()
@@ -356,7 +356,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.LogicalXor.symbolic_call")
+    @patch("ncps.mini_keras.ops.LogicalXor.symbolic_call")
     def test_xor_method(self, mock_symbolic_call):
         """Test __xor__ method"""
         mock_tensor = Mock()
@@ -367,7 +367,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x, y)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.LogicalXor.symbolic_call")
+    @patch("ncps.mini_keras.ops.LogicalXor.symbolic_call")
     def test_rxor_method(self, mock_symbolic_call):
         """Test __rxor__ method"""
         mock_tensor = Mock()
@@ -378,7 +378,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.TrueDivide.symbolic_call")
+    @patch("ncps.mini_keras.ops.TrueDivide.symbolic_call")
     def test_truediv_method(self, mock_symbolic_call):
         """Test __truediv__ method"""
         mock_tensor = Mock()
@@ -389,7 +389,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x, y)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.TrueDivide.symbolic_call")
+    @patch("ncps.mini_keras.ops.TrueDivide.symbolic_call")
     def test_rtruediv_method(self, mock_symbolic_call):
         """Test __rtruediv__ method"""
         mock_tensor = Mock()
@@ -400,7 +400,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(y, x)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Divide.symbolic_call")
+    @patch("ncps.mini_keras.ops.Divide.symbolic_call")
     def test_div_method(self, mock_symbolic_call):
         """Test __div__ method"""
         mock_tensor = Mock()
@@ -412,7 +412,7 @@ class KerasTensorTest(testing.TestCase):
         mock_symbolic_call.assert_called_once_with(x, y)
         self.assertEqual(result, mock_tensor)
 
-    @patch("keras.src.ops.Divide.symbolic_call")
+    @patch("ncps.mini_keras.ops.Divide.symbolic_call")
     def test_rdiv_method(self, mock_symbolic_call):
         """Test __rdiv__ method"""
         mock_tensor = Mock()

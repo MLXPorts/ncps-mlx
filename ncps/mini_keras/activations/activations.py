@@ -414,6 +414,12 @@ def tanh(x):
     """
     return ops.tanh(x)
 
+# LeCun improved tanh activation
+# http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
+@keras_mini_export("ncps.mini_keras.activations.lecun_tanh")
+def lecun_tanh(x):
+    return 1.7159 * tanh(0.666 * x)
+
 
 @keras_mini_export("ncps.mini_keras.activations.tanh_shrink")
 def tanh_shrink(x):

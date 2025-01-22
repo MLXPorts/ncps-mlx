@@ -19,7 +19,6 @@ from .wired_cfc_cell import WiredCfCCell
 from .cfc import CfC
 from .ltc import LTC
 from .ltc_cell import LTCCell
-from .mlx_init_utils import custom_qr, orthogonal, add_double_single
 from .eltc_cell import EnhancedLTCCell
 #from packaging.version import parse
 

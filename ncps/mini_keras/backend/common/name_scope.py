@@ -1,4 +1,4 @@
-from keras.src.backend.common import global_state
+from ncps.mini_keras.backend.common import global_state
 
 
 class name_scope:

@@ -5,9 +5,11 @@ import tensorflow as tf
 import ncps
 import ncps.mini_keras as ks
 from ncps import wirings
-import mlx.core as np
+import mlx.core as mx
 
 import ncps.mlx
+from ncps.mini_keras.layers import RNN
+from ncps.mini_keras import ops
 
 
 # Custom LightningModule equivalent
@@ -91,27 +93,49 @@ def build_models(in_features, out_features):
     ]
 
 
+# First, let's define a RNN Cell, as a layer subclass.
+class MinimalRNNCell(ks.layers.Layer):
+    def __init__(self, units, **kwargs):
+        self.units = units
+        super(MinimalRNNCell, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.kernel = self.add_weight(shape=(input_shape[-1], self.units),
+                                      initializer='uniform',
+                                      name='kernel')
+        self.recurrent_kernel = self.add_weight(
+            shape=(self.units, self.units),
+            initializer='uniform',
+            name='recurrent_kernel')
+        self.built = True
+
+    def call(self, inputs, states):
+        prev_output = states[0]
+        h = ops.matmul(inputs, self.kernel)
+        output = h + ops.matmul(prev_output, self.recurrent_kernel)
+        return output, [output]
+
+
 # Data Preparation
 in_features = 2
 out_features = 1
 N = 48  # Length of the time-series
 
 # Generate input features (sine and cosine wave)
-data_x = np.stack(
-    [np.sin(np.linspace(0, 3 * np.pi, N)), np.cos(np.linspace(0, 3 * np.pi, N))], axis=1
+# Use mx instead of np for consistency with MLX
+data_x = mx.stack(
+    [mx.sin(mx.linspace(0, 3 * mx.pi, N)), 
+     mx.cos(mx.linspace(0, 3 * mx.pi, N))], 
+    axis=1
 )
-data_x = np.expand_dims(data_x, axis=0).astype(np.float32)  # Add batch dimension
+data_x = mx.expand_dims(data_x, axis=0).astype(mx.float32)  # Add batch dimension
 # Target output: sine wave with double the frequency
-data_y = np.sin(np.linspace(0, 6 * np.pi, N)).reshape([1, N, 1]).astype(np.float32)
+data_y = mx.sin(mx.linspace(0, 6 * mx.pi, N)).reshape([1, N, 1]).astype(mx.float32)
 
-# Convert MLX arrays to TensorFlow tensors
-tf_data_x = tf.convert_to_tensor(data_x.tolist())
-tf_data_y = tf.convert_to_tensor(data_y.tolist())
-
-# Create TensorFlow datasets
-dataset = tf.data.Dataset.from_tensor_slices((tf_data_x, tf_data_y))
-train_dataset = dataset.batch(1).shuffle(10)
-val_dataset = dataset.batch(1)
+# Don't convert to TensorFlow tensors, keep as MLX arrays
+dataset = list(zip([data_x], [data_y]))  # Simple dataset as list of tuples
+train_dataset = dataset
+val_dataset = dataset
 
 # Train models
 for model in build_models(in_features, out_features):

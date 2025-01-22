@@ -16,7 +16,6 @@
 
 
 import ncps
-import mlx  # Importing mlx module to avoid NameError
 from ncps.mlx import CfCCell, MixedMemoryRNN, WiredCfCCell  # Importing custom cell implementations
 from typing import Union
 
@@ -68,11 +67,11 @@ class CfC(ncps.mini_keras.layers.RNN):  # Now inherits from CfCCell instead of E
         
         if isinstance(units, ncps.wirings.Wiring):
             if backbone_units is not None:
-                raise ValueError(f"Cannot use backbone_units in wired mode")
+                raise ValueError("Cannot use backbone_units in wired mode")
             if backbone_layers is not None:
-                raise ValueError(f"Cannot use backbone_layers in wired mode")
+                raise ValueError("Cannot use backbone_layers in wired mode")
             if backbone_dropout is not None:
-                raise ValueError(f"Cannot use backbone_dropout in wired mode")
+                raise ValueError("Cannot use backbone_dropout in wired mode")
             cell = WiredCfCCell(units, mode=mode, activation=activation)
         else:
             backbone_units = 128 if backbone_units is None else backbone_units

@@ -1,8 +1,8 @@
-from keras.src.api_export import keras_export
-from keras.src.backend.common import global_state
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common import global_state
 
 
-@keras_export("keras.StatelessScope")
+@keras_mini_export("ncps.mini_keras.StatelessScope")
 class StatelessScope:
     """Scope to prevent any update to Keras Variables.
 
@@ -38,8 +38,8 @@ class StatelessScope:
         collect_losses=False,
         initialize_variables=True,
     ):
-        from keras.src import backend
-        from keras.src.backend.common.variables import Variable
+        from ncps.mini_keras import backend
+        from ncps.mini_keras.backend.common.variables import Variable
 
         self.collect_losses = collect_losses
         self.initialize_variables = initialize_variables
@@ -90,7 +90,7 @@ class StatelessScope:
             # We're back in eager scope;
             # if any variables were created within the stateless
             # scope, we initialize them here.
-            from keras.src.backend.common.variables import (
+            from ncps.mini_keras.backend.common.variables import (
                 initialize_all_variables,
             )
 

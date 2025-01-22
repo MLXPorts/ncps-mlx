@@ -17,7 +17,7 @@ import ncps
 import mlx as mx
 
 @ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="LTCCell")
-class LTCCell(ncps.mini_keras.layers.RNN):
+class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
     def __init__(
         self,
         wiring,

@@ -1,3 +1,8 @@
+"""Layer implementations for mini-keras.
+
+This module provides the core layer implementations including RNN variants.
+"""
+
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.layers.activations.activation import Activation
 from ncps.mini_keras.layers.activations.elu import ELU

@@ -4,7 +4,6 @@ import functools
 import warnings
 
 import mlx.core as mx
-import mlx.nn as nn
 
 from keras.src import tree
 from keras.src.backend.common import KerasVariable
@@ -176,6 +175,12 @@ def _interleave(a, b, axis):
     )
 
 def scan(f, init, xs=None, length=None, reverse=False, unroll=1):
+    """
+    Ref: jax.lax.scan
+
+    Scans a function over input sequences using MLX arrays.
+    This function has been adapted for the MLX backend.
+    """
     # Ref: jax.lax.scan
     if not callable(f):
         raise TypeError(f"`f` should be a callable. Received: f={f}")
@@ -222,3 +227,256 @@ def scan(f, init, xs=None, length=None, reverse=False, unroll=1):
         lambda *ys: mx.stack(ys), *maybe_reversed(ys)
     )
     return carry, stacked_y
+
+
+
+def associative_scan(f, elems, reverse=False, axis=0):
+    """
+    Ref: jax.lax.associative_scan
+
+    Performs associative scanning using MLX arrays.
+    This function is adapted from the original jax-based approach.
+    """
+    # Ref: jax.lax.associative_scan
+    if not callable(f):
+        raise TypeError(f"`f` should be a callable. Received: f={f}")
+    elems_flat = tree.flatten(elems)
+    elems_flat = [convert_to_tensor(elem) for elem in elems_flat]
+    if reverse:
+        elems_flat = [mx.flip(elem, axis=axis) for elem in elems_flat]
+
+    def _combine(a_flat, b_flat):
+        a = tree.pack_sequence_as(elems, a_flat)
+        b = tree.pack_sequence_as(elems, b_flat)
+        c = f(a, b)
+        c_flat = tree.flatten(c)
+        return c_flat
+
+    num_elems = int(elems_flat[0].shape[axis])
+    if not all(int(elem.shape[axis]) == num_elems for elem in elems_flat[1:]):
+        raise ValueError(
+            "Array inputs to associative_scan must have the same "
+            "first dimension. (saw: {})".format(
+                [elem.shape for elem in elems_flat]
+            )
+        )
+
+    def _interleave(a, b, axis):
+        """Given two Tensors of static shape, interleave them along axis."""
+        assert (
+            a.shape[axis] == b.shape[axis] or a.shape[axis] == b.shape[axis] + 1
+        )
+
+        # we want to get a: [a1, a2], b: [b1, b2]
+        # to a: [a1, 0, a2, 0], b: [0, b1, 0, b2]
+        a_shape = list(a.shape)
+        a_shape[axis] = a.shape[axis] * 2 - 1
+
+        b_shape = list(b.shape)
+        b_shape[axis] = b.shape[axis] * 2 - 1
+
+        a_dil = mx.zeros(a_shape)
+        mx.copyto(slice_along_axis(a_dil, 0, None, 2, axis), a)
+        b_dil = mx.zeros(b_shape)
+        mx.copyto(slice_along_axis(b_dil, 0, None, 2, axis), b)
+
+        a_pad = [[0, 0] for _ in range(a.ndim)]
+        a_pad[axis][-1] = 1 if a.shape[axis] == b.shape[axis] else 0
+
+        b_pad = [[0, 0] for _ in range(b.ndim)]
+        b_pad[axis] = [1, 0] if a.shape[axis] == b.shape[axis] else [1, 1]
+
+        op = mx.bitwise_or if a.dtype == mx.bool_ else mx.add
+        return op(
+            mx.pad(a_dil, a_pad),
+            mx.pad(b_dil, b_pad),
+        )
+
+    def _scan(elems):
+        num_elems = elems[0].shape[axis]
+        if num_elems < 2:
+            return elems
+
+        reduced_elems = _combine(
+            [
+                slice_along_axis(elem, 0, -1, step=2, axis=axis)
+                for elem in elems
+            ],
+            [
+                slice_along_axis(elem, 1, None, step=2, axis=axis)
+                for elem in elems
+            ],
+        )
+
+        odd_elems = _scan(reduced_elems)
+        if num_elems % 2 == 0:
+            even_elems = _combine(
+                [slice_along_axis(e, 0, -1, axis=axis) for e in odd_elems],
+                [
+                    slice_along_axis(e, 2, None, step=2, axis=axis)
+                    for e in elems
+                ],
+            )
+        else:
+            even_elems = _combine(
+                odd_elems,
+                [
+                    slice_along_axis(e, 2, None, step=2, axis=axis)
+                    for e in elems
+                ],
+            )
+
+        even_elems = [
+            mx.concatenate(
+                [slice_along_axis(elem, 0, 1, axis=axis), result],
+                axis=axis,
+            )
+            for (elem, result) in zip(elems, even_elems)
+        ]
+        return list(
+            builtins.map(
+                functools.partial(_interleave, axis=axis), even_elems, odd_elems
+            )
+        )
+
+    scans = _scan(elems_flat)
+    if reverse:
+        scans = [mx.flip(scanned, (axis,)) for scanned in scans]
+
+    return tree.pack_sequence_as(elems, scans)
+
+
+def scatter(indices, values, shape):
+    """
+    Scatter updates into a new MLX array of the specified shape.
+    """
+    indices = convert_to_tensor(indices)
+    values = convert_to_tensor(values)
+    zeros = mx.zeros(shape, dtype=values.dtype)
+
+    index_length = indices.shape[-1]
+    value_shape = shape[index_length:]
+    indices = mx.reshape(indices, [-1, index_length])
+    values = mx.reshape(values, [-1] + list(value_shape))
+
+    for i in range(indices.shape[0]):
+        index = indices[i]
+        zeros[tuple(index)] += values[i]
+    return zeros
+
+
+def scatter_update(inputs, indices, updates):
+    """
+    In-place scatter update for MLX arrays.
+    """
+    indices = mx.array(indices)
+    indices = mx.transpose(indices)
+    inputs[tuple(indices)] = updates
+    return inputs
+
+
+def slice(inputs, start_indices, lengths):
+    """
+    Returns a slice from MLX arrays at the specified indices.
+    """
+    # Validate inputs
+    assert len(start_indices) == len(lengths)
+
+    # Generate list of indices arrays for each dimension
+    indices = [
+        mx.arange(start, start + length)
+        for start, length in zip(start_indices, lengths)
+    ]
+
+    # Use np.ix_ to create a multidimensional index array
+    mesh = mx.ix_(*indices)
+
+    return inputs[mesh]
+
+
+def slice_update(inputs, start_indices, updates):
+    """
+    Updates a slice segment in MLX arrays at the specified indices.
+    """
+    # Generate list of indices arrays for each dimension
+    indices = [
+        mx.arange(start, start + length)
+        for start, length in zip(start_indices, updates.shape)
+    ]
+
+    # Use np.ix_ to create a multidimensional index array
+    mesh = mx.ix_(*indices)
+    inputs[mesh] = updates
+    return inputs
+
+
+def switch(index, branches, *operands):
+    index = convert_to_tensor(index, "int32")
+    index = mx.clip(index, 0, len(branches) - 1)
+    return branches[index](*operands)
+
+
+def while_loop(
+    cond,
+    body,
+    loop_vars,
+    maximum_iterations=None,
+):
+    current_iter = 0
+    def iteration_check(iter):
+        return maximum_iterations is None or iter < maximum_iterations
+    is_tuple = isinstance(loop_vars, (tuple, list))
+    loop_vars = tuple(loop_vars) if is_tuple else (loop_vars,)
+    loop_vars = tree.map_structure(convert_to_tensor, loop_vars)
+    while cond(*loop_vars) and iteration_check(current_iter):
+        loop_vars = body(*loop_vars)
+        if not isinstance(loop_vars, (list, tuple)):
+            loop_vars = (loop_vars,)
+        loop_vars = tuple(loop_vars)
+        current_iter += 1
+    return loop_vars if is_tuple else loop_vars[0]
+
+
+def fori_loop(lower, upper, body_fun, init_val):
+    val = init_val
+    for i in range(lower, upper):
+        val = body_fun(i, val)
+    return val
+
+
+def stop_gradient(x):
+    return x
+
+
+def unstack(x, num=None, axis=0):
+    x = mx.moveaxis(x, axis, 0)
+    return [x[i] for i in range(x.shape[0])]
+
+
+def random_seed_dtype():
+    return "uint32"
+
+
+class custom_gradient:
+    """Decorator for custom gradients.
+
+    Args:
+        fun: Forward pass function.
+    """
+
+    def __init__(self, fun):
+        warnings.warn(
+            "`custom_gradient` for the numpy backend acts as a pass-through to "
+            "support the forward pass. No gradient computation or modification "
+            "takes place."
+        )
+        self.fun = fun
+
+    def __call__(self, *args, **kwargs):
+        outputs, _ = self.fun(*args, **kwargs)
+        return outputs
+
+
+@contextlib.contextmanager
+def device_scope(device_name):
+    yield

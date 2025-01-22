@@ -1,9 +1,12 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.backend.common.stateless_scope import StatelessScope
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend.common.stateless_scope import StatelessScope
 
 
 class TestStatelessScope(testing.TestCase):

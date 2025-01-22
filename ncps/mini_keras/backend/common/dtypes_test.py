@@ -2,18 +2,18 @@ from unittest.mock import patch
 
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.backend.common import dtypes
-from keras.src.testing import test_case
-from keras.src.testing.test_utils import named_product
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.testing import test_case
+from ncps.mini_keras.testing.test_utils import named_product
 
 
 class DtypesTest(test_case.TestCase):
     """Test the dtype to verify that the behavior matches JAX."""
 
     if backend.backend() == "torch":
-        from keras.src.backend.torch.core import to_torch_dtype
+        from ncps.mini_keras.backend.torch.core import to_torch_dtype # noqa: F401
 
         # TODO: torch doesn't support uint64.
         ALL_DTYPES = []
@@ -29,6 +29,16 @@ class DtypesTest(test_case.TestCase):
             for x in dtypes.ALLOWED_DTYPES
             if x not in ["string", "complex64", "complex128"]
         ] + [None]
+    elif backend.backend() == "mlx":
+        # MLX supports a subset of numpy dtypes
+        ALL_DTYPES = [
+            "bool",
+            "uint8", "uint16", "uint32",
+            "int8", "int16", "int32",
+            "float16", "float32",
+            "bfloat16",
+            None
+        ]
     else:
         ALL_DTYPES = [x for x in dtypes.ALLOWED_DTYPES if x != "string"] + [
             None
@@ -37,40 +47,56 @@ class DtypesTest(test_case.TestCase):
     ALL_DTYPES = [x for x in ALL_DTYPES if x not in dtypes.FLOAT8_TYPES]
 
     def setUp(self):
-        from jax.experimental import enable_x64
-
-        self.jax_enable_x64 = enable_x64()
-        self.jax_enable_x64.__enter__()
+        if backend.backend() != "mlx":
+            from jax.experimental import enable_x64 # type: ignore # noqa: F401
+            self.jax_enable_x64 = enable_x64()
+            self.jax_enable_x64.__enter__()
         return super().setUp()
 
     def tearDown(self):
-        self.jax_enable_x64.__exit__(None, None, None)
+        if backend.backend() != "mlx":
+            self.jax_enable_x64.__exit__(None, None, None)
         return super().tearDown()
 
     @parameterized.named_parameters(
         named_product(dtype1=ALL_DTYPES, dtype2=[bool, int, float])
     )
     def test_result_type_with_python_scalar_types(self, dtype1, dtype2):
-        import jax.numpy as jnp
-
-        out = backend.result_type(dtype1, dtype2)
-        expected = jnp.result_type(dtype1, dtype2).name
-        self.assertEqual(out, expected)
+        if backend.backend() == "mlx":
+            import mlx.core as mx
+            out = backend.result_type(dtype1, dtype2)
+            # Convert Python types to MLX types for comparison
+            mlx_dtype1 = mx.float32 if dtype1 is None else mx.dtype(dtype1)
+            mlx_dtype2 = mx.dtype(str(mx.array(dtype2).dtype))
+            expected = str(mx.result_type(mlx_dtype1, mlx_dtype2))
+            self.assertEqual(out, expected)
+        else:
+            import jax.numpy as jnp
+            out = backend.result_type(dtype1, dtype2)
+            expected = jnp.result_type(dtype1, dtype2).name
+            self.assertEqual(out, expected)
 
     @parameterized.named_parameters(
         named_product(dtype1=ALL_DTYPES, dtype2=ALL_DTYPES)
     )
     def test_result_type_with_tensor(self, dtype1, dtype2):
-        import jax.numpy as jnp
+        if backend.backend() == "mlx":
+            import mlx.core as mx
+            x1 = ops.ones((1,), dtype=dtype1)
+            x2 = ops.ones((1,), dtype=dtype2)
+            out = backend.result_type(x1.dtype, x2.dtype)
+            expected = str(mx.result_type(x1.dtype, x2.dtype))
+            self.assertEqual(out, expected)
+        else:
+            import jax.numpy as jnp
+            x1 = ops.ones((1,), dtype=dtype1)
+            x2 = ops.ones((1,), dtype=dtype2)
+            x1_jax = jnp.ones((1,), dtype=dtype1)
+            x2_jax = jnp.ones((1,), dtype=dtype2)
 
-        x1 = ops.ones((1,), dtype=dtype1)
-        x2 = ops.ones((1,), dtype=dtype2)
-        x1_jax = jnp.ones((1,), dtype=dtype1)
-        x2_jax = jnp.ones((1,), dtype=dtype2)
-
-        out = backend.result_type(x1.dtype, x2.dtype)
-        expected = jnp.result_type(x1_jax, x2_jax).name
-        self.assertEqual(out, expected)
+            out = backend.result_type(x1.dtype, x2.dtype)
+            expected = jnp.result_type(x1_jax, x2_jax).name
+            self.assertEqual(out, expected)
 
     def test_result_type_with_none(self):
         import jax.numpy as jnp
@@ -90,7 +116,10 @@ class DtypesTest(test_case.TestCase):
         self.assertEqual(dtypes._respect_weak_type("float32", True), "float")
 
     def test_resolve_weak_type_for_bfloat16(self):
-        self.assertEqual(dtypes._resolve_weak_type("bfloat16"), "float32")
+        if backend.backend() == "mlx":
+            self.assertEqual(dtypes._resolve_weak_type("bfloat16"), "float32")
+        else:
+            self.assertEqual(dtypes._resolve_weak_type("bfloat16"), "float32")
 
     def test_resolve_weak_type_for_bfloat16_with_precision(self):
         self.assertEqual(
@@ -109,7 +138,7 @@ class DtypesTest(test_case.TestCase):
 
     def test_invalid_dtype_for_keras_promotion(self):
         with self.assertRaisesRegex(
-            ValueError, "is not a valid dtype for Keras type promotion."
+            ValueError, "is not a valid dtype for ncps.mini_keras type promotion."
         ):
             dtypes._least_upper_bound("invalid_dtype")
 
@@ -153,7 +182,7 @@ class DtypesTest(test_case.TestCase):
     def test_invalid_dtype_in_least_upper_bound(self):
         invalid_dtype = "non_existent_dtype"
         with self.assertRaisesRegex(
-            ValueError, "is not a valid dtype for Keras type promotion"
+            ValueError, "is not a valid dtype for ncps.mini_keras type promotion"
         ):
             dtypes._least_upper_bound(invalid_dtype)
 
@@ -178,7 +207,7 @@ class DtypesTest(test_case.TestCase):
     def test_valid_dtype_leading_to_keyerror_and_valueerror(self):
         invalid_dtype = "non_existent_dtype"
         with self.assertRaisesRegex(
-            ValueError, "is not a valid dtype for Keras type promotion"
+            ValueError, "is not a valid dtype for ncps.mini_keras type promotion"
         ):
             dtypes._least_upper_bound(invalid_dtype)
 

@@ -1,20 +1,23 @@
 import itertools
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 from absl.testing import parameterized
 
 from conftest import skip_if_backend
-from keras.src import backend
-from keras.src import initializers
-from keras.src import ops
-from keras.src.backend.common import dtypes
-from keras.src.backend.common.variables import AutocastScope
-from keras.src.backend.common.variables import shape_equal
-from keras.src.backend.common.variables import standardize_dtype
-from keras.src.backend.common.variables import standardize_shape
-from keras.src.testing import test_case
-from keras.src.testing.test_utils import named_product
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.common.variables import AutocastScope
+from ncps.mini_keras.backend.common.variables import shape_equal
+from ncps.mini_keras.backend.common.variables import standardize_dtype
+from ncps.mini_keras.backend.common.variables import standardize_shape
+from ncps.mini_keras.testing import test_case
+from ncps.mini_keras.testing.test_utils import named_product
 
 
 class VariableInitializationTest(test_case.TestCase):
@@ -355,7 +358,7 @@ class VariableNumpyValueAndAssignmentTest(test_case.TestCase):
         reason="Tests for MirroredVariable under tf backend",
     )
     def test_variable_numpy_scalar(self):
-        from keras.src.utils.module_utils import tensorflow as tf
+        from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
         strategy = tf.distribute.MirroredStrategy(["cpu:0", "cpu:1"])
         with strategy.scope():

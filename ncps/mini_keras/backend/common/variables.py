@@ -1,15 +1,18 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.backend import config
-from keras.src.backend.common import dtypes
-from keras.src.backend.common import global_state
-from keras.src.backend.common.name_scope import current_path
-from keras.src.backend.common.stateless_scope import get_stateless_scope
-from keras.src.backend.common.stateless_scope import in_stateless_scope
-from keras.src.utils.module_utils import tensorflow as tf
-from keras.src.utils.naming import auto_name
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.backend.common.name_scope import current_path
+from ncps.mini_keras.backend.common.stateless_scope import get_stateless_scope
+from ncps.mini_keras.backend.common.stateless_scope import in_stateless_scope
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
+from ncps.mini_keras.utils.naming import auto_name
 
 
 class Variable:
@@ -58,16 +61,16 @@ class Variable:
 
     ```python
     import numpy as np
-    import keras
+    import ncps.mini_keras
     initial_array = np.ones((3, 3))
-    variable_from_array = keras.Variable(initializer=initial_array)
+    variable_from_array = ncps.mini_keras.Variable(initializer=initial_array)
     ```
 
     **Using a Keras initializer to create a `Variable`:**
 
     ```python
-    from keras.src.initializers import Ones
-    variable_from_initializer = keras.Variable(
+    from ncps.mini_keras.initializers import Ones
+    variable_from_initializer = ncps.mini_keras.Variable(
         initializer=Ones(), shape=(3, 3), dtype="float32"
     )
     ```
@@ -82,7 +85,7 @@ class Variable:
     **Marking a `Variable` as non-trainable:**
 
     ```python
-    non_trainable_variable = keras.Variable(
+    non_trainable_variable = ncps.mini_keras.Variable(
         initializer=np.ones((3, 3), dtype="float32"), trainable=False
     )
     ```
@@ -138,7 +141,7 @@ class Variable:
         # Ref: https://github.com/google/flax/blob/main/flax/linen/fp8_ops.py
         self._overwrite_with_gradient = False
         if isinstance(initializer, str):
-            from keras.src import initializers
+            from ncps.mini_keras import initializers
 
             initializer = initializers.get(initializer)
         if callable(initializer):
@@ -220,6 +223,8 @@ class Variable:
         return value
 
     def numpy(self):
+        if backend.backend() == "mlx":
+            return np.asarray(self.value)
         return np.array(self)
 
     @property
@@ -340,12 +345,12 @@ class Variable:
 
     @regularizer.setter
     def regularizer(self, value):
-        from keras.src.regularizers import Regularizer
+        from ncps.mini_keras.regularizers import Regularizer
 
         if value is not None and not isinstance(value, Regularizer):
             raise ValueError(
                 "Invalid value for attribute `regularizer`. Expected an "
-                "instance of `keras.regularizers.Regularizer`, or `None`. "
+                "instance of `ncps.mini_keras.regularizers.Regularizer`, or `None`. "
                 f"Received: regularizer={value}"
             )
         self._regularizer = value
@@ -356,12 +361,12 @@ class Variable:
 
     @constraint.setter
     def constraint(self, value):
-        from keras.src.constraints import Constraint
+        from ncps.mini_keras.constraints import Constraint
 
         if value is not None and not isinstance(value, Constraint):
             raise ValueError(
                 "Invalid value for attribute `constraint`. Expected an "
-                "instance of `keras.constraints.Constraint`, or `None`. "
+                "instance of `ncps.mini_keras.constraints.Constraint`, or `None`. "
                 f"Received: constraint={value}"
             )
         self._constraint = value
@@ -377,7 +382,13 @@ class Variable:
         )
 
     def _initialize(self, value):
-        raise NotImplementedError
+        if backend.backend() == "mlx":
+            if isinstance(value, np.array):
+                self._value = value
+            else:
+                self._value = np.array(value)
+        else:
+            raise NotImplementedError
 
     def _initialize_with_initializer(self, initializer):
         value = self._convert_to_tensor(
@@ -386,7 +397,16 @@ class Variable:
         self._initialize(value)
 
     def _convert_to_tensor(self, value, dtype=None):
-        raise NotImplementedError
+        if backend.backend() == "mlx":
+            if dtype is None:
+                dtype = self.dtype
+            if isinstance(value, np.array):
+                if value.dtype != dtype:
+                    return value.astype(dtype)
+                return value
+            return np.array(value, dtype=dtype)
+        else:
+            raise NotImplementedError
 
     def __getitem__(self, idx):
         return self.value.__getitem__(idx)
@@ -408,11 +428,13 @@ class Variable:
         return float(self.value)
 
     def __array__(self, dtype=None):
-        # We can't directly use self.value.__array__ here because of scalar.
-        # Numpy require this method to return as array like object. In the case
-        # of scalar, it will fail the type checking from numpy. We need to
-        # return a 0d array via numpy.
-        return np.asarray(self.value.__array__(dtype))
+        if backend.backend() == "mlx":
+            # Handle MLX arrays specifically
+            value = self.value
+            if dtype is not None:
+                value = value.astype(dtype)
+            return np.asarray(value)
+        return np.array(self.value, dtype=dtype)
 
     def __bool__(self):
         raise TypeError("A Keras Variable cannot be used as a boolean.")
@@ -533,12 +555,36 @@ def initialize_all_variables():
     global_state.set_global_attribute("uninitialized_variables", [])
 
 
-@keras_export(
-    ["keras.utils.standardize_dtype", "keras.backend.standardize_dtype"]
+@keras_mini_export(
+    ["ncps.mini_keras.utils.standardize_dtype", "ncps.mini_keras.backend.standardize_dtype"]
 )
 def standardize_dtype(dtype):
-    if dtype is None:
-        return config.floatx()
+    if backend.backend() == "mlx":
+        if dtype is None:
+            return config.floatx()
+        if isinstance(dtype, np.dtype):
+            dtype = str(dtype)
+        elif hasattr(dtype, "__str__"):
+            dtype = str(dtype).split(".")[-1]
+        elif hasattr(dtype, "__name__"):
+            dtype = dtype.__name__
+        # Map MLX dtypes to standard string names
+        dtype_map = {
+            "bool_": "bool",
+            "uint8": "uint8", 
+            "uint16": "uint16",
+            "uint32": "uint32",
+            "int8": "int8",
+            "int16": "int16", 
+            "int32": "int32",
+            "float16": "float16",
+            "float32": "float32",
+            "bfloat16": "bfloat16"
+        }
+        dtype = dtype_map.get(dtype, dtype)
+    else:
+        if dtype is None:
+            return config.floatx()
     dtype = dtypes.PYTHON_DTYPES_MAP.get(dtype, dtype)
     if hasattr(dtype, "name"):
         dtype = dtype.name
@@ -601,14 +647,21 @@ def shape_equal(a_shape, b_shape):
     return True
 
 
-@keras_export("keras.backend.is_float_dtype")
+@keras_mini_export("ncps.mini_keras.backend.is_float_dtype")
 def is_float_dtype(dtype):
+    if backend.backend() == "mlx":
+        if isinstance(dtype, np.dtype):
+            dtype = str(dtype)
+        dtype = standardize_dtype(dtype)
     dtype = standardize_dtype(dtype)
     return dtype.startswith("float") or dtype.startswith("bfloat")
 
 
-@keras_export("keras.backend.is_int_dtype")
+@keras_mini_export("ncps.mini_keras.backend.is_int_dtype")
 def is_int_dtype(dtype):
+    if backend.backend() == "mlx":
+        if isinstance(dtype, np.dtype):
+            dtype = str(dtype)
     dtype = standardize_dtype(dtype)
     return dtype.startswith("int") or dtype.startswith("uint")
 
@@ -637,7 +690,7 @@ class AutocastScope:
         self.original_scope = None
 
     def maybe_cast(self, value):
-        from keras.src import backend
+        from ncps.mini_keras import backend
 
         if self.dtype is not None and is_float_dtype(value.dtype):
             return backend.cast(value, dtype=self.dtype)

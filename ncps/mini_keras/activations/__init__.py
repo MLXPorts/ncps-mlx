@@ -1,3 +1,8 @@
+"""Activation functions for mini-keras.
+
+This module provides common activation functions used in neural networks.
+"""
+
 import types
 
 from .activations import celu
@@ -26,6 +31,7 @@ from .activations import softsign
 from .activations import sparse_plus
 from .activations import sparsemax
 from .activations import squareplus
+from .activations import lecun_tanh
 from .activations import tanh
 from .activations import tanh_shrink
 from .activations import threshold
@@ -50,6 +56,7 @@ ALL_OBJECTS = {
     gelu,
     glu,
     tanh,
+    lecun_tanh,
     tanh_shrink,
     threshold,
     sigmoid,

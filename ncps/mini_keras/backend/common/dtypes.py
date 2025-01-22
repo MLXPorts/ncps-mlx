@@ -1,8 +1,8 @@
 import functools
 
-from keras.src.api_export import keras_export
-from keras.src.backend import config
-from keras.src.backend.common.variables import standardize_dtype
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend.common.variables import standardize_dtype
 
 BOOL_TYPES = ("bool",)
 INT_TYPES = (
@@ -278,7 +278,7 @@ def _lattice_result_type(*args):
     return out_dtype
 
 
-@keras_export("keras.backend.result_type")
+@keras_mini_export("ncps.mini_keras.backend.result_type")
 def result_type(*dtypes):
     """Returns the type from applying the Keras type promotion rules.
 

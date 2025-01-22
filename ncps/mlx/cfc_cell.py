@@ -12,18 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import ncps.mini_keras
-from ncps.mini_keras.activations import ALL_OBJECTS_DICT
-
-
-# LeCun improved tanh activation
-# http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
-@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="lecun_tanh")
-def lecun_tanh(x):
-    return 1.7159 * ncps.mini_keras.activations.tanh(0.666 * x)
 
 
 @ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="CfCCell")
-class CfCCell(ncps.mini_keras.layers.Layer):
+class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
     def __init__(
         self,
         units,
@@ -38,19 +30,18 @@ class CfCCell(ncps.mini_keras.layers.Layer):
         """A `Closed-form Continuous-time <https://arxiv.org/abs/2106.13898>`_ cell.
 
         .. Note::
-            This is an RNNCell that process single time-steps.
+            This is an RNNCell that processes single time-steps.
             To get a full RNN that can process sequences,
-            see `ncps.keras.CfC` or wrap the cell with a `keras.layers.RNN <https://www.tensorflow.org/api_docs/python/tf/keras/layers/RNN>`_.
-
+            see `ncps.mlx.CfC` or wrap the cell with a `ncps.mini_keras.layers.RNN`.
 
         :param units: Number of hidden units
-        :param recurrent_sparsity:
         :param mode: Either "default", "pure" (direct solution approximation), or "no_gate" (without second gate).
         :param activation: Activation function used in the backbone layers
         :param backbone_units: Number of hidden units in the backbone layer (default 128)
         :param backbone_layers: Number of backbone layers (default 1)
-        :param backbone_dropout: Dropout rate in the backbone layers (default 0)
-        :param kwargs:
+        :param backbone_dropout: Dropout rate in the backbone layers (default 0.1)
+        :param sparsity_mask: Optional sparsity mask for the weights
+        :param kwargs: Additional keyword arguments
         """
         super().__init__(**kwargs)
         self.units = units

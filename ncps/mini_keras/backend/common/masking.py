@@ -1,5 +1,5 @@
-from keras.src.backend.common.tensor_attributes import get_tensor_attr
-from keras.src.backend.common.tensor_attributes import set_tensor_attr
+from ncps.mini_keras.backend.common.tensor_attributes import get_tensor_attr
+from ncps.mini_keras.backend.common.tensor_attributes import set_tensor_attr
 
 
 def set_keras_mask(x, mask):

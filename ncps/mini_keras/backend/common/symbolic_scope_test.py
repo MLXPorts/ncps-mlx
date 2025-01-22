@@ -1,9 +1,9 @@
 import numpy as np
 
-from keras.src import ops
-from keras.src import testing
-from keras.src.backend.common.symbolic_scope import SymbolicScope
-from keras.src.backend.common.symbolic_scope import in_symbolic_scope
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend.common.symbolic_scope import SymbolicScope
+from ncps.mini_keras.backend.common.symbolic_scope import in_symbolic_scope
 
 
 class TestSymbolicScope(testing.TestCase):

@@ -55,6 +55,10 @@ elif backend() == "openvino":
     from ncps.mini_keras.backend.openvino.core import Variable as BackendVariable
 
     distribution_lib = None
+elif backend() == "mlx":
+    from ncps.mini_keras.backend.mlx import * # noqa: F403
+    from ncps.mini_keras.backend.mlx.core import Variable as BackendVariable
+    
 else:
     raise ValueError(f"Unable to import backend : {backend()}")
 

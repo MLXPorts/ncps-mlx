@@ -1,10 +1,10 @@
 import jax
 import ml_dtypes
-import numpy as np
+import mlx.core as mx
 
-from keras.src import backend
-from keras.src.backend.numpy.core import convert_to_tensor
-from keras.src.utils.module_utils import scipy
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.mlx.core import convert_to_tensor
+from ncps.mini_keras.utils.module_utils import scipy
 
 RESIZE_INTERPOLATIONS = (
     "bilinear",
@@ -31,9 +31,9 @@ def rgb_to_grayscale(images, data_format=None):
     images = images.astype(compute_dtype)
 
     # Ref: tf.image.rgb_to_grayscale
-    rgb_weights = np.array([0.2989, 0.5870, 0.1140], dtype=images.dtype)
-    grayscales = np.tensordot(images, rgb_weights, axes=(channels_axis, -1))
-    grayscales = np.expand_dims(grayscales, axis=channels_axis)
+    rgb_weights = mx.array([0.2989, 0.5870, 0.1140], dtype=images.dtype)
+    grayscales = mx.tensordot(images, rgb_weights, axes=(channels_axis, -1))
+    grayscales = mx.expand_dims(grayscales, axis=channels_axis)
     return grayscales.astype(original_dtype)
 
 
@@ -55,33 +55,33 @@ def rgb_to_hsv(images, data_format=None):
             f"Received: images.dtype={dtype}"
         )
     eps = ml_dtypes.finfo(dtype).eps
-    images = np.where(np.abs(images) < eps, 0.0, images)
-    red, green, blue = np.split(images, 3, channels_axis)
-    red = np.squeeze(red, channels_axis)
-    green = np.squeeze(green, channels_axis)
-    blue = np.squeeze(blue, channels_axis)
+    images = mx.where(mx.abs(images) < eps, 0.0, images)
+    red, green, blue = mx.split(images, 3, channels_axis)
+    red = mx.squeeze(red, channels_axis)
+    green = mx.squeeze(green, channels_axis)
+    blue = mx.squeeze(blue, channels_axis)
 
     def rgb_planes_to_hsv_planes(r, g, b):
-        value = np.maximum(np.maximum(r, g), b)
-        minimum = np.minimum(np.minimum(r, g), b)
+        value = mx.maximum(mx.maximum(r, g), b)
+        minimum = mx.minimum(mx.minimum(r, g), b)
         range_ = value - minimum
 
-        safe_value = np.where(value > 0, value, 1.0)
-        safe_range = np.where(range_ > 0, range_, 1.0)
+        safe_value = mx.where(value > 0, value, 1.0)
+        safe_range = mx.where(range_ > 0, range_, 1.0)
 
-        saturation = np.where(value > 0, range_ / safe_value, 0.0)
+        saturation = mx.where(value > 0, range_ / safe_value, 0.0)
         norm = 1.0 / (6.0 * safe_range)
 
-        hue = np.where(
+        hue = mx.where(
             value == g,
             norm * (b - r) + 2.0 / 6.0,
             norm * (r - g) + 4.0 / 6.0,
         )
-        hue = np.where(value == r, norm * (g - b), hue)
-        hue = np.where(range_ > 0, hue, 0.0) + (hue < 0.0).astype(hue.dtype)
+        hue = mx.where(value == r, norm * (g - b), hue)
+        hue = mx.where(range_ > 0, hue, 0.0) + (hue < 0.0).astype(hue.dtype)
         return hue, saturation, value
 
-    images = np.stack(
+    images = mx.stack(
         rgb_planes_to_hsv_planes(red, green, blue), axis=channels_axis
     )
     return images.astype(dtype)
@@ -104,16 +104,16 @@ def hsv_to_rgb(images, data_format=None):
             "Invalid images dtype: expected float dtype. "
             f"Received: images.dtype={backend.standardize_dtype(dtype)}"
         )
-    hue, saturation, value = np.split(images, 3, channels_axis)
-    hue = np.squeeze(hue, channels_axis)
-    saturation = np.squeeze(saturation, channels_axis)
-    value = np.squeeze(value, channels_axis)
+    hue, saturation, value = mx.split(images, 3, channels_axis)
+    hue = mx.squeeze(hue, channels_axis)
+    saturation = mx.squeeze(saturation, channels_axis)
+    value = mx.squeeze(value, channels_axis)
 
     def hsv_planes_to_rgb_planes(hue, saturation, value):
-        dh = np.mod(hue, 1.0) * 6.0
-        dr = np.clip(np.abs(dh - 3.0) - 1.0, 0.0, 1.0)
-        dg = np.clip(2.0 - np.abs(dh - 2.0), 0.0, 1.0)
-        db = np.clip(2.0 - np.abs(dh - 4.0), 0.0, 1.0)
+        dh = mx.mod(hue, 1.0) * 6.0
+        dr = mx.clip(mx.abs(dh - 3.0) - 1.0, 0.0, 1.0)
+        dg = mx.clip(2.0 - mx.abs(dh - 2.0), 0.0, 1.0)
+        db = mx.clip(2.0 - mx.abs(dh - 4.0), 0.0, 1.0)
         one_minus_s = 1.0 - saturation
 
         red = value * (one_minus_s + saturation * dr)
@@ -121,7 +121,7 @@ def hsv_to_rgb(images, data_format=None):
         blue = value * (one_minus_s + saturation * db)
         return red, green, blue
 
-    images = np.stack(
+    images = mx.stack(
         hsv_planes_to_rgb_planes(hue, saturation, value), axis=channels_axis
     )
     return images.astype(dtype)
@@ -174,7 +174,7 @@ def resize(
     else:
         raise ValueError(
             "Invalid images rank: expected rank 3 (single image) "
-            "or rank 4 (batch of images). Received input with shape: "
+            "or rank 4 (batch of images). Received imxut with shape: "
             f"images.shape={images.shape}"
         )
 
@@ -234,7 +234,7 @@ def resize(
         if data_format == "channels_last":
             if len(images.shape) == 4:
                 padded_img = (
-                    np.ones(
+                    mx.ones(
                         (
                             batch_size,
                             pad_height + height,
@@ -253,7 +253,7 @@ def resize(
                 ] = images
             else:
                 padded_img = (
-                    np.ones(
+                    mx.ones(
                         (pad_height + height, pad_width + width, channels),
                         dtype=images.dtype,
                     )
@@ -267,7 +267,7 @@ def resize(
         else:
             if len(images.shape) == 4:
                 padded_img = (
-                    np.ones(
+                    mx.ones(
                         (
                             batch_size,
                             channels,
@@ -286,7 +286,7 @@ def resize(
                 ] = images
             else:
                 padded_img = (
-                    np.ones(
+                    mx.ones(
                         (channels, pad_height + height, pad_width + width),
                         dtype=images.dtype,
                     )
@@ -299,7 +299,7 @@ def resize(
                 ] = images
         images = padded_img
 
-    return np.array(
+    return mx.array(
         jax.image.resize(
             images, size, method=interpolation, antialias=antialias
         )
@@ -363,24 +363,24 @@ def affine_transform(
     # unbatched case
     need_squeeze = False
     if len(images.shape) == 3:
-        images = np.expand_dims(images, axis=0)
+        images = mx.expand_dims(images, axis=0)
         need_squeeze = True
     if len(transform.shape) == 1:
-        transform = np.expand_dims(transform, axis=0)
+        transform = mx.expand_dims(transform, axis=0)
 
     if data_format == "channels_first":
-        images = np.transpose(images, (0, 2, 3, 1))
+        images = mx.transpose(images, (0, 2, 3, 1))
 
     batch_size = images.shape[0]
 
     # get indices
-    meshgrid = np.meshgrid(
-        *[np.arange(size) for size in images.shape[1:]], indexing="ij"
+    meshgrid = mx.meshgrid(
+        *[mx.arange(size) for size in images.shape[1:]], indexing="ij"
     )
-    indices = np.concatenate(
-        [np.expand_dims(x, axis=-1) for x in meshgrid], axis=-1
+    indices = mx.concatenate(
+        [mx.expand_dims(x, axis=-1) for x in meshgrid], axis=-1
     )
-    indices = np.tile(indices, (batch_size, 1, 1, 1, 1))
+    indices = mx.tile(indices, (batch_size, 1, 1, 1, 1))
 
     # swap the values
     a0 = transform[:, 0].copy()
@@ -393,19 +393,19 @@ def affine_transform(
     transform[:, 5] = a2
 
     # deal with transform
-    transform = np.pad(transform, pad_width=[[0, 0], [0, 1]], constant_values=1)
-    transform = np.reshape(transform, (batch_size, 3, 3))
+    transform = mx.pad(transform, pad_width=[[0, 0], [0, 1]], constant_values=1)
+    transform = mx.reshape(transform, (batch_size, 3, 3))
     offset = transform[:, 0:2, 2].copy()
-    offset = np.pad(offset, pad_width=[[0, 0], [0, 1]])
+    offset = mx.pad(offset, pad_width=[[0, 0], [0, 1]])
     transform[:, 0:2, 2] = 0
 
     # transform the indices
-    coordinates = np.einsum("Bhwij, Bjk -> Bhwik", indices, transform)
-    coordinates = np.moveaxis(coordinates, source=-1, destination=1)
-    coordinates += np.reshape(a=offset, newshape=(*offset.shape, 1, 1, 1))
+    coordinates = mx.einsum("Bhwij, Bjk -> Bhwik", indices, transform)
+    coordinates = mx.moveaxis(coordinates, source=-1, destination=1)
+    coordinates += mx.reshape(a=offset, newshape=(*offset.shape, 1, 1, 1))
 
     # apply affine transformation
-    affined = np.stack(
+    affined = mx.stack(
         [
             map_coordinates(
                 images[i],
@@ -420,9 +420,9 @@ def affine_transform(
     )
 
     if data_format == "channels_first":
-        affined = np.transpose(affined, (0, 3, 1, 2))
+        affined = mx.transpose(affined, (0, 3, 1, 2))
     if need_squeeze:
-        affined = np.squeeze(affined, axis=0)
+        affined = mx.squeeze(affined, axis=0)
     if input_dtype == "float16":
         affined = affined.astype(input_dtype)
     return affined
@@ -471,8 +471,8 @@ def map_coordinates(
     # https://github.com/scipy/scipy/issues/2640
     padding = [
         (
-            max(-np.floor(c.min()).astype(int) + 1, 0),
-            max(np.ceil(c.max()).astype(int) + 1 - size, 0),
+            max(-mx.floor(c.min()).astype(int) + 1, 0),
+            max(mx.ceil(c.max()).astype(int) + 1 - size, 0),
         )
         for c, size in zip(coordinates, inputs.shape)
     ]
@@ -483,11 +483,11 @@ def map_coordinates(
         "reflect": "symmetric",
     }.get(fill_mode, fill_mode)
     if fill_mode == "constant":
-        padded = np.pad(
-            inputs, padding, mode=pad_mode, constant_values=fill_value
+        padded = mx.pad(
+            imxuts, padding, mode=pad_mode, constant_values=fill_value
         )
     else:
-        padded = np.pad(inputs, padding, mode=pad_mode)
+        padded = mx.pad(inputs, padding, mode=pad_mode)
     result = scipy.ndimage.map_coordinates(
         padded, shifted_coords, order=order, mode=fill_mode, cval=fill_value
     )

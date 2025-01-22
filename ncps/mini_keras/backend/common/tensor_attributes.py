@@ -1,6 +1,6 @@
 import weakref
 
-from keras.src.backend.common import global_state
+from ncps.mini_keras.backend.common import global_state
 
 
 def _clear_tensor_attr(tensor_id, attr):

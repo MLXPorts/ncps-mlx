@@ -23,12 +23,13 @@ from .stacked_rnn_cells_test import StackedRNNTest
 from .stacked_rnn_cells import StackedRNNCells
 from .time_distributed_test import TimeDistributedTest
 from .time_distributed import TimeDistributed
+from .abstract_rnn_cell import AbstractRNNCell
 
 __all__ = [ "RNN", "SimpleRNNTest", "Bidirectional", "ConvLSTMCellTest", "ConvLSTMTest", "ConvLSTMCell", "ConvLSTM", 
            "ConvLSTM1DTest", "ConvLSTM1D", "ConvLSTM2DTest", "ConvLSTM2D", "ConvLSTM3DTest", "ConvLSTM3D", 
            "DropoutRNNCellTest", "DropoutRNNCell", "GRUTest", "GRU", "LSTMTest", "LSTM", "RNNTest", "RNN", 
            "SimpleRNNTest", "SimpleRNN", "StackedRNNTest", "StackedRNNCells", "TimeDistributedTest", 
-           "TimeDistributed" ]
+           "TimeDistributed", "AbstractRNNCell", "BidirectionalTest" ]
 
 
 

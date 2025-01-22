@@ -1,9 +1,7 @@
 import mlx.core as mx
 import numpy as np
 from typing import Tuple
-import ncps
 
-@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="HPC16x8")
 class HPC16x8:
     """
     128-bit HPC-limb integer in MLX: shape=(...,8), dtype=mx.uint16

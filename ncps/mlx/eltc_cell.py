@@ -18,9 +18,10 @@
 import mlx.core as mx
 from .ltc_cell import LTCCell
 import ncps
+import ncps.mini_keras.ops.ode as ode_ops
 
 @ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="EnhancedLTCCell")
-class EnhancedLTCCell(LTCCell):
+class EnhancedLTCCell(ncps.mini_keras.layers.Layer, LTCCell):
     """
     Enhanced Liquid Time-Constant Cell (LTC-SE) for MLX.
 
@@ -108,29 +109,13 @@ class EnhancedLTCCell(LTCCell):
             mx.array: Updated state after one time step.
         """
         if self.solver == "rk4":
-            return self._rk4_solver(f, y0, t0, dt)
+            return ode_ops.rk4_solve(f, y0, t0, dt)
         elif self.solver == "euler":
-            return y0 + dt * f(t0, y0)
+            return ode_ops.euler_solve(f, y0, t0, dt)
         elif self.solver == "semi_implicit":
-            return self._semi_implicit_solver(f, y0, dt)
+            return ode_ops.semi_implicit_solve(f, y0, dt)
         else:
             raise ValueError(f"Unsupported solver type: {self.solver}")
-
-    def _rk4_solver(self, f, y0, t0, dt):
-        """
-        Runge-Kutta 4th order solver.
-        """
-        k1 = f(t0, y0)
-        k2 = f(t0 + dt / 2, y0 + dt * k1 / 2)
-        k3 = f(t0 + dt / 2, y0 + dt * k2 / 2)
-        k4 = f(t0 + dt, y0 + dt * k3)
-        return y0 + dt * (k1 + 2 * k2 + 2 * k3 + k4) / 6
-
-    def _semi_implicit_solver(self, f, y0, dt):
-        """
-        Semi-Implicit solver.
-        """
-        return y0 + dt * (f(0, y0) - y0)
 
     def _ode_solver(self, inputs, state, elapsed_time):
         """

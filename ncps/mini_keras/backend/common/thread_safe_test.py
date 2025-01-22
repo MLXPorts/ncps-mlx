@@ -1,10 +1,12 @@
 import concurrent
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
-import numpy as np
-
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
 
 
 class TestThreadSafe(testing.TestCase):

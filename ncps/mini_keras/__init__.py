@@ -1,3 +1,9 @@
+"""Mini-Keras implementation for Neural Circuit Policies.
+
+A lightweight implementation of Keras-like functionality specifically
+for neural circuit policy training.
+"""
+
 from . import activations
 from . import applications
 from . import backend

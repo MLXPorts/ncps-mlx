@@ -1,8 +1,8 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.backend.common.masking import get_keras_mask
-from keras.src.backend.common.masking import set_keras_mask
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend.common.masking import get_keras_mask
+from ncps.mini_keras.backend.common.masking import set_keras_mask
 
 
 class MaskingTest(testing.TestCase):

@@ -1,6 +1,6 @@
-from keras.src.backend.common import global_state
-from keras.src.testing import test_case
-from keras.src.utils.naming import auto_name
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.testing import test_case
+from ncps.mini_keras.utils.naming import auto_name
 
 
 class GlobalStateTest(test_case.TestCase):
