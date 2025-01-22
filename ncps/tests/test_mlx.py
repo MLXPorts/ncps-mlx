@@ -14,7 +14,7 @@
 
 import mlx.core as mx
 import mlx.nn as nn
-from ncps.mlx import CfC, LTCCell, LTC
+from ncps.mlx import CfC, LTCCell, LTC, EnhancedLTCCell
 from ncps import wirings
 import numpy as np
 
@@ -258,6 +258,41 @@ def test_mixed_memory_enhanced():
     model = nn.Sequential(
         nn.InputLayer(input_shape=(None, 2)),
         ltc,
+    )
+    optimizer = nn.Adam(learning_rate=0.01)
+    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
+    model.fit(data_x, data_y, batch_size=1, epochs=3)
+
+
+def test_enhanced_ltc_cell():
+    """Test EnhancedLTCCell functionality"""
+    N = 48
+    data_x, data_y = generate_data(N)
+
+    wiring = wirings.FullyConnected(8, 1)
+    enhanced_ltc_cell = EnhancedLTCCell(wiring, solver="rk4", ode_unfolds=6)
+
+    rnn = nn.RNN(cell=enhanced_ltc_cell, return_sequences=True)
+    model = nn.Sequential(
+        nn.InputLayer(input_shape=(None, 2)),
+        rnn,
+    )
+    optimizer = nn.Adam(learning_rate=0.01)
+    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
+    model.fit(data_x, data_y, batch_size=1, epochs=3)
+
+
+def test_ltc_with_enhanced_ltc_cell():
+    """Test LTC with EnhancedLTCCell"""
+    N = 48
+    data_x, data_y = generate_data(N)
+
+    wiring = wirings.FullyConnected(8, 1)
+    enhanced_ltc = LTC(wiring, cell_class=EnhancedLTCCell, solver="rk4", ode_unfolds=6)
+
+    model = nn.Sequential(
+        nn.InputLayer(input_shape=(None, 2)),
+        enhanced_ltc,
     )
     optimizer = nn.Adam(learning_rate=0.01)
     model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())

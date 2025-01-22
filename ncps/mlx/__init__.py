@@ -20,6 +20,7 @@ from .cfc import CfC
 from .ltc import LTC
 from .ltc_cell import LTCCell
 from .mlx_init_utils import custom_qr, orthogonal, add_double_single
+from .eltc_cell import EnhancedLTCCell
 #from packaging.version import parse
 
 try:
@@ -41,4 +42,4 @@ except:  # noqa: E722
 #         "ok.".format(version=tf.__version__)
 #     )
 __all__ = ["CfC", "CfCCell", "LTC", "LTCCell", "MixedMemoryRNN", "WiredCfCCell", "custom_qr", "orthogonal", "lecun_tanh",
-           "add_double_single", "mx"]
+           "add_double_single", "mx", "EnhancedLTCCell"]
