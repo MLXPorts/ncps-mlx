@@ -179,20 +179,42 @@ class EnhancedLTCCell(LTCCell):
         return v_pre
 
     def call(self, inputs, states):
+        """
+        Call the EnhancedLTCCell with the given inputs and states.
+
+        Args:
+            inputs (mx.array): Input tensor.
+            states (list): List of state tensors.
+
+        Returns:
+            tuple: Output tensor and updated states.
+        """
         if self.solver == "rk4":
             return self._solve_rk4(inputs, states)
         elif self.solver == "euler":
             return self._solve_euler(inputs, states)
         else:
-            return super().call(inputs, states)
+            return self._solve_euler(inputs, states)
 
     def __call__(self, inputs, states):
-        """Make the cell callable."""
+        """
+        Make the cell callable.
+
+        Args:
+            inputs (mx.array): Input tensor.
+            states (list): List of state tensors.
+
+        Returns:
+            tuple: Output tensor and updated states.
+        """
         return self.call(inputs, states)
 
     def get_config(self):
         """
         Returns a serialized configuration of the EnhancedLTCCell.
+
+        Returns:
+            dict: Serialized configuration.
         """
         config = super().get_config()
         config.update({
@@ -206,6 +228,12 @@ class EnhancedLTCCell(LTCCell):
     def from_config(cls, config):
         """
         Reconstructs an EnhancedLTCCell from its serialized configuration.
+
+        Args:
+            config (dict): Serialized configuration.
+
+        Returns:
+            EnhancedLTCCell: Reconstructed EnhancedLTCCell instance.
         """
         base_config = LTCCell.from_config(config)
         return cls(

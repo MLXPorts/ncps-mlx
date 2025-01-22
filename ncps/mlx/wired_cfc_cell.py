@@ -120,7 +120,7 @@ class WiredCfCCell(ncps.mini_keras.layers.RNN):
         seralized = self._wiring.get_config()
         seralized["mode"] = self.mode
         seralized["activation"] = self._activation
-        seralized["backbone_units"] = self.hidden_units
+        seralized["backbone_units"] = self.hidden_layers
         seralized["backbone_layers"] = self.hidden_layers
         seralized["backbone_dropout"] = self.hidden_dropout
         return seralized

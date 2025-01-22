@@ -56,3 +56,113 @@ Diagram
 
 .. image:: ./img/things.png
    :align: center
+
+Detailed Explanations and Examples
+=============================
+
+The `ncps` package provides various modules and functions to work with Neural Circuit Policies. Here are some detailed explanations and examples for each module and function:
+
+1. `ncps.torch.CfC`: This module provides the implementation of the Closed-form Continuous-time (CfC) model for PyTorch. The CfC model approximates the closed-form solution of the differential equation, making it faster for training and inference compared to the LTC model.
+
+.. code-block:: python
+
+    from ncps.torch import CfC
+
+    # Create a fully connected CfC network
+    rnn = CfC(input_size=20, units=50)
+    x = torch.randn(2, 3, 20)  # (batch, time, features)
+    h0 = torch.zeros(2, 50)  # (batch, units)
+    output, hn = rnn(x, h0)
+
+2. `ncps.tf.LTC`: This module provides the implementation of the Liquid Time-Constant (LTC) model for TensorFlow. The LTC model is based on neurons in the form of differential equations interconnected via sigmoidal synapses.
+
+.. code-block:: python
+
+    from ncps.tf import LTC
+    from ncps.wirings import AutoNCP
+
+    wiring = AutoNCP(28, 4)  # 28 neurons, 4 outputs
+    model = tf.keras.models.Sequential(
+        [
+            tf.keras.layers.InputLayer(input_shape=(None, 2)),
+            LTC(wiring, return_sequences=True),
+        ]
+    )
+
+3. `ncps.wirings.AutoNCP`: This module provides an easy way to create a Neural Circuit Policy (NCP) wiring by specifying the total number of neurons and the number of motor neurons (output size).
+
+.. code-block:: python
+
+    from ncps.wirings import AutoNCP
+
+    wiring = AutoNCP(28, 4)  # 28 neurons, 4 outputs
+
+4. `ncps.datasets`: This module provides various datasets for training and evaluating Neural Circuit Policies. For example, the `AtariCloningDataset` class can be used to load Atari game data for training.
+
+.. code-block:: python
+
+    from ncps.datasets import AtariCloningDataset
+
+    dataset = AtariCloningDataset(env_name="Pong", split="train")
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True)
+
+5. `ncps.mini_keras`: This module provides a lightweight implementation of Keras-like layers and models for working with Neural Circuit Policies. It includes various layers, activations, and utilities for building and training models.
+
+.. code-block:: python
+
+    from ncps.mini_keras import layers, models
+
+    model = models.Sequential(
+        [
+            layers.InputLayer(input_shape=(None, 20)),
+            layers.Dense(50, activation="relu"),
+            layers.Dense(10, activation="softmax"),
+        ]
+    )
+
+Troubleshooting
+=============================
+
+Here are some common issues and errors that users may encounter when using the `ncps` package, along with their solutions:
+
+1. ImportError: No module named 'mlx'
+
+   Solution: Ensure that the `mlx` package is installed. You can install it using pip:
+
+.. code-block:: bash
+
+    pip install mlx
+
+2. AttributeError: 'LTCCell' object has no attribute 'call'
+
+   Solution: Ensure that you are using the correct version of the `ncps` package. Update to the latest version if necessary:
+
+.. code-block:: bash
+
+    pip install --upgrade ncps
+
+3. NameError: name 'backend' is not defined
+
+   Solution: Ensure that the `backend` module is imported in your code. Add the following import statement at the beginning of your script:
+
+.. code-block:: python
+
+    import backend
+
+4. ValueError: If sparsity of a CfC cell is set, then no backbone is allowed
+
+   Solution: Ensure that the `backbone_units` parameter is set to 0 when using sparsity in a CfC cell. For example:
+
+.. code-block:: python
+
+    rnn = CfCCell(input_size=20, units=50, sparsity_mask=sparsity_mask, backbone_units=0)
+
+5. RuntimeError: Running a CfC with mixed_memory=True requires a tuple (h0, c0) to be passed as state
+
+   Solution: Ensure that you are passing a tuple (h0, c0) as the initial state when using mixed memory in a CfC model. For example:
+
+.. code-block:: python
+
+    h0 = torch.zeros(2, 50)
+    c0 = torch.zeros(2, 50)
+    output, hn = rnn(x, (h0, c0))
