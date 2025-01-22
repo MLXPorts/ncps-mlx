@@ -194,7 +194,7 @@ class EnhancedLTCCell(LTCCell):
         elif self.solver == "euler":
             return self._solve_euler(inputs, states)
         else:
-            return super().call(inputs, states)
+            return self._solve_euler(inputs, states)
 
     def __call__(self, inputs, states):
         """

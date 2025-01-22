@@ -16,6 +16,7 @@
 
 
 import ncps
+import mlx  # Importing mlx module to avoid NameError
 from ncps.mlx import CfCCell, MixedMemoryRNN, WiredCfCCell  # Importing custom cell implementations
 from typing import Union
 

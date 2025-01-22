@@ -124,7 +124,7 @@ class LTCCell(ncps.mini_keras.layers.RNN):
 
         # Check if input_shape is nested tuple/list
         if isinstance(input_shape[0], tuple) or isinstance(
-            input_shape[0], 
+            input_shape[0], ncps.mini_keras.KerasTensor
         ):
             # Nested tuple -> First item represent feature dimension
             input_dim = input_shape[0][-1]

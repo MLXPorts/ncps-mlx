@@ -17,13 +17,9 @@ from ncps.mini_keras.activations import ALL_OBJECTS_DICT
 
 # LeCun improved tanh activation
 # http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
-@ncps.mini_keras.utils.register_keras_serializable(package="", name="lecun_tanh")
+@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="lecun_tanh")
 def lecun_tanh(x):
     return 1.7159 * ncps.mini_keras.activations.tanh(0.666 * x)
-
-
-# Register the custom activation function
-ALL_OBJECTS_DICT["lecun_tanh"] = lecun_tanh
 
 
 @ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="CfCCell")
@@ -48,7 +44,6 @@ class CfCCell(ncps.mini_keras.layers.Layer):
 
 
         :param units: Number of hidden units
-        :param input_sparsity:
         :param recurrent_sparsity:
         :param mode: Either "default", "pure" (direct solution approximation), or "no_gate" (without second gate).
         :param activation: Activation function used in the backbone layers
