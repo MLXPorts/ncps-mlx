@@ -51,7 +51,8 @@ class WiredCfCCell(tf.keras.layers.AbstractRNNCell):
             # Nested tuple -> First item represent feature dimension
             input_dim = input_shape[0][-1]
         else:
-            input_dim = input_shape[-1]
+            # ...existing build logic...
+            pass
 
         self._wiring.build(input_dim)
         for i in range(self._wiring.num_layers):
