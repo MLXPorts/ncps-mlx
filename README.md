@@ -1,6 +1,6 @@
 <div align="center"><img src="https://raw.githubusercontent.com/mlech26l/ncps/master/docs/img/banner.png" width="800"/></div>
 
-# Neural Circuit Policies (for PyTorch and TensorFlow)
+# Neural Circuit Policies (for PyTorch, TensorFlow, and MLX)
 
 [![DOI](https://zenodo.org/badge/290199641.svg)](https://zenodo.org/badge/latestdoi/290199641)
 ![ci_badge](https://github.com/mlech26l/ncps/actions/workflows/python-test.yml/badge.svg) 
@@ -15,7 +15,7 @@
 [Closed-form continuous-time neural networks (Open Access)](https://www.nature.com/articles/s42256-022-00556-7)
 
 Neural Circuit Policies (NCPs) are designed sparse recurrent neural networks loosely inspired by the nervous system of the organism [C. elegans](http://www.wormbook.org/chapters/www_celegansintro/celegansintro.html). 
-The goal of this package is to making working with NCPs in PyTorch and keras as easy as possible.
+The goal of this package is to making working with NCPs in PyTorch, keras, and MLX as easy as possible.
 
 [📖 Docs](https://ncps.readthedocs.io/en/latest/index.html)
 
@@ -54,7 +54,7 @@ We have created a few Google Colab notebooks for an interactive introduction to 
 ## Usage: Models and Wirings
 
 The package provides two models, the liquid time-constant (LTC) and the closed-form continuous-time (CfC) models.
-Both models are available as ```tf.keras.layers.Layer``` or ```torch.nn.Module``` RNN layers.
+Both models are available as ```tf.keras.layers.Layer```, ```torch.nn.Module```, or ```mlx.nn.Module``` RNN layers.
 
 ```python
 from ncps.torch import CfC, LTC
@@ -127,6 +127,54 @@ model = tf.keras.models.Sequential(
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(0.01),
+    loss='sparse_categorical_crossentropy',
+)
+```
+
+## MLX
+
+The MLX bindings are available via the ```ncps.mlx``` module.
+
+```python
+from ncps.mlx import CfC, LTC
+from ncps.wirings import AutoNCP
+
+units = 28
+wiring = AutoNCP(28, 4) # 28 neurons, 4 outputs
+input_size = 20
+rnn1 = LTC(units) # fully-connected LTC
+rnn2 = CfC(units) # fully-connected CfC
+rnn3 = LTC(wiring) # NCP wired LTC
+rnn4 = CfC(wiring) # NCP wired CfC
+```
+
+We can then combine the NCP cell with arbitrary ```mlx.nn``` layers, for instance to build a powerful image sequence classifier:
+
+```python
+from ncps.wirings import AutoNCP
+from ncps.mlx import LTC
+import mlx.nn as nn
+height, width, channels = (78, 200, 3)
+
+ncp = LTC(AutoNCP(32, output_size=8), return_sequences=True)
+
+model = nn.Sequential(
+    nn.InputLayer(input_shape=(None, height, width, channels)),
+    nn.TimeDistributed(
+        nn.Conv2D(32, (5, 5), activation="relu")
+    ),
+    nn.TimeDistributed(nn.MaxPool2D()),
+    nn.TimeDistributed(
+        nn.Conv2D(64, (5, 5), activation="relu")
+    ),
+    nn.TimeDistributed(nn.MaxPool2D()),
+    nn.TimeDistributed(nn.Flatten()),
+    nn.TimeDistributed(nn.Dense(32, activation="relu")),
+    ncp,
+    nn.TimeDistributed(nn.Activation("softmax")),
+)
+model.compile(
+    optimizer=nn.Adam(0.01),
     loss='sparse_categorical_crossentropy',
 )
 ```
