@@ -57,6 +57,7 @@ data_x = torch.Tensor(data_x)
 data_y = torch.Tensor(data_y)
 print("data_y.shape: ", str(data_y.shape))
 
+# Example usage of the CfC model with PyTorch
 for model in [
     CfC(in_features=in_features, hidden_size=32, out_features=out_features),
     WiredCfC(

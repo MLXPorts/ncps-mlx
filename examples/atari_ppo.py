@@ -16,6 +16,7 @@ from ray.rllib.utils.annotations import override
 
 import tensorflow as tf
 from ncps.tf import CfC
+from ncps.mlx import LTC
 
 
 class ConvCfCModel(RecurrentNetwork):
@@ -110,6 +111,98 @@ class ConvCfCModel(RecurrentNetwork):
         return tf.reshape(self._value_out, [-1])
 
 
+class ConvLTCModel(RecurrentNetwork):
+    """Example of using the Keras functional API to define a RNN model with LTC."""
+
+    def __init__(
+        self,
+        obs_space,
+        action_space,
+        num_outputs,
+        model_config,
+        name,
+        cell_size=64,
+    ):
+        super(ConvLTCModel, self).__init__(
+            obs_space, action_space, num_outputs, model_config, name
+        )
+        self.cell_size = cell_size
+
+        # Define input layers
+        input_layer = tf.keras.layers.Input(
+            shape=(None, obs_space.shape[0] * obs_space.shape[1] * obs_space.shape[2]),
+            name="inputs",
+        )
+        state_in_h = tf.keras.layers.Input(shape=(cell_size,), name="h")
+        seq_in = tf.keras.layers.Input(shape=(), name="seq_in", dtype=tf.int32)
+
+        # Preprocess observation with a hidden layer and send to LTC
+        self.conv_block = tf.keras.models.Sequential(
+            [
+                tf.keras.Input(
+                    (obs_space.shape[0] * obs_space.shape[1] * obs_space.shape[2])
+                ),  # batch dimension is implicit
+                tf.keras.layers.Lambda(
+                    lambda x: tf.cast(x, tf.float32) / 255.0
+                ),  # normalize input
+                tf.keras.layers.Reshape(
+                    (obs_space.shape[0], obs_space.shape[1], obs_space.shape[2])
+                ),
+                tf.keras.layers.Conv2D(
+                    64, 5, padding="same", activation="relu", strides=2
+                ),
+                tf.keras.layers.Conv2D(
+                    128, 5, padding="same", activation="relu", strides=2
+                ),
+                tf.keras.layers.Conv2D(
+                    128, 5, padding="same", activation="relu", strides=2
+                ),
+                tf.keras.layers.Conv2D(
+                    256, 5, padding="same", activation="relu", strides=2
+                ),
+                tf.keras.layers.GlobalAveragePooling2D(),
+            ]
+        )
+        self.td_conv = tf.keras.layers.TimeDistributed(self.conv_block)
+
+        dense1 = self.td_conv(input_layer)
+        ltc_out, state_h = LTC(
+            cell_size, return_sequences=True, return_state=True, name="ltc"
+        )(
+            inputs=dense1,
+            mask=tf.sequence_mask(seq_in),
+            initial_state=[state_in_h],
+        )
+
+        # Postprocess LTC output with another hidden layer and compute values
+        logits = tf.keras.layers.Dense(
+            self.num_outputs, activation=tf.keras.activations.linear, name="logits"
+        )(ltc_out)
+        values = tf.keras.layers.Dense(1, activation=None, name="values")(ltc_out)
+
+        # Create the RNN model
+        self.rnn_model = tf.keras.Model(
+            inputs=[input_layer, seq_in, state_in_h],
+            outputs=[logits, values, state_h],
+        )
+        self.rnn_model.summary()
+
+    @override(RecurrentNetwork)
+    def forward_rnn(self, inputs, state, seq_lens):
+        model_out, self._value_out, h = self.rnn_model([inputs, seq_lens] + state)
+        return model_out, [h]
+
+    @override(ModelV2)
+    def get_initial_state(self):
+        return [
+            np.zeros(self.cell_size, np.float32),
+        ]
+
+    @override(ModelV2)
+    def value_function(self):
+        return tf.reshape(self._value_out, [-1])
+
+
 def run_closed_loop(algo, config):
     env = gym.make(args.env, render_mode="human")
     env = wrap_deepmind(env)
@@ -127,6 +220,7 @@ def run_closed_loop(algo, config):
 
 
 ModelCatalog.register_custom_model("cfc", ConvCfCModel)
+ModelCatalog.register_custom_model("ltc", ConvLTCModel)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -134,6 +228,7 @@ if __name__ == "__main__":
     parser.add_argument("--cont", default="")
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--hours", default=4, type=int)
+    parser.add_argument("--model", type=str, default="cfc", choices=["cfc", "ltc"])
     args = parser.parse_args()
 
     register_env("atari_env", lambda env_config: wrap_deepmind(gym.make(args.env)))
@@ -158,7 +253,7 @@ if __name__ == "__main__":
         "observation_filter": "NoFilter",
         "model": {
             "vf_share_layers": True,
-            "custom_model": "cfc",
+            "custom_model": args.model,
             "max_seq_len": 20,
             "custom_model_config": {
                 "cell_size": 64,

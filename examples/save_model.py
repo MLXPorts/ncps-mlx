@@ -17,14 +17,16 @@ import tensorflow as tf
 import kerasncp as kncp
 from kerasncp.tf import LTCCell
 
+# Generate random data for training
 data_x = np.random.default_rng().normal(size=(100, 16, 10))
 data_y = np.random.default_rng().normal(size=(100, 16, 1))
 print("data_y.shape: ", str(data_y.shape))
 
+# Define the architecture and RNN cell
 arch = kncp.wirings.Random(32, 1, sparsity_level=0.5)  # 32 units, 1 motor neuron
 rnn_cell = LTCCell(arch)
 
-
+# Create the model
 model = tf.keras.models.Sequential(
     [
         tf.keras.Input((None, 10)),
@@ -35,11 +37,15 @@ model.compile(
     optimizer=tf.keras.optimizers.Adam(0.01), loss=tf.keras.losses.MeanSquaredError()
 )
 
+# Train the model
 model.fit(x=data_x, y=data_y, batch_size=25, epochs=20)
 model.evaluate(x=data_x, y=data_y)
 
+# Save the model
 model.save("test.h5")
 
+# Load the model
 restored_model = tf.keras.models.load_model("test.h5")
 
+# Evaluate the restored model
 restored_model.evaluate(x=data_x, y=data_y)
