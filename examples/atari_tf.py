@@ -18,6 +18,7 @@ import tensorflow as tf
 import ale_py
 from ray.rllib.env.wrappers.atari_wrappers import wrap_deepmind
 from ncps.tf import CfC
+from ncps.mlx import LTC
 import numpy as np
 from ncps.datasets.tf import AtariCloningDatasetTF
 
@@ -87,6 +88,32 @@ class ConvCfC(tf.keras.Model):
         self.conv_block = ImpalaConvBlock()
         self.td_conv = tf.keras.layers.TimeDistributed(self.conv_block)
         self.rnn = CfC(64, return_sequences=True, return_state=True)
+        self.linear = tf.keras.layers.Dense(n_actions)
+
+    def get_initial_states(self, batch_size=1):
+        return self.rnn.cell.get_initial_state(batch_size=batch_size, dtype=tf.float32)
+
+    def call(self, x, training=None, **kwargs):
+        has_hx = isinstance(x, list) or isinstance(x, tuple)
+        initial_state = None
+        if has_hx:
+            # additional inputs are passed as a tuple
+            x, initial_state = x
+
+        x = self.td_conv(x, training=training)
+        x, next_state = self.rnn(x, initial_state=initial_state)
+        x = self.linear(x)
+        if has_hx:
+            return (x, next_state)
+        return x
+
+
+class ConvLTC(tf.keras.Model):
+    def __init__(self, n_actions):
+        super().__init__()
+        self.conv_block = ImpalaConvBlock()
+        self.td_conv = tf.keras.layers.TimeDistributed(self.conv_block)
+        self.rnn = LTC(64, return_sequences=True, return_state=True)
         self.linear = tf.keras.layers.Dense(n_actions)
 
     def get_initial_states(self, batch_size=1):
