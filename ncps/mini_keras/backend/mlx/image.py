@@ -1,5 +1,3 @@
-import jax
-import ml_dtypes
 import mlx.core as mx
 
 from ncps.mini_keras import backend
@@ -54,7 +52,7 @@ def rgb_to_hsv(images, data_format=None):
             "Invalid images dtype: expected float dtype. "
             f"Received: images.dtype={dtype}"
         )
-    eps = ml_dtypes.finfo(dtype).eps
+    eps = mx.finfo(dtype).eps
     images = mx.where(mx.abs(images) < eps, 0.0, images)
     red, green, blue = mx.split(images, 3, channels_axis)
     red = mx.squeeze(red, channels_axis)
@@ -300,7 +298,7 @@ def resize(
         images = padded_img
 
     return mx.array(
-        jax.image.resize(
+        mx.image.resize(
             images, size, method=interpolation, antialias=antialias
         )
     )
@@ -484,7 +482,7 @@ def map_coordinates(
     }.get(fill_mode, fill_mode)
     if fill_mode == "constant":
         padded = mx.pad(
-            imxuts, padding, mode=pad_mode, constant_values=fill_value
+            inputs, padding, mode=pad_mode, constant_values=fill_value
         )
     else:
         padded = mx.pad(inputs, padding, mode=pad_mode)
