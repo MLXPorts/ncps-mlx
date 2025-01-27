@@ -13,7 +13,5 @@
 # limitations under the License.
 
 
-from __future__ import absolute_import
-
 from . import icra2020_lidar_collision_avoidance
 

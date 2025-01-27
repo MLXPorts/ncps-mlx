@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-from __future__ import absolute_import
-
 from .ltc_cell import LTCCell
 from .mm_rnn import MixedMemoryRNN
 from .cfc_cell import CfCCell
