@@ -13,9 +13,6 @@
 # limitations under the License.
 
 
-# from __future__ import absolute_import
-
-
 from ncps.torch.ltc_cell import LTCCell
 from .cfc_cell import CfCCell
 from .wired_cfc_cell import WiredCfCCell
