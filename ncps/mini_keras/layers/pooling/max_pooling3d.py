@@ -1,8 +1,8 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.pooling.base_pooling import BasePooling
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.pooling.base_pooling import BasePooling
 
 
-@keras_export(["keras.layers.MaxPooling3D", "keras.layers.MaxPool3D"])
+@keras_mini_export(["ncps.mini_keras.layers.MaxPooling3D", "ncps.mini_keras.layers.MaxPool3D"])
 class MaxPooling3D(BasePooling):
     """Max pooling operation for 3D data (spatial or spatio-temporal).
 

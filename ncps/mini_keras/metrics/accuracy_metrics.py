@@ -246,7 +246,7 @@ def sparse_categorical_accuracy(y_true, y_pred):
     return matches
 
 
-@keras_mini_export("keras.metrics.SparseCategoricalAccuracy")
+@keras_mini_export("ncps.mini_keras.metrics.SparseCategoricalAccuracy")
 class SparseCategoricalAccuracy(reduction_metrics.MeanMetricWrapper):
     """Calculates how often predictions match integer labels.
 

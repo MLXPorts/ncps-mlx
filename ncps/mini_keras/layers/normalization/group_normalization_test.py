@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from keras.src import constraints
-from keras.src import layers
-from keras.src import regularizers
-from keras.src import testing
+from ncps.mini_keras import constraints
+from ncps.mini_keras import layers
+from ncps.mini_keras import regularizers
+from ncps.mini_keras import testing
 
 
 class GroupNormalizationTest(testing.TestCase):

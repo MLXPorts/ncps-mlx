@@ -1,10 +1,10 @@
 import tensorflow as tf
 
-from keras.src.backend import config
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.tensorflow.core import cast
-from keras.src.backend.tensorflow.core import convert_to_tensor
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.tensorflow.core import cast
+from ncps.mini_keras.backend.tensorflow.core import convert_to_tensor
 
 
 def cholesky(a):
@@ -35,7 +35,7 @@ def lu_factor(a):
 
 
 def norm(x, ord=None, axis=None, keepdims=False):
-    from keras.src.backend.tensorflow.numpy import moveaxis
+    from ncps.mini_keras.backend.tensorflow.numpy import moveaxis
 
     x = convert_to_tensor(x)
     x_shape = x.shape

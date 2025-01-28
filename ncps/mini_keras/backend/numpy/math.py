@@ -1,11 +1,11 @@
 import numpy as np
 
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.jax.math import fft as jax_fft
-from keras.src.backend.jax.math import fft2 as jax_fft2
-from keras.src.backend.numpy.core import convert_to_tensor
-from keras.src.utils.module_utils import scipy
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.jax.math import fft as jax_fft
+from ncps.mini_keras.backend.jax.math import fft2 as jax_fft2
+from ncps.mini_keras.backend.numpy.core import convert_to_tensor
+from ncps.mini_keras.utils.module_utils import scipy
 
 
 def _segment_reduction_fn(
@@ -315,7 +315,7 @@ def norm(x, ord=None, axis=None, keepdims=False):
 
 
 def logdet(x):
-    from keras.src.backend.numpy.numpy import slogdet
+    from ncps.mini_keras.backend.numpy.numpy import slogdet
 
     # In NumPy slogdet is more stable than `np.log(np.linalg.det(x))`. See
     # https://numpy.org/doc/stable/reference/generated/numpy.linalg.slogdet.html

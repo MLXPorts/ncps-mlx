@@ -3,20 +3,20 @@
 import os
 import sys
 
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.utils import io_utils
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils import io_utils
 
 try:
-    import pydot
+    import pydot # type: ignore
 except ImportError:
     # pydot_ng and pydotplus are older forks of pydot
     # which may still be used by some users
     try:
-        import pydot_ng as pydot
+        import pydot_ng as pydot # type: ignore
     except ImportError:
         try:
-            import pydotplus as pydot
+            import pydotplus as pydot # type: ignore
         except ImportError:
             pydot = None
 
@@ -197,7 +197,7 @@ def remove_unused_edges(dot):
     return dot
 
 
-@keras_export("keras.utils.model_to_dot")
+@keras_mini_export("ncps.mini_keras.utils.model_to_dot")
 def model_to_dot(
     model,
     show_shapes=False,
@@ -234,7 +234,7 @@ def model_to_dot(
         a `pydot.Cluster` instance representing nested model if
         `subgraph=True`.
     """
-    from keras.src.ops.function import make_node_key
+    from ncps.mini_keras.ops.function import make_node_key
 
     if not model.built:
         raise ValueError(
@@ -243,10 +243,10 @@ def model_to_dot(
             "the model on a batch of data."
         )
 
-    from keras.src.models import functional
-    from keras.src.models import sequential
+    from ncps.mini_keras.models import functional
+    from ncps.mini_keras.models import sequential
 
-    # from keras.src.layers import Wrapper
+    # from ncps.mini_keras.layers import Wrapper
 
     if not check_pydot():
         raise ImportError(
@@ -368,7 +368,7 @@ def model_to_dot(
     return dot
 
 
-@keras_export("keras.utils.plot_model")
+@keras_mini_export("ncps.mini_keras.utils.plot_model")
 def plot_model(
     model,
     to_file="model.png",

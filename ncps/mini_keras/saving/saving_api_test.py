@@ -5,11 +5,11 @@ import numpy as np
 from absl import logging
 from absl.testing import parameterized
 
-from keras.src import layers
-from keras.src.models import Sequential
-from keras.src.saving import saving_api
-from keras.src.testing import test_case
-from keras.src.testing.test_utils import named_product
+from ncps.mini_keras import layers
+from ncps.mini_keras.models import Sequential
+from ncps.mini_keras.saving import saving_api
+from ncps.mini_keras.testing import test_case
+from ncps.mini_keras.testing.test_utils import named_product
 
 
 class SaveModelTests(test_case.TestCase):

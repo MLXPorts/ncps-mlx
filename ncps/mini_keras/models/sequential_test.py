@@ -3,14 +3,14 @@ import pickle
 import numpy as np
 import pytest
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import saving
-from keras.src import testing
-from keras.src.layers.core.input_layer import Input
-from keras.src.models.functional import Functional
-from keras.src.models.model import Model
-from keras.src.models.sequential import Sequential
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import saving
+from ncps.mini_keras import testing
+from ncps.mini_keras.layers.core.input_layer import Input
+from ncps.mini_keras.models.functional import Functional
+from ncps.mini_keras.models.model import Model
+from ncps.mini_keras.models.sequential import Sequential
 
 
 @pytest.mark.requires_trainable_backend

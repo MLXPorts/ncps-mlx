@@ -5,9 +5,9 @@ import tensorflow as tf
 
 from keras import Input
 from keras import Sequential
-from keras.src import backend
-from keras.src import layers
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
 
 
 class TestSpectrogram(testing.TestCase):

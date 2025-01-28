@@ -1,18 +1,18 @@
 import numpy as np
 
-from keras.src.api_export import keras_export
-from keras.src.backend.config import standardize_data_format
-from keras.src.utils import dataset_utils
-from keras.src.utils import image_utils
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.config import standardize_data_format
+from ncps.mini_keras.utils import dataset_utils
+from ncps.mini_keras.utils import image_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 ALLOWLIST_FORMATS = (".bmp", ".gif", ".jpeg", ".jpg", ".png")
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.utils.image_dataset_from_directory",
-        "keras.preprocessing.image_dataset_from_directory",
+        "ncps.mini_keras.utils.image_dataset_from_directory",
+        "ncps.mini_keras.preprocessing.image_dataset_from_directory",
     ]
 )
 def image_dataset_from_directory(
@@ -430,7 +430,7 @@ def load_image(
         )
 
     if crop_to_aspect_ratio:
-        from keras.src.backend import tensorflow as tf_backend
+        from ncps.mini_keras.backend import tensorflow as tf_backend
 
         if data_format == "channels_first":
             img = tf.transpose(img, (2, 0, 1))

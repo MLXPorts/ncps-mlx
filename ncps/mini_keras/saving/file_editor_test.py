@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 import keras
-from keras.src import testing
-from keras.src.saving.file_editor import KerasFileEditor
+from ncps.mini_keras import testing
+from ncps.mini_keras.saving.file_editor import KerasFileEditor
 
 
 def get_source_model():
@@ -104,9 +104,9 @@ class SavingTest(testing.TestCase):
 
         model_editor = KerasFileEditor(model_fpath)
         self.assertEqual(
-            len(keras.src.tree.flatten(model_editor.weights_dict)), 8
+            len(ncps.mini_keras.tree.flatten(model_editor.weights_dict)), 8
         )
         model_weights_editor = KerasFileEditor(weights_fpath)
         self.assertEqual(
-            len(keras.src.tree.flatten(model_weights_editor.weights_dict)), 8
+            len(ncps.mini_keras.tree.flatten(model_weights_editor.weights_dict)), 8
         )

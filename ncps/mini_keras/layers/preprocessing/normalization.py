@@ -2,14 +2,14 @@ import math
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.tf_data_layer import TFDataLayer
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.tf_data_layer import TFDataLayer
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
-@keras_export("keras.layers.Normalization")
+@keras_mini_export("ncps.mini_keras.layers.Normalization")
 class Normalization(TFDataLayer):
     """A preprocessing layer that normalizes continuous features.
 

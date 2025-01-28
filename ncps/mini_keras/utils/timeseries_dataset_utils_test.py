@@ -1,7 +1,7 @@
 import numpy as np
 
-from keras.src import testing
-from keras.src.utils import timeseries_dataset_utils
+from ncps.mini_keras import testing
+from ncps.mini_keras.utils import timeseries_dataset_utils
 
 
 class TimeseriesDatasetTest(testing.TestCase):

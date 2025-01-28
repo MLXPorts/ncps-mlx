@@ -1,22 +1,22 @@
 import torch
 
-from keras.src import optimizers
-from keras.src.optimizers.base_optimizer import BaseOptimizer
-from keras.src.utils import torch_utils
+from ncps.mini_keras import optimizers
+from ncps.mini_keras.optimizers.base_optimizer import BaseOptimizer
+from ncps.mini_keras.utils import torch_utils
 
 
 class TorchOptimizer(BaseOptimizer):
     def __new__(cls, *args, **kwargs):
         # Import locally to avoid circular imports.
-        from keras.src.backend.torch.optimizers import torch_adadelta
-        from keras.src.backend.torch.optimizers import torch_adagrad
-        from keras.src.backend.torch.optimizers import torch_adam
-        from keras.src.backend.torch.optimizers import torch_adamax
-        from keras.src.backend.torch.optimizers import torch_adamw
-        from keras.src.backend.torch.optimizers import torch_lion
-        from keras.src.backend.torch.optimizers import torch_nadam
-        from keras.src.backend.torch.optimizers import torch_rmsprop
-        from keras.src.backend.torch.optimizers import torch_sgd
+        from ncps.mini_keras.backend.torch.optimizers import torch_adadelta
+        from ncps.mini_keras.backend.torch.optimizers import torch_adagrad
+        from ncps.mini_keras.backend.torch.optimizers import torch_adam
+        from ncps.mini_keras.backend.torch.optimizers import torch_adamax
+        from ncps.mini_keras.backend.torch.optimizers import torch_adamw
+        from ncps.mini_keras.backend.torch.optimizers import torch_lion
+        from ncps.mini_keras.backend.torch.optimizers import torch_nadam
+        from ncps.mini_keras.backend.torch.optimizers import torch_rmsprop
+        from ncps.mini_keras.backend.torch.optimizers import torch_sgd
 
         OPTIMIZERS = {
             optimizers.Adadelta: torch_adadelta.Adadelta,

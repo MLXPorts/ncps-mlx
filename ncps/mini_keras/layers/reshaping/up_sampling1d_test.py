@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from keras.src import layers
-from keras.src import testing
-from keras.src.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
 
 
 class UpSamplingTest(testing.TestCase):

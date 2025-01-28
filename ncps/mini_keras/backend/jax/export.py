@@ -4,10 +4,10 @@ import itertools
 import string
 import warnings
 
-from keras.src import layers
-from keras.src import tree
-from keras.src.backend.common.stateless_scope import StatelessScope
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import layers
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.common.stateless_scope import StatelessScope
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
 class JaxExportArchive:
@@ -71,7 +71,7 @@ class JaxExportArchive:
         fn_parameters = list(fn_signature.parameters.values())
 
         if is_static:
-            from jax.experimental import jax2tf
+            from jax.experimental import jax2tf # type: ignore
 
             jax_fn = jax2tf.convert(fn, **jax2tf_kwargs)
             jax_fn.__signature__ = inspect.Signature(
@@ -135,7 +135,7 @@ class JaxExportArchive:
         return decorated_fn
 
     def _convert_jax2tf_function(self, fn, input_signature, jax2tf_kwargs=None):
-        from jax.experimental import jax2tf
+        from jax.experimental import jax2tf # type: ignore
 
         variables_shapes = self._to_polymorphic_shape(
             self._backend_variables, allow_none=False

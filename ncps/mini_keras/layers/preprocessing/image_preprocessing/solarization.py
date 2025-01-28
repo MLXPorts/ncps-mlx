@@ -1,13 +1,13 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
     BaseImagePreprocessingLayer,
 )
-from keras.src.ops.core import _saturate_cast
-from keras.src.random.seed_generator import SeedGenerator
+from ncps.mini_keras.ops.core import _saturate_cast
+from ncps.mini_keras.random.seed_generator import SeedGenerator
 
 
-@keras_export("keras.layers.Solarization")
+@keras_mini_export("ncps.mini_keras.layers.Solarization")
 class Solarization(BaseImagePreprocessingLayer):
     """Applies `(max_value - pixel + min_value)` for each pixel in the image.
 

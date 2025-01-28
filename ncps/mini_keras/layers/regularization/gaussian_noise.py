@@ -1,10 +1,10 @@
-from keras.src import backend
-from keras.src import layers
-from keras.src import ops
-from keras.src.api_export import keras_export
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
 
 
-@keras_export("keras.layers.GaussianNoise")
+@keras_mini_export("ncps.mini_keras.layers.GaussianNoise")
 class GaussianNoise(layers.Layer):
     """Apply additive zero-centered Gaussian noise.
 

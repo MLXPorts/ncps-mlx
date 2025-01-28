@@ -1,18 +1,18 @@
 import torch
 import torch.nn.functional as tnn
 
-from keras.src import backend
-from keras.src import tree
-from keras.src.backend.common.backend_utils import (
+from ncps.mini_keras import backend
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.common.backend_utils import (
     compute_conv_transpose_padding_args_for_torch,
 )
-from keras.src.backend.torch.core import cast
-from keras.src.backend.torch.core import convert_to_tensor
-from keras.src.backend.torch.core import get_device
-from keras.src.backend.torch.numpy import expand_dims
-from keras.src.backend.torch.numpy import maximum
-from keras.src.backend.torch.numpy import where
-from keras.src.utils.argument_validation import standardize_tuple
+from ncps.mini_keras.backend.torch.core import cast
+from ncps.mini_keras.backend.torch.core import convert_to_tensor
+from ncps.mini_keras.backend.torch.core import get_device
+from ncps.mini_keras.backend.torch.numpy import expand_dims
+from ncps.mini_keras.backend.torch.numpy import maximum
+from ncps.mini_keras.backend.torch.numpy import where
+from ncps.mini_keras.utils.argument_validation import standardize_tuple
 
 
 def relu(x):

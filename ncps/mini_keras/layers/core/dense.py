@@ -1,18 +1,18 @@
 import ml_dtypes
 
-from keras.src import activations
-from keras.src import constraints
-from keras.src import dtype_policies
-from keras.src import initializers
-from keras.src import ops
-from keras.src import quantizers
-from keras.src import regularizers
-from keras.src.api_export import keras_export
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import activations
+from ncps.mini_keras import constraints
+from ncps.mini_keras import dtype_policies
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras import quantizers
+from ncps.mini_keras import regularizers
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.layer import Layer
 
 
-@keras_export("keras.layers.Dense")
+@keras_mini_export("ncps.mini_keras.layers.Dense")
 class Dense(Layer):
     """Just your regular densely-connected NN layer.
 
@@ -332,7 +332,7 @@ class Dense(Layer):
         self._is_quantized = True
 
     def _float8_build(self):
-        from keras.src.dtype_policies import QuantizedFloat8DTypePolicy
+        from ncps.mini_keras.dtype_policies import QuantizedFloat8DTypePolicy
 
         # If `self.dtype_policy` is not QuantizedFloat8DTypePolicy, then set
         # `amax_history_length` to its default value.

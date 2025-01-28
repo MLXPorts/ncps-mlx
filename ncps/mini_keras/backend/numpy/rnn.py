@@ -1,6 +1,6 @@
 import numpy as np
 
-from keras.src import tree
+from ncps.mini_keras import tree
 
 
 def rnn(

@@ -1,8 +1,8 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.pooling.base_pooling import BasePooling
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.pooling.base_pooling import BasePooling
 
 
-@keras_export(["keras.layers.AveragePooling1D", "keras.layers.AvgPool1D"])
+@keras_mini_export(["ncps.mini_keras.layers.AveragePooling1D", "ncps.mini_keras.layers.AvgPool1D"])
 class AveragePooling1D(BasePooling):
     """Average pooling for temporal data.
 

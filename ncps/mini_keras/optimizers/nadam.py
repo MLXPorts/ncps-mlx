@@ -1,10 +1,10 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.optimizers import optimizer
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.optimizers import optimizer
 
 
-@keras_export(["keras.optimizers.Nadam"])
+@keras_mini_export(["ncps.mini_keras.optimizers.Nadam"])
 class Nadam(optimizer.Optimizer):
     """Optimizer that implements the Nadam algorithm.
 

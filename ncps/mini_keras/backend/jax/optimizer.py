@@ -9,7 +9,7 @@ by skipping conditionals entirely.
 import jax
 from jax import numpy as jnp
 
-from keras.src.optimizers import base_optimizer
+from ncps.mini_keras.optimizers import base_optimizer
 
 
 class JaxOptimizer(base_optimizer.BaseOptimizer):

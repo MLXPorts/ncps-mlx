@@ -1,6 +1,6 @@
 import re
 
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.backend import KerasTensor
 from ncps.mini_keras.backend import any_symbolic_tensors
 from ncps.mini_keras.ops.core import shape
@@ -103,7 +103,7 @@ class Rearrange(Operation):
         return KerasTensor(shape=output_shape, dtype=tensor.dtype)
 
 
-@keras_export("ncps.mini_keras.ops.rearrange")
+@keras_mini_export("ncps.mini_keras.ops.rearrange")
 def rearrange(tensor, pattern, **axes_lengths):
     """Rearranges the axes of a Keras tensor according to a specified pattern,
     einops-style.

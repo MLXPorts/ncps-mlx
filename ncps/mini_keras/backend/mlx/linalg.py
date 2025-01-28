@@ -1,54 +1,38 @@
-import numpy as np
-import scipy.linalg as sl
-
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.numpy.core import convert_to_tensor
-
+import mlx.core as mx
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.mlx.core import convert_to_tensor
 
 def cholesky(a):
-    return np.linalg.cholesky(a)
-
+    return mx.linalg.cholesky(a)
 
 def det(a):
-    return np.linalg.det(a)
-
+    return mx.linalg.det(a)
 
 def eig(a):
-    return np.linalg.eig(a)
-
+    return mx.linalg.eig(a)
 
 def eigh(a):
-    return np.linalg.eigh(a)
-
+    return mx.linalg.eigh(a)
 
 def inv(a):
-    return np.linalg.inv(a)
-
+    return mx.linalg.inv(a)
 
 def lu_factor(a):
-    if a.ndim == 2:
-        return sl.lu_factor(a)
-
-    m, n = a.shape[-2:]
-    signature = "(m,n) -> (m,n), "
-    signature += "(m)" if m <= n else "(n)"
-    _lu_factor_gufunc = np.vectorize(
-        sl.lu_factor,
-        signature=signature,
+    # Note: MLX currently doesn't have direct LU factorization
+    # This is a placeholder that needs implementation
+    raise NotImplementedError(
+        "LU factorization not yet implemented in MLX backend"
     )
-    return _lu_factor_gufunc(a)
-
 
 def norm(x, ord=None, axis=None, keepdims=False):
     x = convert_to_tensor(x)
     dtype = standardize_dtype(x.dtype)
     if "int" in dtype or dtype == "bool":
         dtype = dtypes.result_type(x.dtype, "float32")
-    return np.linalg.norm(x, ord=ord, axis=axis, keepdims=keepdims).astype(
+    return mx.linalg.norm(x, ord=ord, axis=axis, keepdims=keepdims).astype(
         dtype
     )
-
 
 def qr(x, mode="reduced"):
     if mode not in {"reduced", "complete"}:
@@ -57,32 +41,24 @@ def qr(x, mode="reduced"):
             "Expected one of {'reduced', 'complete'}. "
             f"Received: mode={mode}"
         )
-    return np.linalg.qr(x, mode=mode)
-
+    return mx.linalg.qr(x)  # Note: MLX qr doesn't support mode parameter currently
 
 def solve(a, b):
-    return np.linalg.solve(a, b)
-
+    return mx.linalg.solve(a, b)
 
 def solve_triangular(a, b, lower=False):
-    if a.ndim == 2:
-        return sl.solve_triangular(a, b, lower=lower)
-
-    _vectorized_solve_triangular = np.vectorize(
-        lambda a, b: sl.solve_triangular(a, b, lower=lower),
-        signature="(n,n),(n,m)->(n,m)",
+    # Note: MLX doesn't have a direct triangular solver
+    # This is a placeholder that needs implementation
+    raise NotImplementedError(
+        "Triangular solve not yet implemented in MLX backend"
     )
-    if b.ndim == a.ndim - 1:
-        b = np.expand_dims(b, axis=-1)
-        return _vectorized_solve_triangular(a, b).squeeze(axis=-1)
-    return _vectorized_solve_triangular(a, b)
-
 
 def svd(x, full_matrices=True, compute_uv=True):
-    return np.linalg.svd(x, full_matrices=full_matrices, compute_uv=compute_uv)
-
+    return mx.linalg.svd(x)  # Note: MLX svd doesn't support all numpy parameters currently
 
 def lstsq(a, b, rcond=None):
     a = convert_to_tensor(a)
     b = convert_to_tensor(b)
-    return np.linalg.lstsq(a, b, rcond=rcond)[0]
+    # Note: MLX doesn't have a direct least squares solver
+    # This uses the normal equation method as a fallback
+    return solve(mx.matmul(mx.transpose(a), a), mx.matmul(mx.transpose(a), b))

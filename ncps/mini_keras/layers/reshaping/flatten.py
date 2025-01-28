@@ -1,14 +1,14 @@
 import math
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.backend.common.keras_tensor import KerasTensor
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.layer import Layer
 
 
-@keras_export("keras.layers.Flatten")
+@keras_mini_export("ncps.mini_keras.layers.Flatten")
 class Flatten(Layer):
     """Flattens the input. Does not affect the batch size.
 

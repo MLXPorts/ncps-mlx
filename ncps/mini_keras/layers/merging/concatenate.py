@@ -1,11 +1,11 @@
 import copy
 
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.merging.base_merge import Merge
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.merging.base_merge import Merge
 
 
-@keras_export("keras.layers.Concatenate")
+@keras_mini_export("ncps.mini_keras.layers.Concatenate")
 class Concatenate(Merge):
     """Concatenates a list of inputs.
 
@@ -163,7 +163,7 @@ class Concatenate(Merge):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-@keras_export("keras.layers.concatenate")
+@keras_mini_export("ncps.mini_keras.layers.concatenate")
 def concatenate(inputs, axis=-1, **kwargs):
     """Functional interface to the `Concatenate` layer.
 

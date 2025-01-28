@@ -5,17 +5,17 @@ import numpy as np
 import pytest
 from absl.testing import parameterized
 
-from keras.src import applications
-from keras.src import backend
-from keras.src import layers
-from keras.src import ops
-from keras.src import saving
-from keras.src import testing
-from keras.src.layers.core.input_layer import Input
-from keras.src.layers.input_spec import InputSpec
-from keras.src.models import Functional
-from keras.src.models import Model
-from keras.src.models import Sequential
+from ncps.mini_keras import applications
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import ops
+from ncps.mini_keras import saving
+from ncps.mini_keras import testing
+from ncps.mini_keras.layers.core.input_layer import Input
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.models import Functional
+from ncps.mini_keras.models import Model
+from ncps.mini_keras.models import Sequential
 
 
 class FunctionalTest(testing.TestCase):

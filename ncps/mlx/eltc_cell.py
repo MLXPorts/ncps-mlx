@@ -21,7 +21,7 @@ import ncps
 import ncps.mini_keras.ops.ode as ode_ops
 
 @ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="EnhancedLTCCell")
-class EnhancedLTCCell(ncps.mini_keras.layers.Layer, LTCCell):
+class EnhancedLTCCell(LTCCell, ncps.mini_keras.layers.Layer):
     """
     Enhanced Liquid Time-Constant Cell (LTC-SE) for MLX.
 

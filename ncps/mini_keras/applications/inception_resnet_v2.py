@@ -1,6 +1,6 @@
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.layers.layer import Layer
 from ncps.mini_keras.models import Functional
@@ -13,10 +13,10 @@ BASE_WEIGHT_URL = (
 )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.inception_resnet_v2.InceptionResNetV2",
-        "keras.applications.InceptionResNetV2",
+        "ncps.mini_keras.applications.inception_resnet_v2.InceptionResNetV2",
+        "ncps.mini_keras.applications.InceptionResNetV2",
     ]
 )
 def InceptionResNetV2(
@@ -49,7 +49,7 @@ def InceptionResNetV2(
 
     Note: each Keras Application expects a specific kind of
     input preprocessing. For InceptionResNetV2, call
-    `keras.applications.inception_resnet_v2.preprocess_input`
+    `ncps.mini_keras.applications.inception_resnet_v2.preprocess_input`
     on your inputs before passing them to the model.
     `inception_resnet_v2.preprocess_input`
     will scale input pixels between -1 and 1.
@@ -376,14 +376,14 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation="relu"):
     return x
 
 
-@keras_export("keras.applications.inception_resnet_v2.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.inception_resnet_v2.preprocess_input")
 def preprocess_input(x, data_format=None):
     return imagenet_utils.preprocess_input(
         x, data_format=data_format, mode="tf"
     )
 
 
-@keras_export("keras.applications.inception_resnet_v2.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.inception_resnet_v2.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

@@ -1,5 +1,5 @@
-from keras.src import backend as current_backend
-from keras.src.utils import tf_utils
+from ncps.mini_keras import backend as current_backend
+from ncps.mini_keras.utils import tf_utils
 
 
 def _classes_shape(batched, classes_shape, max_boxes):

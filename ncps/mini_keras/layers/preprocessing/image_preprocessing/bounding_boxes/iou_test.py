@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from keras.src import testing
-from keras.src.layers.preprocessing.image_preprocessing.bounding_boxes import (
+from ncps.mini_keras import testing
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.bounding_boxes import (
     iou as iou_lib,
 )
 

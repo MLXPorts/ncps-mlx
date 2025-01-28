@@ -5,12 +5,12 @@ import pytest
 from absl import logging
 from absl.testing import parameterized
 
-from keras.src import layers
-from keras.src import metrics
-from keras.src import models
-from keras.src import ops
-from keras.src import testing
-from keras.src.metrics import metrics_utils
+from ncps.mini_keras import layers
+from ncps.mini_keras import metrics
+from ncps.mini_keras import models
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.metrics import metrics_utils
 
 
 class FalsePositivesTest(testing.TestCase):

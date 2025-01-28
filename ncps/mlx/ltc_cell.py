@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ncps import wirings
+import mlx.core as mx
+import ncps.wirings
 import ncps
-import mlx as mx
+from ncps.mini_keras.layers import RNN
+from ncps.mini_keras import ops
+from ncps.mini_keras.constraints import NonNeg
 
 @ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="LTCCell")
-class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
+class LTCCell(ncps.mini_keras.layers.Layer):
     def __init__(
         self,
         wiring,
@@ -137,94 +140,91 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
         self._params["gleak"] = self.add_weight(
             name="gleak",
             shape=(self.state_size,),
-            dtype=mx.float32,
-            constraint=lambda x: mx.maximum(x, 0),
+            dtype="float32",
             initializer=self._get_initializer("gleak"),
+            constraint=NonNeg()
         )
         self._params["vleak"] = self.add_weight(
             name="vleak",
             shape=(self.state_size,),
-            dtype=mx.float32,
+            dtype="float32",
             initializer=self._get_initializer("vleak"),
         )
         self._params["cm"] = self.add_weight(
             name="cm",
             shape=(self.state_size,),
-            dtype=mx.float32,
-            constraint=ncps.mini_keras.constraints.NonNeg(),
+            dtype="float32",
             initializer=self._get_initializer("cm"),
         )
         self._params["sigma"] = self.add_weight(
             name="sigma",
             shape=(self.state_size, self.state_size),
-            dtype=mx.float32,
+            dtype="float32",
             initializer=self._get_initializer("sigma"),
         )
         self._params["mu"] = self.add_weight(
             name="mu",
             shape=(self.state_size, self.state_size),
-            dtype=mx.float32,
+            dtype="float32",
             initializer=self._get_initializer("mu"),
         )
         self._params["w"] = self.add_weight(
             name="w",
             shape=(self.state_size, self.state_size),
-            dtype=mx.float32,
-            constraint=ncps.mini_keras.constraints.NonNeg(),
+            dtype="float32",
             initializer=self._get_initializer("w"),
         )
         self._params["erev"] = self.add_weight(
             name="erev",
             shape=(self.state_size, self.state_size),
-            dtype=mx.float32,
+            dtype="float32",
             initializer=self._wiring.erev_initializer,
         )
 
         self._params["sensory_sigma"] = self.add_weight(
             name="sensory_sigma",
             shape=(self.sensory_size, self.state_size),
-            dtype=mx.float32,
+            dtype="float32",
             initializer=self._get_initializer("sensory_sigma"),
         )
         self._params["sensory_mu"] = self.add_weight(
             name="sensory_mu",
             shape=(self.sensory_size, self.state_size),
-            dtype=mx.float32,
+            dtype="float32",
             initializer=self._get_initializer("sensory_mu"),
         )
         self._params["sensory_w"] = self.add_weight(
             name="sensory_w",
             shape=(self.sensory_size, self.state_size),
-            dtype=mx.float32,
-            constraint=ncps.mini_keras.constraints.NonNeg(),
+            dtype="float32",
             initializer=self._get_initializer("sensory_w"),
         )
         self._params["sensory_erev"] = self.add_weight(
             name="sensory_erev",
             shape=(self.sensory_size, self.state_size),
-            dtype=mx.float32,
+            dtype="float32",
             initializer=self._wiring.sensory_erev_initializer,
         )
 
         self._params["sparsity_mask"] = ncps.mini_keras.initializers.Constant(
-            mx.abs(self._wiring.adjacency_matrix), dtype=mx.float32
+            mx.abs(self._wiring.adjacency_matrix), dtype="float32"
         )
         self._params["sensory_sparsity_mask"] = ncps.mini_keras.initializers.Constant(
-            mx.abs(self._wiring.sensory_adjacency_matrix), dtype=mx.float32
+            mx.abs(self._wiring.sensory_adjacency_matrix), dtype="float32"
         )
 
         if self._input_mapping in ["affine", "linear"]:
             self._params["input_w"] = self.add_weight(
                 name="input_w",
                 shape=(self.sensory_size,),
-                dtype=mx.float32,
+                dtype="float32",
                 initializer=ncps.mini_keras.initializers.Constant(1),
             )
         if self._input_mapping == "affine":
             self._params["input_b"] = self.add_weight(
                 name="input_b",
                 shape=(self.sensory_size,),
-                dtype=mx.float32,
+                dtype="float32",
                 initializer=ncps.mini_keras.initializers.Constant(0),
             )
 
@@ -232,14 +232,14 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
             self._params["output_w"] = self.add_weight(
                 name="output_w",
                 shape=(self.motor_size,),
-                dtype=mx.float32,
+                dtype="float32",
                 initializer=ncps.mini_keras.initializers.Constant(1),
             )
         if self._output_mapping == "affine":
             self._params["output_b"] = self.add_weight(
                 name="output_b",
                 shape=(self.motor_size,),
-                dtype=mx.float32,
+                dtype="float32",
                 initializer=ncps.mini_keras.initializers.Constant(0),
             )
         self.built = True
@@ -262,12 +262,12 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
         sensory_rev_activation = sensory_w_activation * self._params["sensory_erev"]
 
         # Reduce over dimension 1 (=source sensory neurons)
-        w_numerator_sensory = mx.sum(sensory_rev_activation, axis=1,dtype=mx.float32)
-        w_denominator_sensory = mx.sum(sensory_w_activation, axis=1,dtype=mx.float32)
+        w_numerator_sensory = mx.sum(sensory_rev_activation, axis=1,dtype="float32")
+        w_denominator_sensory = mx.sum(sensory_w_activation, axis=1,dtype="float32")
 
         # cm/t is loop invariant
         cm_t = self._params["cm"] / (elapsed_time / 
-            self._ode_unfolds).astype(mx.float32
+            self._ode_unfolds).astype("float32"
         )
 
         # Unfold the multiply ODE multiple times into one RNN step
@@ -339,5 +339,6 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
 
     @classmethod
     def from_config(cls, config):
-        wiring = wirings.Wiring.from_config(config)
+        wiring = ncps.wirings.Wiring.from_config(config)
         return cls(wiring=wiring, **config)
+

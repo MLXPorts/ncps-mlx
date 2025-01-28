@@ -4,7 +4,6 @@ This module provides MLX-specific implementations of core Keras operations
 and utilities, enabling the use of Apple's MLX framework as a backend.
 """
 
-# Core functionality
 from ncps.mini_keras.backend.common.name_scope import name_scope
 from ncps.mini_keras.backend.mlx.core import (
     IS_THREAD_SAFE,
@@ -29,11 +28,15 @@ from ncps.mini_keras.backend.mlx import (
     image,
     linalg,
     math,
-    mlx,
     nn,
     random,
     orthogonal,
-    hpc
+    hpc,
+    ode,
+    random,
+    numpy,
+    layer,
+    distribution_lib,
 )
 
 # RNN operations
@@ -63,19 +66,22 @@ __all__ = [
     "random_seed_dtype",
     "shape",
     "vectorized_map",
-    # Domain modules
+    "ode",
+    "numpy",
+    "random",
     "core",
     "image", 
     "linalg",
     "math",
-    "mlx",
     "nn",
     "random",
     "orthogonal",
     "hpc",
+    "distribution_lib",
     # RNN functions
     "cudnn_ok",
     "gru",
     "lstm", 
     "rnn",
+    "layer",
 ]

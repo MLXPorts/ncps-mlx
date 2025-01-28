@@ -2,14 +2,14 @@ import numpy as np
 import pytest
 from absl.testing import parameterized
 
-from keras.src import layers
-from keras.src import testing
-from keras.src.layers.convolutional.conv_test import np_conv1d
-from keras.src.layers.convolutional.conv_test import np_conv2d
-from keras.src.layers.convolutional.depthwise_conv_test import (
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
+from ncps.mini_keras.layers.convolutional.conv_test import np_conv1d
+from ncps.mini_keras.layers.convolutional.conv_test import np_conv2d
+from ncps.mini_keras.layers.convolutional.depthwise_conv_test import (
     np_depthwise_conv1d,
 )
-from keras.src.layers.convolutional.depthwise_conv_test import (
+from ncps.mini_keras.layers.convolutional.depthwise_conv_test import (
     np_depthwise_conv2d,
 )
 

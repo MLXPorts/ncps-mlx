@@ -1,7 +1,7 @@
 import numpy as np
 
-from keras.src import testing
-from keras.src.metrics import hinge_metrics
+from ncps.mini_keras import testing
+from ncps.mini_keras.metrics import hinge_metrics
 
 
 class HingeTest(testing.TestCase):

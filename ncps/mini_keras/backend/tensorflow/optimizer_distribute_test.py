@@ -6,9 +6,9 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow.python.eager import context
 
-from keras.src import backend
-from keras.src import testing
-from keras.src.optimizers.sgd import SGD
+from ncps.mini_keras import backend
+from ncps.mini_keras import testing
+from ncps.mini_keras.optimizers.sgd import SGD
 
 
 @pytest.mark.skipif(
@@ -44,7 +44,7 @@ class OptimizerDistributeTest(testing.TestCase):
     def test_single_step(self, optimizer_type):
         if optimizer_type == "tf_keras_sgd":
             try:
-                import tf_keras
+                import tf_keras # type: ignore
 
                 optimizer_fn = tf_keras.optimizers.SGD
             except (ImportError, AttributeError):

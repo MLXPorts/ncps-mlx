@@ -1,82 +1,82 @@
-import numpy as np
+import mlx.core as mx
 
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.jax.math import fft as jax_fft
-from keras.src.backend.jax.math import fft2 as jax_fft2
-from keras.src.backend.numpy.core import convert_to_tensor
-from keras.src.utils.module_utils import scipy
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.mlx.core import convert_to_tensor
 
 
 def _segment_reduction_fn(
     data, segment_ids, reduction_method, num_segments, sorted
 ):
     if num_segments is None:
-        num_segments = np.amax(segment_ids) + 1
+        num_segments = mx.max(segment_ids) + 1
 
     valid_indices = segment_ids >= 0  # Ignore segment_ids that are -1
     valid_data = data[valid_indices]
     valid_segment_ids = segment_ids[valid_indices]
 
     data_shape = list(valid_data.shape)
-    data_shape[0] = (
-        num_segments  # Replace first dimension (which corresponds to segments)
-    )
+    data_shape[0] = num_segments
 
-    if reduction_method == np.maximum:
-        result = np.ones(data_shape, dtype=valid_data.dtype) * -np.inf
+    if reduction_method == mx.maximum:
+        result = mx.ones(data_shape, dtype=valid_data.dtype) * float('-inf')
     else:
-        result = np.zeros(data_shape, dtype=valid_data.dtype)
+        result = mx.zeros(data_shape, dtype=valid_data.dtype)
 
     if sorted:
-        reduction_method.at(result, valid_segment_ids, valid_data)
+        # Note: MLX doesn't have direct equivalent to np.add.at
+        # This needs custom implementation
+        raise NotImplementedError("Sorted segment reduction not implemented for MLX")
     else:
-        sort_indices = np.argsort(valid_segment_ids)
+        sort_indices = mx.argsort(valid_segment_ids)
         sorted_segment_ids = valid_segment_ids[sort_indices]
         sorted_data = valid_data[sort_indices]
-
-        reduction_method.at(result, sorted_segment_ids, sorted_data)
+        
+        # Note: This needs custom accumulation logic for MLX
+        raise NotImplementedError("Segment reduction not implemented for MLX")
 
     return result
 
 
 def segment_sum(data, segment_ids, num_segments=None, sorted=False):
     return _segment_reduction_fn(
-        data, segment_ids, np.add, num_segments, sorted
+        data, segment_ids, mx.add, num_segments, sorted
     )
 
 
 def segment_max(data, segment_ids, num_segments=None, sorted=False):
     return _segment_reduction_fn(
-        data, segment_ids, np.maximum, num_segments, sorted
+        data, segment_ids, mx.maximum, num_segments, sorted
     )
 
 
 def top_k(x, k, sorted=False):
     if sorted:
-        # Take the k largest values.
-        sorted_indices = np.argsort(x, axis=-1)[..., ::-1]
-        sorted_values = np.take_along_axis(x, sorted_indices, axis=-1)
+        sorted_indices = mx.argsort(x, axis=-1)[..., ::-1]
+        sorted_values = mx.take_along_axis(x, sorted_indices, axis=-1)
         top_k_values = sorted_values[..., :k]
         top_k_indices = sorted_indices[..., :k]
     else:
-        # Partition the array such that all values larger than the k-th
-        # largest value are to the right of it.
-        top_k_indices = np.argpartition(x, -k, axis=-1)[..., -k:]
-        top_k_values = np.take_along_axis(x, top_k_indices, axis=-1)
+        # Note: MLX doesn't have partition, so we use full sort
+        sorted_indices = mx.argsort(x, axis=-1)[..., ::-1]
+        top_k_indices = sorted_indices[..., :k]
+        top_k_values = mx.take_along_axis(x, top_k_indices, axis=-1)
     return top_k_values, top_k_indices
 
 
 def in_top_k(targets, predictions, k):
-    targets = targets[:, None]
+    targets = mx.expand_dims(targets, axis=1)
     topk_values = top_k(predictions, k)[0]
-    targets_values = np.take_along_axis(predictions, targets, axis=-1)
+    targets_values = mx.take_along_axis(predictions, targets, axis=-1)
     mask = targets_values >= topk_values
-    return np.any(mask, axis=-1)
+    return mx.any(mask, axis=-1)
 
 
 def logsumexp(x, axis=None, keepdims=False):
-    return scipy.special.logsumexp(x, axis=axis, keepdims=keepdims)
+    max_x = mx.max(x, axis=axis, keepdims=True)
+    exp_x = mx.exp(x - max_x)
+    sum_exp_x = mx.sum(exp_x, axis=axis, keepdims=True)
+    return mx.squeeze(max_x + mx.log(sum_exp_x), axis=axis) if not keepdims else max_x + mx.log(sum_exp_x)
 
 
 def qr(x, mode="reduced"):
@@ -86,22 +86,12 @@ def qr(x, mode="reduced"):
             "Expected one of {'reduced', 'complete'}. "
             f"Received: mode={mode}"
         )
-    return np.linalg.qr(x, mode=mode)
+    return mx.linalg.qr(x)
 
 
 def extract_sequences(x, sequence_length, sequence_stride):
-    *batch_shape, _ = x.shape
-    batch_shape = list(batch_shape)
-    shape = x.shape[:-1] + (
-        (x.shape[-1] - (sequence_length - sequence_stride)) // sequence_stride,
-        sequence_length,
-    )
-    strides = x.strides[:-1] + (
-        sequence_stride * x.strides[-1],
-        x.strides[-1],
-    )
-    x = np.lib.stride_tricks.as_strided(x, shape=shape, strides=strides)
-    return np.reshape(x, (*batch_shape, *x.shape[-2:]))
+    # Note: This needs custom implementation for MLX
+    raise NotImplementedError("extract_sequences not implemented for MLX")
 
 
 def _get_complex_tensor_from_tuple(x):
@@ -110,198 +100,296 @@ def _get_complex_tensor_from_tuple(x):
             "Input `x` should be a tuple of two tensors - real and imaginary."
             f"Received: x={x}"
         )
-    # `convert_to_tensor` does not support passing complex tensors. We separate
-    # the input out into real and imaginary and convert them separately.
     real, imag = x
-    # Check shapes.
     if real.shape != imag.shape:
         raise ValueError(
             "Input `x` should be a tuple of two tensors - real and imaginary."
             "Both the real and imaginary parts should have the same shape. "
             f"Received: x[0].shape = {real.shape}, x[1].shape = {imag.shape}"
         )
-    # Ensure dtype is float.
-    if not np.issubdtype(real.dtype, np.floating) or not np.issubdtype(
-        imag.dtype, np.floating
-    ):
+    dtype = standardize_dtype(real.dtype)
+    if not "float" in dtype:
         raise ValueError(
             "At least one tensor in input `x` is not of type float."
             f"Received: x={x}."
         )
-    complex_input = real + 1j * imag
-    return complex_input
+    return real + 1j * imag
 
+
+def _bit_reverse(n, bits):
+    """Helper function for FFT to perform bit reversal"""
+    rev = 0
+    for i in range(bits):
+        rev = (rev << 1) | (n & 1)
+        n = n >> 1
+    return rev
 
 def fft(x):
-    real, imag = jax_fft(x)
-    return np.array(real), np.array(imag)
-
-
-def fft2(x):
-    real, imag = jax_fft2(x)
-    return np.array(real), np.array(imag)
-
-
-def ifft2(x):
-    complex_input = _get_complex_tensor_from_tuple(x)
-    complex_output = np.fft.ifft2(complex_input)
-    return np.real(complex_output), np.imag(complex_output)
-
+    """Fast Fourier Transform implementation using Cooley-Tukey algorithm"""
+    x = convert_to_tensor(x)
+    n = x.shape[-1]
+    if n & (n - 1): 
+        raise ValueError("Length must be a power of 2 for this FFT implementation")
+    
+    bits = n.bit_length() - 1
+    # Bit reversal permutation
+    indices = mx.array([_bit_reverse(i, bits) for i in range(n)])
+    x = mx.take(x, indices, axis=-1)
+    
+    # Cooley-Tukey FFT
+    for stage in range(1, bits + 1):
+        m = 1 << stage
+        half_m = m // 2
+        
+        # Twiddle factors
+        k = mx.arange(half_m)
+        theta = -2 * mx.pi * k / m
+        real = mx.cos(theta)
+        imag = mx.sin(theta)
+        
+        for j in range(0, n, m):
+            # Get segments
+            even = x[..., j:j+half_m]
+            odd = x[..., j+half_m:j+m]
+            
+            # Complex multiplication with twiddle factors
+            real_part = odd * real - odd * imag
+            imag_part = odd * real + odd * imag
+            
+            x = mx.concatenate([
+                even + real_part,
+                even - real_part
+            ], axis=-1)
+    
+    return x.real, x.imag
 
 def rfft(x, fft_length=None):
-    complex_output = np.fft.rfft(x, n=fft_length, axis=-1, norm="backward")
-    # numpy always outputs complex128, so we need to recast the dtype
-    return (
-        np.real(complex_output).astype(x.dtype),
-        np.imag(complex_output).astype(x.dtype),
-    )
+    """Real FFT implementation"""
+    if fft_length is None:
+        fft_length = x.shape[-1]
+    
+    # Pad if necessary
+    if x.shape[-1] < fft_length:
+        pad_size = fft_length - x.shape[-1]
+        x = mx.pad(x, ((0, pad_size),))
+    
+    # Perform FFT
+    real, imag = fft(x)
+    
+    # Return only positive frequencies (half + 1 of full FFT)
+    n_freqs = fft_length // 2 + 1
+    return real[..., :n_freqs], imag[..., :n_freqs]
 
+def fft2(x):
+    """2D FFT implementation using 1D FFT"""
+    # First FFT along rows
+    real_rows, imag_rows = fft(x)
+    x_complex = mx.complex(real_rows, imag_rows)
+    
+    # Then FFT along columns
+    x_t = mx.transpose(x_complex)
+    real_cols, imag_cols = fft(x_t)
+    
+    # Transpose back
+    result = mx.transpose(mx.complex(real_cols, imag_cols))
+    return mx.real(result), mx.imag(result)
+
+def stft(x, sequence_length, sequence_stride, fft_length, window="hann", center=True):
+    """Short-time Fourier transform implementation"""
+    if window == "hann":
+        # Create Hann window
+        window = 0.5 * (1 - mx.cos(2 * mx.pi * mx.arange(sequence_length) / (sequence_length - 1)))
+    elif window == "hamming":
+        # Create Hamming window
+        window = 0.54 - 0.46 * mx.cos(2 * mx.pi * mx.arange(sequence_length) / (sequence_length - 1))
+    
+    if center:
+        pad_width = fft_length // 2
+        x = mx.pad(x, ((pad_width, pad_width),))
+    
+    # Extract segments
+    n_segments = (x.shape[-1] - sequence_length) // sequence_stride + 1
+    segments = []
+    
+    for i in range(n_segments):
+        start = i * sequence_stride
+        segment = x[..., start:start+sequence_length]
+        if window is not None:
+            segment = segment * window
+        segments.append(segment)
+    
+    segments = mx.stack(segments, axis=0)
+    
+    # Perform FFT on each segment
+    real, imag = rfft(segments, fft_length)
+    return real, imag
+
+
+def ifft(x):
+    """Inverse Fast Fourier Transform implementation"""
+    real, imag = x
+    x = mx.complex(real, imag)
+    n = x.shape[-1]
+    
+    if n & (n - 1):
+        raise ValueError("Length must be a power of 2 for this IFFT implementation")
+    
+    bits = n.bit_length() - 1
+    # Bit reversal permutation
+    indices = mx.array([_bit_reverse(i, bits) for i in range(n)])
+    x = mx.take(x, indices, axis=-1)
+    
+    # Cooley-Tukey IFFT (similar to FFT but with conjugate twiddle factors)
+    for stage in range(1, bits + 1):
+        m = 1 << stage
+        half_m = m // 2
+        
+        # Twiddle factors (note positive angle for IFFT)
+        k = mx.arange(half_m)
+        theta = 2 * mx.pi * k / m
+        real = mx.cos(theta)
+        imag = mx.sin(theta)
+        
+        for j in range(0, n, m):
+            even = x[..., j:j+half_m]
+            odd = x[..., j+half_m:j+m]
+            
+            real_part = odd * real - odd * imag
+            imag_part = odd * real + odd * imag
+            
+            x = mx.concatenate([
+                even + real_part,
+                even - real_part
+            ], axis=-1)
+    
+    # Scale by 1/n
+    x = x / n
+    return mx.real(x), mx.imag(x)
+
+def ifft2(x):
+    """2D Inverse FFT implementation using 1D IFFT"""
+    # First IFFT along rows
+    real_rows, imag_rows = ifft(x)
+    x_complex = mx.complex(real_rows, imag_rows)
+    
+    # Then IFFT along columns
+    x_t = mx.transpose(x_complex)
+    real_cols, imag_cols = ifft(x_t)
+    
+    # Transpose back
+    result = mx.transpose(mx.complex(real_cols, imag_cols))
+    return mx.real(result), mx.imag(result)
 
 def irfft(x, fft_length=None):
-    complex_input = _get_complex_tensor_from_tuple(x)
-    # numpy always outputs float64, so we need to recast the dtype
-    return np.fft.irfft(
-        complex_input, n=fft_length, axis=-1, norm="backward"
-    ).astype(x[0].dtype)
+    """Inverse Real FFT implementation"""
+    real, imag = x
+    if fft_length is None:
+        fft_length = (real.shape[-1] - 1) * 2
+    
+    # Reconstruct negative frequencies using conjugate symmetry
+    n_freqs = fft_length // 2 + 1
+    real_full = mx.concatenate([real, mx.flip(real[..., 1:-1], -1)], axis=-1)
+    imag_full = mx.concatenate([imag, -mx.flip(imag[..., 1:-1], -1)], axis=-1)
+    
+    # Perform IFFT
+    result_real, result_imag = ifft((real_full, imag_full))
+    return result_real  # Result should be real-valued
 
-
-def stft(
-    x, sequence_length, sequence_stride, fft_length, window="hann", center=True
-):
-    if standardize_dtype(x.dtype) not in {"float32", "float64"}:
-        raise TypeError(
-            "Invalid input type. Expected `float32` or `float64`. "
-            f"Received: input type={x.dtype}"
-        )
-    if fft_length < sequence_length:
-        raise ValueError(
-            "`fft_length` must equal or larger than `sequence_length`. "
-            f"Received: sequence_length={sequence_length}, "
-            f"fft_length={fft_length}"
-        )
-    if isinstance(window, str):
-        if window not in {"hann", "hamming"}:
-            raise ValueError(
-                "If a string is passed to `window`, it must be one of "
-                f'`"hann"`, `"hamming"`. Received: window={window}'
-            )
-    x = convert_to_tensor(x)
-    ori_dtype = x.dtype
-
+def istft(x, sequence_length, sequence_stride, fft_length, length=None, window="hann", center=True):
+    """Inverse Short-time Fourier transform implementation"""
+    if window == "hann":
+        window = 0.5 * (1 - mx.cos(2 * mx.pi * mx.arange(sequence_length) / (sequence_length - 1)))
+    elif window == "hamming":
+        window = 0.54 - 0.46 * mx.cos(2 * mx.pi * mx.arange(sequence_length) / (sequence_length - 1))
+    
+    # Inverse FFT of each frame
+    frames = irfft(x, fft_length)
+    
+    # Truncate to sequence_length
+    frames = frames[..., :sequence_length]
+    
+    # Apply window
+    if window is not None:
+        frames = frames * window
+    
+    # Overlap-add
+    n_frames = frames.shape[0]
+    output_length = (n_frames - 1) * sequence_stride + sequence_length
+    output = mx.zeros(output_length)
+    
+    for i in range(n_frames):
+        start = i * sequence_stride
+        output = output.at[start:start+sequence_length].add(frames[i])
+    
+    # Remove padding if center
     if center:
-        pad_width = [(0, 0) for _ in range(len(x.shape))]
-        pad_width[-1] = (fft_length // 2, fft_length // 2)
-        x = np.pad(x, pad_width, mode="reflect")
-
-    l_pad = (fft_length - sequence_length) // 2
-    r_pad = fft_length - sequence_length - l_pad
-
+        start = fft_length // 2
+        end = -fft_length // 2 if length is None else start + length
+        output = output[start:end]
+    
+    # Normalize for window overlap
     if window is not None:
-        if isinstance(window, str):
-            win = convert_to_tensor(
-                scipy.signal.get_window(window, sequence_length), dtype=x.dtype
-            )
-        else:
-            win = convert_to_tensor(window, dtype=x.dtype)
-        if len(win.shape) != 1 or win.shape[-1] != sequence_length:
-            raise ValueError(
-                "The shape of `window` must be equal to [sequence_length]."
-                f"Received: window shape={win.shape}"
-            )
-        win = np.pad(win, [[l_pad, r_pad]])
-    else:
-        win = np.ones((sequence_length + l_pad + r_pad), dtype=x.dtype)
-
-    x = scipy.signal.stft(
-        x,
-        fs=1.0,
-        window=win,
-        nperseg=(sequence_length + l_pad + r_pad),
-        noverlap=(sequence_length + l_pad + r_pad - sequence_stride),
-        nfft=fft_length,
-        boundary=None,
-        padded=False,
-    )[-1]
-
-    # scale and swap to (..., num_sequences, fft_bins)
-    x = x / np.sqrt(1.0 / win.sum() ** 2)
-    x = np.swapaxes(x, -2, -1)
-    return np.real(x).astype(ori_dtype), np.imag(x).astype(ori_dtype)
-
-
-def istft(
-    x,
-    sequence_length,
-    sequence_stride,
-    fft_length,
-    length=None,
-    window="hann",
-    center=True,
-):
-    x = _get_complex_tensor_from_tuple(x)
-    dtype = np.real(x).dtype
-
-    expected_output_len = fft_length + sequence_stride * (x.shape[-2] - 1)
-    l_pad = (fft_length - sequence_length) // 2
-    r_pad = fft_length - sequence_length - l_pad
-
-    if window is not None:
-        if isinstance(window, str):
-            win = convert_to_tensor(
-                scipy.signal.get_window(window, sequence_length), dtype=dtype
-            )
-        else:
-            win = convert_to_tensor(window, dtype=dtype)
-        if len(win.shape) != 1 or win.shape[-1] != sequence_length:
-            raise ValueError(
-                "The shape of `window` must be equal to [sequence_length]."
-                f"Received: window shape={win.shape}"
-            )
-        win = np.pad(win, [[l_pad, r_pad]])
-    else:
-        win = np.ones((sequence_length + l_pad + r_pad), dtype=dtype)
-
-    x = scipy.signal.istft(
-        x,
-        fs=1.0,
-        window=win,
-        nperseg=(sequence_length + l_pad + r_pad),
-        noverlap=(sequence_length + l_pad + r_pad - sequence_stride),
-        nfft=fft_length,
-        boundary=False,
-        time_axis=-2,
-        freq_axis=-1,
-    )[-1]
-
-    # scale
-    x = x / win.sum() if window is not None else x / sequence_stride
-
-    start = 0 if center is False else fft_length // 2
-    if length is not None:
-        end = start + length
-    elif center is True:
-        end = -(fft_length // 2)
-    else:
-        end = expected_output_len
-    return x[..., start:end]
-
-
-def rsqrt(x):
-    return 1.0 / np.sqrt(x)
-
+        # Calculate normalization factor based on window overlap
+        win_sum = mx.zeros(output_length)
+        for i in range(n_frames):
+            start = i * sequence_stride
+            win_sum = win_sum.at[start:start+sequence_length].add(window)
+        # Avoid division by zero
+        win_sum = mx.where(win_sum > 1e-10, win_sum, 1.0)
+        output = output / win_sum
+    
+    return output
 
 def erf(x):
-    return np.array(scipy.special.erf(x))
-
+    """Error function approximation using polynomial expansion"""
+    # Constants for polynomial approximation
+    a = mx.array([0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429])
+    p = 0.3275911
+    
+    # Save the sign of x
+    sign = mx.sign(x)
+    x = mx.abs(x)
+    
+    # Formula 7.1.26 from Abramowitz and Stegun
+    t = 1.0 / (1.0 + p * x)
+    y = 1.0 - (((((a[4] * t + a[3]) * t) + a[2]) * t + a[1]) * t + a[0]) * t * mx.exp(-x * x)
+    
+    return sign * y
 
 def erfinv(x):
-    return np.array(scipy.special.erfinv(x))
+    """Inverse error function approximation using rational approximation"""
+    # Rational approximation coefficients
+    c = mx.array([1.0, 0.47047, 0.1216, 0.0273])
+    d = mx.array([1.5774, 0.7379, 0.1089])
+    
+    # Save the sign of x
+    sign = mx.sign(x)
+    x = mx.abs(x)
+    
+    # Approximation for |x| <= 0.7
+    def approx1(x):
+        x2 = x * x
+        num = ((c[3] * x2 + c[2]) * x2 + c[1]) * x2 + c[0]
+        den = ((d[2] * x2 + d[1]) * x2 + d[0]) * x2 + 1.0
+        return x * num / den
+    
+    # Approximation for |x| > 0.7
+    def approx2(x):
+        z = mx.sqrt(-mx.log((1 - x) / 2))
+        return z - mx.log(z) / z
+    
+    # Combine approximations
+    result = mx.where(x <= 0.7, approx1(x), approx2(x))
+    return sign * result
+
+def rsqrt(x):
+    return 1.0 / mx.sqrt(x)
 
 
 def solve(a, b):
     a = convert_to_tensor(a)
     b = convert_to_tensor(b)
-    return np.linalg.solve(a, b)
+    return mx.linalg.solve(a, b)
 
 
 def norm(x, ord=None, axis=None, keepdims=False):
@@ -309,14 +397,11 @@ def norm(x, ord=None, axis=None, keepdims=False):
     dtype = standardize_dtype(x.dtype)
     if "int" in dtype or dtype == "bool":
         dtype = dtypes.result_type(x.dtype, "float32")
-    return np.linalg.norm(x, ord=ord, axis=axis, keepdims=keepdims).astype(
+    return mx.linalg.norm(x, ord=ord, axis=axis, keepdims=keepdims).astype(
         dtype
     )
 
 
 def logdet(x):
-    from keras.src.backend.numpy.numpy import slogdet
-
-    # In NumPy slogdet is more stable than `np.log(np.linalg.det(x))`. See
-    # https://numpy.org/doc/stable/reference/generated/numpy.linalg.slogdet.html
-    return slogdet(x)[1]
+    # Note: Using determinant directly since MLX doesn't have slogdet
+    return mx.log(mx.linalg.det(x))

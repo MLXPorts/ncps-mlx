@@ -1,10 +1,10 @@
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.saving import serialization_lib
 
 
-@keras_export("keras.layers.Pipeline")
+@keras_mini_export("ncps.mini_keras.layers.Pipeline")
 class Pipeline(Layer):
     """Applies a series of layers to an input.
 

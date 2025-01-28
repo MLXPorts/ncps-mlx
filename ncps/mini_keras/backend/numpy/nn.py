@@ -2,14 +2,14 @@ import jax
 import numpy as np
 from jax import lax
 
-from keras.src import backend
-from keras.src.backend.common.backend_utils import (
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.common.backend_utils import (
     compute_conv_transpose_padding_args_for_jax,
 )
-from keras.src.backend.numpy.core import cast
-from keras.src.backend.numpy.core import convert_to_tensor
-from keras.src.backend.numpy.core import is_tensor
-from keras.src.utils.module_utils import scipy
+from ncps.mini_keras.backend.numpy.core import cast
+from ncps.mini_keras.backend.numpy.core import convert_to_tensor
+from ncps.mini_keras.backend.numpy.core import is_tensor
+from ncps.mini_keras.utils.module_utils import scipy
 
 
 def relu(x):

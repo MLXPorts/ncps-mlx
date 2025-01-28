@@ -1,19 +1,19 @@
 import warnings
 
-from keras.src import initializers
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.losses.loss import squeeze_or_expand_to_same_rank
-from keras.src.losses.losses import log_cosh
-from keras.src.losses.losses import mean_absolute_error
-from keras.src.losses.losses import mean_absolute_percentage_error
-from keras.src.losses.losses import mean_squared_error
-from keras.src.losses.losses import mean_squared_logarithmic_error
-from keras.src.metrics import reduction_metrics
-from keras.src.utils.numerical_utils import normalize
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.losses.loss import squeeze_or_expand_to_same_rank
+from ncps.mini_keras.losses.losses import log_cosh
+from ncps.mini_keras.losses.losses import mean_absolute_error
+from ncps.mini_keras.losses.losses import mean_absolute_percentage_error
+from ncps.mini_keras.losses.losses import mean_squared_error
+from ncps.mini_keras.losses.losses import mean_squared_logarithmic_error
+from ncps.mini_keras.metrics import reduction_metrics
+from ncps.mini_keras.utils.numerical_utils import normalize
 
 
-@keras_export("keras.metrics.MeanSquaredError")
+@keras_mini_export("ncps.mini_keras.metrics.MeanSquaredError")
 class MeanSquaredError(reduction_metrics.MeanMetricWrapper):
     """Computes the mean squared error between `y_true` and `y_pred`.
 
@@ -43,7 +43,7 @@ class MeanSquaredError(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.MeanAbsoluteError")
+@keras_mini_export("ncps.mini_keras.metrics.MeanAbsoluteError")
 class MeanAbsoluteError(reduction_metrics.MeanMetricWrapper):
     """Computes the mean absolute error between the labels and predictions.
 
@@ -89,7 +89,7 @@ class MeanAbsoluteError(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.MeanAbsolutePercentageError")
+@keras_mini_export("ncps.mini_keras.metrics.MeanAbsolutePercentageError")
 class MeanAbsolutePercentageError(reduction_metrics.MeanMetricWrapper):
     """Computes mean absolute percentage error between `y_true` and `y_pred`.
 
@@ -134,7 +134,7 @@ class MeanAbsolutePercentageError(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.MeanSquaredLogarithmicError")
+@keras_mini_export("ncps.mini_keras.metrics.MeanSquaredLogarithmicError")
 class MeanSquaredLogarithmicError(reduction_metrics.MeanMetricWrapper):
     """Computes mean squared logarithmic error between `y_true` and `y_pred`.
 
@@ -180,7 +180,7 @@ class MeanSquaredLogarithmicError(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.RootMeanSquaredError")
+@keras_mini_export("ncps.mini_keras.metrics.RootMeanSquaredError")
 class RootMeanSquaredError(reduction_metrics.Mean):
     """Computes root mean squared error metric between `y_true` and `y_pred`.
 
@@ -246,7 +246,7 @@ class RootMeanSquaredError(reduction_metrics.Mean):
         return ops.sqrt(super().result())
 
 
-@keras_export("keras.metrics.CosineSimilarity")
+@keras_mini_export("ncps.mini_keras.metrics.CosineSimilarity")
 class CosineSimilarity(reduction_metrics.MeanMetricWrapper):
     """Computes the cosine similarity between the labels and predictions.
 
@@ -302,7 +302,7 @@ class CosineSimilarity(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.LogCoshError")
+@keras_mini_export("ncps.mini_keras.metrics.LogCoshError")
 class LogCoshError(reduction_metrics.MeanMetricWrapper):
     """Computes the logarithm of the hyperbolic cosine of the prediction error.
 
@@ -349,7 +349,7 @@ class LogCoshError(reduction_metrics.MeanMetricWrapper):
 
 
 # Adapted from TF-Addons implementation (RSquare class).
-@keras_export("keras.metrics.R2Score")
+@keras_mini_export("ncps.mini_keras.metrics.R2Score")
 class R2Score(reduction_metrics.Metric):
     """Computes R2 score.
 

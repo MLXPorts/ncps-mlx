@@ -1,9 +1,9 @@
 import tensorflow as tf
 
-from keras.src import tree
-from keras.src.backend.tensorflow.trackable import KerasAutoTrackable
-from keras.src.utils import tf_utils
-from keras.src.utils import tracking
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.tensorflow.trackable import KerasAutoTrackable
+from ncps.mini_keras.utils import tf_utils
+from ncps.mini_keras.utils import tracking
 
 
 class TFLayer(KerasAutoTrackable):
@@ -77,9 +77,9 @@ class TFLayer(KerasAutoTrackable):
     def _default_save_signature(self):
         """For SavedModel support: returns the default serving signature."""
 
-        from keras.src.models.functional import Functional
-        from keras.src.models.model import Model
-        from keras.src.models.sequential import Sequential
+        from ncps.mini_keras.models.functional import Functional
+        from ncps.mini_keras.models.model import Model
+        from ncps.mini_keras.models.sequential import Sequential
 
         if not isinstance(self, Model):
             return None

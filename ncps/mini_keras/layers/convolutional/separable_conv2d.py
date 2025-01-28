@@ -1,11 +1,11 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.convolutional.base_separable_conv import BaseSeparableConv
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.convolutional.base_separable_conv import BaseSeparableConv
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.layers.SeparableConv2D",
-        "keras.layers.SeparableConvolution2D",
+        "ncps.mini_keras.layers.SeparableConv2D",
+        "ncps.mini_keras.layers.SeparableConvolution2D",
     ]
 )
 class SeparableConv2D(BaseSeparableConv):

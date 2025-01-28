@@ -2,10 +2,10 @@ import math
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
     BaseImagePreprocessingLayer,
 )
 
@@ -41,7 +41,7 @@ def _extract_image_batch(images, num_images, batch_size):
     return sample
 
 
-@keras_export("keras.visualization.plot_image_gallery")
+@keras_mini_export("ncps.mini_keras.visualization.plot_image_gallery")
 def plot_image_gallery(
     images,
     rows=None,

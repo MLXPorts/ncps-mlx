@@ -5,12 +5,12 @@ import numpy as np
 import pytest
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import constraints
-from keras.src import layers
-from keras.src import models
-from keras.src import optimizers
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import constraints
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import optimizers
+from ncps.mini_keras import testing
 
 
 class OptimizerTest(testing.TestCase):

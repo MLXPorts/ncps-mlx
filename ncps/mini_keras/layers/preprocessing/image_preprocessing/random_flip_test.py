@@ -4,10 +4,10 @@ import numpy as np
 from absl.testing import parameterized
 from tensorflow import data as tf_data
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import testing
-from keras.src import utils
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
+from ncps.mini_keras import utils
 
 
 class MockedRandomFlip(layers.RandomFlip):

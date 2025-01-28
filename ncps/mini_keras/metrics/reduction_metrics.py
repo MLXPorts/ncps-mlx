@@ -1,10 +1,10 @@
-from keras.src import backend
-from keras.src import initializers
-from keras.src import losses
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.metrics.metric import Metric
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import losses
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.metrics.metric import Metric
+from ncps.mini_keras.saving import serialization_lib
 
 
 def reduce_to_samplewise_values(values, sample_weight, reduce_fn, dtype):
@@ -44,7 +44,7 @@ def reduce_to_samplewise_values(values, sample_weight, reduce_fn, dtype):
     return values, sample_weight
 
 
-@keras_export("keras.metrics.Sum")
+@keras_mini_export("ncps.mini_keras.metrics.Sum")
 class Sum(Metric):
     """Compute the (weighted) sum of the given values.
 
@@ -93,7 +93,7 @@ class Sum(Metric):
         return ops.cast(self.total, self.dtype)
 
 
-@keras_export("keras.metrics.Mean")
+@keras_mini_export("ncps.mini_keras.metrics.Mean")
 class Mean(Metric):
     """Compute the (weighted) mean of the given values.
 
@@ -158,7 +158,7 @@ class Mean(Metric):
         )
 
 
-@keras_export("keras.metrics.MeanMetricWrapper")
+@keras_mini_export("ncps.mini_keras.metrics.MeanMetricWrapper")
 class MeanMetricWrapper(Mean):
     """Wrap a stateless metric function with the `Mean` metric.
 

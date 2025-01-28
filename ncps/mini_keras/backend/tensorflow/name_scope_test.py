@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from keras.src.backend.tensorflow.core import name_scope
-from keras.src.testing import TestCase
+from ncps.mini_keras.backend.tensorflow.core import name_scope
+from ncps.mini_keras.testing import TestCase
 
 
 class TFNameScopeTest(TestCase):

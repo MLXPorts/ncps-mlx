@@ -1,5 +1,5 @@
-from keras.src import testing
-from keras.src.utils import sequence_utils
+from ncps.mini_keras import testing
+from ncps.mini_keras.utils import sequence_utils
 
 
 class PadSequencesTest(testing.TestCase):

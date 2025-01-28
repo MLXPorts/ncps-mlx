@@ -1,6 +1,6 @@
-from keras.src import backend
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import backend
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.layer import Layer
 
 
 class BaseGlobalPooling(Layer):

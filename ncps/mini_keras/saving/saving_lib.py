@@ -13,23 +13,22 @@ import zipfile
 import ml_dtypes
 import numpy as np
 
-from keras.src import backend
-from keras.src.backend.common import global_state
-from keras.src.layers.layer import Layer
-from keras.src.losses.loss import Loss
-from keras.src.metrics.metric import Metric
-from keras.src.optimizers.optimizer import Optimizer
-from keras.src.saving.serialization_lib import ObjectSharingScope
-from keras.src.saving.serialization_lib import deserialize_keras_object
-from keras.src.saving.serialization_lib import serialize_keras_object
-from keras.src.trainers.compile_utils import CompileMetrics
-from keras.src.utils import file_utils
-from keras.src.utils import io_utils
-from keras.src.utils import naming
-from keras.src.utils import plot_model
-from keras.src.utils.model_visualization import check_pydot
-from keras.src.utils.summary_utils import weight_memory_size
-from keras.src.version import __version__ as keras_version
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.losses.loss import Loss
+from ncps.mini_keras.metrics.metric import Metric
+from ncps.mini_keras.optimizers.optimizer import Optimizer
+from ncps.mini_keras.saving.serialization_lib import ObjectSharingScope
+from ncps.mini_keras.saving.serialization_lib import deserialize_keras_object
+from ncps.mini_keras.saving.serialization_lib import serialize_keras_object
+from ncps.mini_keras.trainers.compile_utils import CompileMetrics
+from ncps.mini_keras.utils import file_utils
+from ncps.mini_keras.utils import io_utils
+from ncps.mini_keras.utils import naming
+from ncps.mini_keras.utils import plot_model
+from ncps.mini_keras.utils.model_visualization import check_pydot
+from ncps.mini_keras.utils.summary_utils import weight_memory_size
+from ncps.mini_keras.version import __version__ as keras_version
 
 try:
     import h5py
@@ -655,7 +654,7 @@ def _name_key(name):
 
 
 def _walk_saveable(saveable):
-    from keras.src.saving.keras_saveable import KerasSaveable
+    from ncps.mini_keras.saving.base_saveable import KerasSaveableBase as KerasSaveable
 
     if not isinstance(saveable, KerasSaveable):
         raise ValueError(
@@ -691,7 +690,7 @@ def _save_state(
     inner_path,
     visited_saveables,
 ):
-    from keras.src.saving.keras_saveable import KerasSaveable
+    from ncps.mini_keras.saving.base_saveable import KerasSaveableBase as KerasSaveable
 
     # If the saveable has already been saved, skip it.
     if id(saveable) in visited_saveables:
@@ -744,7 +743,7 @@ def _load_state(
     failed_saveables=None,
     error_msgs=None,
 ):
-    from keras.src.saving.keras_saveable import KerasSaveable
+    from ncps.mini_keras.saving.base_saveable import KerasSaveableBase as KerasSaveable
 
     if visited_saveables and id(saveable) in visited_saveables:
         return
@@ -823,7 +822,7 @@ def _load_state(
 def _save_container_state(
     container, weights_store, assets_store, inner_path, visited_saveables
 ):
-    from keras.src.saving.keras_saveable import KerasSaveable
+    from ncps.mini_keras.saving.base_saveable import KerasSaveableBase as KerasSaveable
 
     used_names = {}
     if isinstance(container, dict):
@@ -859,7 +858,7 @@ def _load_container_state(
     failed_saveables,
     error_msgs,
 ):
-    from keras.src.saving.keras_saveable import KerasSaveable
+    from ncps.mini_keras.saving.base_saveable import KerasSaveableBase as KerasSaveable
 
     used_names = {}
     if isinstance(container, dict):

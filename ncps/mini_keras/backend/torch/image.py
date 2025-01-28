@@ -4,9 +4,9 @@ import operator
 
 import torch
 
-from keras.src import backend
-from keras.src.backend.torch.core import convert_to_tensor
-from keras.src.utils.module_utils import torchvision
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.torch.core import convert_to_tensor
+from ncps.mini_keras.utils.module_utils import torchvision
 
 RESIZE_INTERPOLATIONS = {}  # populated after torchvision import
 

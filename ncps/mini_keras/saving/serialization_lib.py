@@ -7,13 +7,13 @@ import warnings
 
 import numpy as np
 
-from keras.src import api_export
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.backend.common import global_state
-from keras.src.saving import object_registration
-from keras.src.utils import python_utils
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import api_export
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.saving import object_registration
+from ncps.mini_keras.utils import python_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 PLAIN_TYPES = (str, int, float, bool)
 
@@ -53,7 +53,7 @@ class SafeModeScope:
         )
 
 
-@keras_export("keras.config.enable_unsafe_deserialization")
+@keras_mini_export("ncps.mini_keras.config.enable_unsafe_deserialization")
 def enable_unsafe_deserialization():
     """Disables safe mode globally, allowing deserialization of lambdas."""
     global_state.set_global_attribute("safe_mode_saving", False)
@@ -114,10 +114,10 @@ def record_object_after_deserialization(obj, obj_id):
     id_to_obj_map[obj_id] = obj
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.saving.serialize_keras_object",
-        "keras.utils.serialize_keras_object",
+        "ncps.mini_keras.saving.serialize_keras_object",
+        "ncps.mini_keras.utils.serialize_keras_object",
     ]
 )
 def serialize_keras_object(obj):
@@ -299,7 +299,7 @@ def serialize_with_public_class(cls, inner_config=None):
     `keras.saving.register_keras_serializable()`.
     """
     # This gets the `keras.*` exported name, such as
-    # "keras.optimizers.Adam".
+    # "ncps.mini_keras.optimizers.Adam".
     keras_api_name = api_export.get_name_from_symbol(cls)
 
     # Case of custom or unknown class object
@@ -390,10 +390,10 @@ def serialize_dict(obj):
     return {key: serialize_keras_object(value) for key, value in obj.items()}
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.saving.deserialize_keras_object",
-        "keras.utils.deserialize_keras_object",
+        "ncps.mini_keras.saving.deserialize_keras_object",
+        "ncps.mini_keras.utils.deserialize_keras_object",
     ]
 )
 def deserialize_keras_object(
@@ -437,7 +437,7 @@ def deserialize_keras_object(
             "learning_rate": 0.0010000000474974513,
             "name": "Adam"
         },
-        "module": "keras.optimizers",
+        "module": "ncps.mini_keras.optimizers",
         "registered_name": None
     }
     # Returns an `Adam` instance identical to the original one.
@@ -453,7 +453,7 @@ def deserialize_keras_object(
       "config": {
           ...
       },
-      "module": "keras.trainers.compile_utils",
+      "module": "ncps.mini_keras.trainers.compile_utils",
       "registered_name": "MetricsList"
     }
 
@@ -762,7 +762,7 @@ def _retrieve_class_or_fn(
         # we cannot always use direct import, because the exported
         # module name might not match the package structure
         # (e.g. experimental symbols).
-        if module == "keras" or module.startswith("keras."):
+        if module == "keras" or module.startswith("ncps.mini_keras."):
             api_name = module + "." + name
 
             obj = api_export.get_symbol_from_name(api_name)
@@ -776,7 +776,7 @@ def _retrieve_class_or_fn(
         if obj_type == "function" and module == "builtins":
             for mod in BUILTIN_MODULES:
                 obj = api_export.get_symbol_from_name(
-                    "keras." + mod + "." + name
+                    "ncps.mini_keras." + mod + "." + name
                 )
                 if obj is not None:
                     return obj

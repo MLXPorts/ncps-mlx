@@ -1,6 +1,6 @@
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -133,7 +133,7 @@ def DenseNet(
       https://keras.io/guides/transfer_learning/).
 
     Note: each Keras Application expects a specific kind of input preprocessing.
-    For DenseNet, call `keras.applications.densenet.preprocess_input`
+    For DenseNet, call `ncps.mini_keras.applications.densenet.preprocess_input`
     on your inputs before passing them to the model.
     `densenet.preprocess_input` will scale pixels between 0 and 1 and then
     will normalize each channel with respect to the ImageNet
@@ -322,10 +322,10 @@ def DenseNet(
     return model
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.densenet.DenseNet121",
-        "keras.applications.DenseNet121",
+        "ncps.mini_keras.applications.densenet.DenseNet121",
+        "ncps.mini_keras.applications.DenseNet121",
     ]
 )
 def DenseNet121(
@@ -352,10 +352,10 @@ def DenseNet121(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.densenet.DenseNet169",
-        "keras.applications.DenseNet169",
+        "ncps.mini_keras.applications.densenet.DenseNet169",
+        "ncps.mini_keras.applications.DenseNet169",
     ]
 )
 def DenseNet169(
@@ -382,10 +382,10 @@ def DenseNet169(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.densenet.DenseNet201",
-        "keras.applications.DenseNet201",
+        "ncps.mini_keras.applications.densenet.DenseNet201",
+        "ncps.mini_keras.applications.DenseNet201",
     ]
 )
 def DenseNet201(
@@ -412,14 +412,14 @@ def DenseNet201(
     )
 
 
-@keras_export("keras.applications.densenet.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.densenet.preprocess_input")
 def preprocess_input(x, data_format=None):
     return imagenet_utils.preprocess_input(
         x, data_format=data_format, mode="torch"
     )
 
 
-@keras_export("keras.applications.densenet.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.densenet.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 
@@ -442,7 +442,7 @@ Note that the data format convention used by the model is
 the one specified in your Keras config at `~/.keras/keras.json`.
 
 Note: each Keras Application expects a specific kind of input preprocessing.
-For DenseNet, call `keras.applications.densenet.preprocess_input`
+For DenseNet, call `ncps.mini_keras.applications.densenet.preprocess_input`
 on your inputs before passing them to the model.
 
 Args:

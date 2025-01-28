@@ -4,18 +4,18 @@ import math
 import numpy as np
 import torch
 
-from keras.src.backend import KerasTensor
-from keras.src.backend import config
-from keras.src.backend.common import dtypes
-from keras.src.backend.common.backend_utils import canonicalize_axis
-from keras.src.backend.common.backend_utils import to_tuple_or_list
-from keras.src.backend.common.backend_utils import vectorize_impl
-from keras.src.backend.common.variables import standardize_dtype
-from keras.src.backend.torch.core import cast
-from keras.src.backend.torch.core import convert_to_tensor
-from keras.src.backend.torch.core import get_device
-from keras.src.backend.torch.core import is_tensor
-from keras.src.backend.torch.core import to_torch_dtype
+from ncps.mini_keras.backend import KerasTensor
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.common.backend_utils import canonicalize_axis
+from ncps.mini_keras.backend.common.backend_utils import to_tuple_or_list
+from ncps.mini_keras.backend.common.backend_utils import vectorize_impl
+from ncps.mini_keras.backend.common.variables import standardize_dtype
+from ncps.mini_keras.backend.torch.core import cast
+from ncps.mini_keras.backend.torch.core import convert_to_tensor
+from ncps.mini_keras.backend.torch.core import get_device
+from ncps.mini_keras.backend.torch.core import is_tensor
+from ncps.mini_keras.backend.torch.core import to_torch_dtype
 
 TORCH_INT_TYPES = (
     torch.int8,

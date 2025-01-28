@@ -1,10 +1,10 @@
 import pytest
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import ops
-from keras.src import testing
-from keras.src.layers.rnn.dropout_rnn_cell import DropoutRNNCell
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.layers.rnn.dropout_rnn_cell import DropoutRNNCell
 
 
 class RNNCellWithDropout(layers.Layer, DropoutRNNCell):

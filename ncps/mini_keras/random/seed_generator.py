@@ -2,14 +2,14 @@ import random as python_random
 
 import numpy as np
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.backend.common import global_state
-from keras.src.utils import jax_utils
-from keras.src.utils.naming import auto_name
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.utils import jax_utils
+from ncps.mini_keras.utils.naming import auto_name
 
 
-@keras_export("keras.random.SeedGenerator")
+@keras_mini_export("ncps.mini_keras.random.SeedGenerator")
 class SeedGenerator:
     """Generates variable seeds upon each call to a function generating
     random numbers.
@@ -145,8 +145,8 @@ def make_default_seed():
 
 
 def draw_seed(seed):
-    from keras.src.backend import convert_to_tensor
-    from keras.src.backend import random_seed_dtype
+    from ncps.mini_keras.backend import convert_to_tensor
+    from ncps.mini_keras.backend import random_seed_dtype
 
     if isinstance(seed, SeedGenerator):
         return seed.next()

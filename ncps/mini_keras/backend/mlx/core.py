@@ -5,14 +5,14 @@ import warnings
 
 import mlx.core as mx
 
-from keras.src import tree
-from keras.src.backend.common import KerasVariable
-from keras.src.backend.common import standardize_dtype
-from keras.src.backend.common.backend_utils import slice_along_axis
-from keras.src.backend.common.dtypes import result_type
-from keras.src.backend.common.keras_tensor import KerasTensor
-from keras.src.backend.common.stateless_scope import StatelessScope
-from keras.src.backend.common.symbolic_scope import SymbolicScope
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.common import KerasVariable
+from ncps.mini_keras.backend.common import standardize_dtype
+from ncps.mini_keras.backend.common.backend_utils import slice_along_axis
+from ncps.mini_keras.backend.common.dtypes import result_type
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras.backend.common.stateless_scope import StatelessScope
+from ncps.mini_keras.backend.common.symbolic_scope import SymbolicScope
 
 SUPPORTS_SPARSE_TENSORS = False
 SUPPORTS_RAGGED_TENSORS = False
@@ -58,13 +58,30 @@ def convert_to_numpy(x):
     return x.numpy()
 
 def is_tensor(x):
-    return isinstance(x, mx.Tensor)
+    if isinstance(x, mx.array):
+        return True
+    return False
 
 def shape(x):
     return mx.shape(x)
 
 def cast(x, dtype):
-    return mx.cast(x, dtype=dtype)
+    """Cast tensor to specified dtype."""
+    if isinstance(dtype, str):
+        mlx_dtype = getattr(mx, dtype)
+    else:
+        mlx_dtype = dtype
+        
+    # Handle different types
+    if isinstance(x, KerasTensor):
+        # For KerasTensor, create a new one with updated dtype
+        return KerasTensor(x.shape, dtype=dtype)
+    elif isinstance(x, mx.array):
+        # For MLX arrays, use astype
+        return x.astype(mlx_dtype)
+    else:
+        # For other types, convert to array first
+        return mx.array(x, dtype=mlx_dtype)
 
 def cond(pred, true_fn, false_fn):
     return true_fn() if pred else false_fn()
@@ -78,7 +95,26 @@ def vectorized_map(function, elements):
         for index in range(batch_size):
             output_store.append(function([x[index] for x in elements]))
         return mx.stack(output_store)
-
+def convert_to_tensor(x, dtype=None, sparse=None, ragged=None):
+    if sparse:
+        raise ValueError("`sparse=True` is not supported with numpy backend")
+    if ragged:
+        raise ValueError("`ragged=True` is not supported with numpy backend")
+    if dtype is not None:
+        dtype = standardize_dtype(dtype)
+    if isinstance(x, Variable):
+        if dtype and dtype != x.dtype:
+            return x.value.astype(dtype)
+        return x.value
+    if not is_tensor(x) and standardize_dtype(dtype) == "bfloat16":
+        # Can't create bfloat16 arrays on the fly (e.g. from a h5 Dataset).
+        # Instead we convert "as is" (to stored dtype) and cast.
+        return mx.asarray(x).astype(dtype)
+    if dtype is None:
+        dtype = result_type(
+            *[getattr(item, "dtype", type(item)) for item in tree.flatten(x)]
+        )
+    return mx.array(x, dtype=dtype)
 def compute_output_spec(fn, *args, **kwargs):
     with StatelessScope(), SymbolicScope():
 

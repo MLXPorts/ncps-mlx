@@ -11,9 +11,9 @@ import warnings
 
 import tensorflow as tf
 
-from keras.src import backend
-from keras.src.backend.tensorflow.trackable import KerasAutoTrackable
-from keras.src.optimizers import base_optimizer
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.tensorflow.trackable import KerasAutoTrackable
+from ncps.mini_keras.optimizers import base_optimizer
 
 
 class TFOptimizer(KerasAutoTrackable, base_optimizer.BaseOptimizer):

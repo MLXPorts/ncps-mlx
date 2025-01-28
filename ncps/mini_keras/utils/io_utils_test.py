@@ -2,8 +2,8 @@ import sys
 import tempfile
 from unittest.mock import patch
 
-from keras.src.testing import test_case
-from keras.src.utils import io_utils
+from ncps.mini_keras.testing import test_case
+from ncps.mini_keras.utils import io_utils
 
 
 class TestIoUtils(test_case.TestCase):

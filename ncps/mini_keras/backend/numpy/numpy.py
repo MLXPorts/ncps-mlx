@@ -1,11 +1,11 @@
 import numpy as np
 
-from keras.src import tree
-from keras.src.backend import config
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.common.backend_utils import standardize_axis_for_numpy
-from keras.src.backend.numpy.core import convert_to_tensor
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.common.backend_utils import standardize_axis_for_numpy
+from ncps.mini_keras.backend.numpy.core import convert_to_tensor
 
 
 def rot90(array, k=1, axes=(0, 1)):

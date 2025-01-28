@@ -3,10 +3,10 @@
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.optimizers.adagrad import Adagrad
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.optimizers.adagrad import Adagrad
 
 
 class AdagradTest(testing.TestCase):

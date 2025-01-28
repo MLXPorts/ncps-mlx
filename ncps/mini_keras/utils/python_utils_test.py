@@ -1,8 +1,8 @@
 import base64
 import marshal
 
-from keras.src import testing
-from keras.src.utils import python_utils
+from ncps.mini_keras import testing
+from ncps.mini_keras.utils import python_utils
 
 
 class PythonUtilsTest(testing.TestCase):

@@ -3,9 +3,9 @@ import pytest
 from tensorflow import data as tf_data
 
 import keras
-from keras.src import backend
-from keras.src import layers
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
 
 
 class RandomHueTest(testing.TestCase):

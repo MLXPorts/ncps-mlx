@@ -8,19 +8,19 @@ import numpy as np
 import pytest
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.tree.tree_api import MAP_TO_NONE
-from keras.src.utils.module_utils import dmtree
-from keras.src.utils.module_utils import optree
-from keras.src.utils.tracking import TrackedDict
-from keras.src.utils.tracking import TrackedList
-from keras.src.utils.tracking import TrackedSet
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.tree.tree_api import MAP_TO_NONE
+from ncps.mini_keras.utils.module_utils import dmtree
+from ncps.mini_keras.utils.module_utils import optree
+from ncps.mini_keras.utils.tracking import TrackedDict
+from ncps.mini_keras.utils.tracking import TrackedList
+from ncps.mini_keras.utils.tracking import TrackedSet
 
 TEST_CASES = []
 if dmtree.available:
-    from keras.src.tree import dmtree_impl
+    from ncps.mini_keras.tree import dmtree_impl
 
     TEST_CASES += [
         {
@@ -29,7 +29,7 @@ if dmtree.available:
         }
     ]
 if optree.available:
-    from keras.src.tree import optree_impl
+    from ncps.mini_keras.tree import optree_impl
 
     TEST_CASES += [
         {
@@ -70,7 +70,7 @@ class TreeTest(testing.TestCase):
             # If both are available, the annotation on the Keras tracking
             # wrappers will have used optree. For testing purposes, we need to
             # also register them with dm-tree.
-            from keras.src.tree import dmtree_impl
+            from ncps.mini_keras.tree import dmtree_impl
 
             dmtree_impl.register_tree_node_class(TrackedList)
             dmtree_impl.register_tree_node_class(TrackedSet)
@@ -95,7 +95,7 @@ class TreeTest(testing.TestCase):
 
     def is_dmtree(self, tree_impl):
         if dmtree.available:
-            from keras.src.tree import dmtree_impl
+            from ncps.mini_keras.tree import dmtree_impl
 
             return tree_impl is dmtree_impl
         return False

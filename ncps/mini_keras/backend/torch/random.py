@@ -2,13 +2,13 @@ import torch
 import torch._dynamo as dynamo
 import torch.nn.functional as tnn
 
-from keras.src.backend.config import floatx
-from keras.src.backend.torch.core import convert_to_tensor
-from keras.src.backend.torch.core import get_device
-from keras.src.backend.torch.core import to_torch_dtype
-from keras.src.random.seed_generator import SeedGenerator
-from keras.src.random.seed_generator import draw_seed
-from keras.src.random.seed_generator import make_default_seed
+from ncps.mini_keras.backend.config import floatx
+from ncps.mini_keras.backend.torch.core import convert_to_tensor
+from ncps.mini_keras.backend.torch.core import get_device
+from ncps.mini_keras.backend.torch.core import to_torch_dtype
+from ncps.mini_keras.random.seed_generator import SeedGenerator
+from ncps.mini_keras.random.seed_generator import draw_seed
+from ncps.mini_keras.random.seed_generator import make_default_seed
 
 
 # torch.Generator not supported with dynamo

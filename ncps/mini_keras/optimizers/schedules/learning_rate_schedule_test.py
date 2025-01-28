@@ -5,12 +5,12 @@ import math
 import numpy as np
 import pytest
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import optimizers
-from keras.src import testing
-from keras.src.models import Sequential
-from keras.src.optimizers import schedules
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import optimizers
+from ncps.mini_keras import testing
+from ncps.mini_keras.models import Sequential
+from ncps.mini_keras.optimizers import schedules
 
 
 class TestFitLRSchedulesFlow(testing.TestCase):

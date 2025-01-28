@@ -2,11 +2,11 @@ import functools
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.visualization.draw_bounding_boxes import draw_bounding_boxes
-from keras.src.visualization.plot_image_gallery import plot_image_gallery
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.visualization.draw_bounding_boxes import draw_bounding_boxes
+from ncps.mini_keras.visualization.plot_image_gallery import plot_image_gallery
 
 try:
     from matplotlib import patches  # For legend patches
@@ -14,7 +14,7 @@ except ImportError:
     patches = None
 
 
-@keras_export("keras.visualization.plot_bounding_box_gallery")
+@keras_mini_export("ncps.mini_keras.visualization.plot_bounding_box_gallery")
 def plot_bounding_box_gallery(
     images,
     bounding_box_format,

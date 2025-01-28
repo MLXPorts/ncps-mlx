@@ -1,13 +1,13 @@
 import numpy as np
 
-from keras.src.api_export import keras_export
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.utils.timeseries_dataset_from_array",
-        "keras.preprocessing.timeseries_dataset_from_array",
+        "ncps.mini_keras.utils.timeseries_dataset_from_array",
+        "ncps.mini_keras.preprocessing.timeseries_dataset_from_array",
     ]
 )
 def timeseries_dataset_from_array(

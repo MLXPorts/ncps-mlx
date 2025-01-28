@@ -3,9 +3,9 @@
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import testing
-from keras.src.optimizers.adafactor import Adafactor
+from ncps.mini_keras import backend
+from ncps.mini_keras import testing
+from ncps.mini_keras.optimizers.adafactor import Adafactor
 
 
 class AdafactorTest(testing.TestCase):

@@ -1,12 +1,12 @@
 import numpy as np
 
-from keras.src.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.utils.pad_sequences",
-        "keras.preprocessing.sequence.pad_sequences",
+        "ncps.mini_keras.utils.pad_sequences",
+        "ncps.mini_keras.preprocessing.sequence.pad_sequences",
     ]
 )
 def pad_sequences(

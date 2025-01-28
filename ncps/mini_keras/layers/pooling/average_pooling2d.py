@@ -1,8 +1,8 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.pooling.base_pooling import BasePooling
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.pooling.base_pooling import BasePooling
 
 
-@keras_export(["keras.layers.AveragePooling2D", "keras.layers.AvgPool2D"])
+@keras_mini_export(["ncps.mini_keras.layers.AveragePooling2D", "ncps.mini_keras.layers.AvgPool2D"])
 class AveragePooling2D(BasePooling):
     """Average pooling operation for 2D spatial data.
 

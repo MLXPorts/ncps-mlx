@@ -13,11 +13,10 @@
 # limitations under the License.
 
 from .mm_rnn import MixedMemoryRNN
-from .cfc_cell import CfCCell, lecun_tanh
+from .cfc_cell import CfCCell
 from .wired_cfc_cell import WiredCfCCell
+#from ncps.mini_keras.activations import custom_qr, orthogonal, lecun_tanh, add_double_single
 from .cfc import CfC
-from .ltc import LTC
-from .ltc_cell import LTCCell
 from .eltc_cell import EnhancedLTCCell
 #from packaging.version import parse
 
@@ -29,15 +28,9 @@ except:  # noqa: E722
         "Please run"
         "`$ pip install mlx`. \n",
     )
+# Move these imports after mx is imported
+from .ltc_cell import LTCCell
+from .ltc import LTC
 
-# if parse(tf.__version__) < parse("2.0.0"):
-#     raise ImportError(
-#         "The Tensorflow package version needs to be at least 2.0.0 \n"
-#         "for ncp to run. Currently, your TensorFlow version is \n"
-#         "{version}. Please upgrade with \n"
-#         "`$ pip install --upgrade tensorflow`. \n"
-#         "You can use `pip freeze` to check afterwards that everything is "
-#         "ok.".format(version=tf.__version__)
-#     )
-__all__ = ["CfC", "CfCCell", "LTC", "LTCCell", "MixedMemoryRNN", "WiredCfCCell", "custom_qr", "orthogonal", "lecun_tanh",
-           "add_double_single", "mx", "EnhancedLTCCell"]
+__all__ = ["CfC", "CfCCell", "LTC", "LTCCell", "MixedMemoryRNN", "WiredCfCCell",
+           "mx", "EnhancedLTCCell"]

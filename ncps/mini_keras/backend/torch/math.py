@@ -2,13 +2,13 @@ import math
 
 import torch
 
-from keras.src.backend import config
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.torch.core import cast
-from keras.src.backend.torch.core import convert_to_tensor
-from keras.src.backend.torch.core import get_device
-from keras.src.backend.torch.numpy import pad
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.torch.core import cast
+from ncps.mini_keras.backend.torch.core import convert_to_tensor
+from ncps.mini_keras.backend.torch.core import get_device
+from ncps.mini_keras.backend.torch.numpy import pad
 
 
 def _segment_reduction_fn(data, segment_ids, reduction_method, num_segments):

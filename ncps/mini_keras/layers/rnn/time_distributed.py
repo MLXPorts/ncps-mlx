@@ -1,13 +1,13 @@
 """Wrapper layer to apply every temporal slice of an input."""
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.core.wrapper import Wrapper
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.core.wrapper import Wrapper
+from ncps.mini_keras.layers.layer import Layer
 
 
-@keras_export("keras.layers.TimeDistributed")
+@keras_mini_export("ncps.mini_keras.layers.TimeDistributed")
 class TimeDistributed(Wrapper):
     """This wrapper allows to apply a layer to every temporal slice of an input.
 

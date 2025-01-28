@@ -1,9 +1,9 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.merging.base_merge import Merge
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.merging.base_merge import Merge
 
 
-@keras_export("keras.layers.Maximum")
+@keras_mini_export("ncps.mini_keras.layers.Maximum")
 class Maximum(Merge):
     """Computes element-wise maximum on a list of inputs.
 
@@ -34,7 +34,7 @@ class Maximum(Merge):
         return self._apply_merge_op_and_or_mask(ops.maximum, inputs)
 
 
-@keras_export("keras.layers.maximum")
+@keras_mini_export("ncps.mini_keras.layers.maximum")
 def maximum(inputs, **kwargs):
     """Functional interface to the `keras.layers.Maximum` layer.
 

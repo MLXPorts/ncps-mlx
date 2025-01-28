@@ -1,9 +1,9 @@
 import numpy as np
 
-from keras.src import backend
-from keras.src import regularizers
-from keras.src import testing
-from keras.src.regularizers.regularizers import validate_float_arg
+from ncps.mini_keras import backend
+from ncps.mini_keras import regularizers
+from ncps.mini_keras import testing
+from ncps.mini_keras.regularizers.regularizers import validate_float_arg
 
 
 class RegularizersTest(testing.TestCase):

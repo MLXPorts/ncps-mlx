@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from keras.src import backend
-from keras.src import layers
-from keras.src.testing import test_case
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras.testing import test_case
 
 
 class SpatialDropoutTest(test_case.TestCase):

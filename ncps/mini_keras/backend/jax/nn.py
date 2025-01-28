@@ -2,20 +2,20 @@ import builtins
 import math
 
 import jax
-import jax.experimental.sparse as jax_sparse
+import jax.experimental.sparse as jax_sparse # type: ignore
 import jax.numpy as jnp
 from jax import lax
 from jax import nn as jnn
-from jax.experimental.pallas.ops.tpu import (
+from jax.experimental.pallas.ops.tpu import ( # type: ignore
     flash_attention as flash_attention_tpu,
 )
 
-from keras.src import backend
-from keras.src.backend.common.backend_utils import (
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.common.backend_utils import (
     compute_conv_transpose_padding_args_for_jax,
 )
-from keras.src.backend.jax.core import cast
-from keras.src.backend.jax.core import convert_to_tensor
+from ncps.mini_keras.backend.jax.core import cast
+from ncps.mini_keras.backend.jax.core import convert_to_tensor
 
 
 def relu(x):
@@ -1017,15 +1017,15 @@ def psnr(x1, x2, max_val):
 def _can_use_flash_attention(query, key, value, bias, raise_error=False):
     """Verify the availability of flash attention."""
     try:
-        from jax._src.cudnn.fused_attention_stablehlo import _normalize_layout
-        from jax._src.cudnn.fused_attention_stablehlo import (
+        from jax._src.cudnn.fused_attention_stablehlo import _normalize_layout # type: ignore
+        from jax._src.cudnn.fused_attention_stablehlo import ( # type: ignore
             check_compute_capability,
         )
-        from jax._src.cudnn.fused_attention_stablehlo import check_cudnn_version
-        from jax._src.cudnn.fused_attention_stablehlo import (
+        from jax._src.cudnn.fused_attention_stablehlo import check_cudnn_version # type: ignore
+        from jax._src.cudnn.fused_attention_stablehlo import ( # type: ignore
             check_is_flash_attention,
         )
-        from jax._src.cudnn.fused_attention_stablehlo import check_layout
+        from jax._src.cudnn.fused_attention_stablehlo import check_layout # type: ignore
         from jax.nn import dot_product_attention as dot_product_attention
     except ImportError:
         if raise_error:

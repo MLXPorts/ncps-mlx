@@ -3,10 +3,10 @@ import warnings
 
 import torch
 
-from keras.src import tree
-from keras.src.export.export_utils import convert_spec_to_tensor
-from keras.src.utils.module_utils import tensorflow as tf
-from keras.src.utils.module_utils import torch_xla
+from ncps.mini_keras import tree
+from ncps.mini_keras.export.export_utils import convert_spec_to_tensor
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
+from ncps.mini_keras.utils.module_utils import torch_xla
 
 
 class TorchExportArchive:

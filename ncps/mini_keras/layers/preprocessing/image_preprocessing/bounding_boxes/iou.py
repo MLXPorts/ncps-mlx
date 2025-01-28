@@ -3,10 +3,10 @@
 import math
 
 import keras
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.bounding_boxes import (
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.bounding_boxes import (
     converters,
 )
 
@@ -52,7 +52,7 @@ def _compute_intersection(boxes1, boxes2):
     return intersect_height * intersect_width
 
 
-@keras_export("keras.utils.bounding_boxes.compute_iou")
+@keras_mini_export("ncps.mini_keras.utils.bounding_boxes.compute_iou")
 def compute_iou(
     boxes1,
     boxes2,
@@ -173,7 +173,7 @@ def compute_iou(
     return iou_lookup_table
 
 
-@keras_export("keras.utils.bounding_boxes.compute_ciou")
+@keras_mini_export("ncps.mini_keras.utils.bounding_boxes.compute_ciou")
 def compute_ciou(boxes1, boxes2, bounding_box_format, image_shape=None):
     """
     Computes the Complete IoU (CIoU) between two bounding boxes or between

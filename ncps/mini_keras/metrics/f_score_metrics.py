@@ -1,11 +1,11 @@
-from keras.src import backend
-from keras.src import initializers
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.metrics.metric import Metric
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.metrics.metric import Metric
 
 
-@keras_export("keras.metrics.FBetaScore")
+@keras_mini_export("ncps.mini_keras.metrics.FBetaScore")
 class FBetaScore(Metric):
     """Computes F-Beta score.
 
@@ -247,7 +247,7 @@ class FBetaScore(Metric):
             v.assign(ops.zeros(v.shape, dtype=v.dtype))
 
 
-@keras_export("keras.metrics.F1Score")
+@keras_mini_export("ncps.mini_keras.metrics.F1Score")
 class F1Score(FBetaScore):
     r"""Computes F-1 Score.
 

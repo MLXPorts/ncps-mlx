@@ -1,4 +1,4 @@
-from keras.src.utils.module_utils import jax
+from ncps.mini_keras.utils.module_utils import jax
 
 
 def start_trace(logdir):

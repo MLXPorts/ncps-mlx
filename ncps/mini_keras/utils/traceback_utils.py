@@ -231,6 +231,15 @@ def format_argument_value(value):
             tensor_cls = "torch.Tensor"
         elif backend.backend() == "numpy":
             tensor_cls = "np.ndarray"
+        elif backend.backend() == "mlx":
+            tensor_cls = "mlx.core.array"
+            # Handle MLX's type system
+            if hasattr(value, "dtype"):
+                dtype = value.dtype
+            else:
+                # For MLX, get the dtype attribute via the class
+                dtype = type(value).Dtype
+            return f"{tensor_cls}(shape={value.shape}, dtype={dtype})"
         else:
             tensor_cls = "array"
 

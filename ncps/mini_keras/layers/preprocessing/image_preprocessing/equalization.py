@@ -1,11 +1,11 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
     BaseImagePreprocessingLayer,
 )
 
 
-@keras_export("keras.layers.Equalization")
+@keras_mini_export("ncps.mini_keras.layers.Equalization")
 class Equalization(BaseImagePreprocessingLayer):
     """Preprocessing layer for histogram equalization on image channels.
 

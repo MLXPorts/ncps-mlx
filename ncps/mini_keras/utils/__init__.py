@@ -24,11 +24,14 @@ from ncps.mini_keras.utils.text_dataset_utils import text_dataset_from_directory
 from ncps.mini_keras.utils.timeseries_dataset_utils import (
     timeseries_dataset_from_array,
 )
+from ncps.mini_keras.utils.registration_utils import register_mini_keras_serializable, register_keras_serializable
 
-__all__ = [ "audio_dataset_from_directory", "split_dataset", "get_file", "image_dataset_from_directory", 
-           "array_to_img", "img_to_array", "load_img", "save_img", "disable_interactive_logging", 
-           "enable_interactive_logging", "is_interactive_logging_enabled", "model_to_dot", "plot_model", 
-           "normalize", "to_categorical", "Progbar", "default", "is_default", "removeprefix", "removesuffix", 
-           "set_random_seed", "pad_sequences", "text_dataset_from_directory", "timeseries_dataset_from_array", 
-           ]
+__all__ = [
+    "audio_dataset_from_directory", "split_dataset", "get_file", "image_dataset_from_directory", 
+    "array_to_img", "img_to_array", "load_img", "save_img", "disable_interactive_logging", 
+    "enable_interactive_logging", "is_interactive_logging_enabled", "model_to_dot", "plot_model", 
+    "normalize", "to_categorical", "Progbar", "default", "is_default", "removeprefix", "removesuffix", 
+    "set_random_seed", "pad_sequences", "text_dataset_from_directory", "timeseries_dataset_from_array", 
+    "register_mini_keras_serializable","register_keras_serializable" 
+]
 

@@ -1,10 +1,10 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.layer import Layer
 
 
-@keras_export("keras.layers.UpSampling1D")
+@keras_mini_export("ncps.mini_keras.layers.UpSampling1D")
 class UpSampling1D(Layer):
     """Upsampling layer for 1D inputs.
 

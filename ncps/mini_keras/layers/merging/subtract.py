@@ -1,9 +1,9 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.merging.base_merge import Merge
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.merging.base_merge import Merge
 
 
-@keras_export("keras.layers.Subtract")
+@keras_mini_export("ncps.mini_keras.layers.Subtract")
 class Subtract(Merge):
     """Performs elementwise subtraction.
 
@@ -48,7 +48,7 @@ class Subtract(Merge):
         return ops.subtract(inputs[0], inputs[1])
 
 
-@keras_export("keras.layers.subtract")
+@keras_mini_export("ncps.mini_keras.layers.subtract")
 def subtract(inputs, **kwargs):
     """Functional interface to the `keras.layers.Subtract` layer.
 

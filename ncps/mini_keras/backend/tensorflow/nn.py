@@ -3,12 +3,12 @@ import warnings
 
 import tensorflow as tf
 
-from keras.src import backend
-from keras.src.backend.common.backend_utils import (
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.common.backend_utils import (
     compute_conv_transpose_output_shape,
 )
-from keras.src.backend.tensorflow.core import cast
-from keras.src.backend.tensorflow.core import convert_to_tensor
+from ncps.mini_keras.backend.tensorflow.core import cast
+from ncps.mini_keras.backend.tensorflow.core import convert_to_tensor
 
 
 def relu(x):
@@ -972,7 +972,7 @@ def ctc_decode(
 
 
 def psnr(x1, x2, max_val):
-    from keras.src.backend.tensorflow.numpy import log10
+    from ncps.mini_keras.backend.tensorflow.numpy import log10
 
     if x1.shape != x2.shape:
         raise ValueError(

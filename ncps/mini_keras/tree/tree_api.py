@@ -1,13 +1,13 @@
 import warnings
 
-from keras.src.api_export import keras_export
-from keras.src.utils.module_utils import dmtree
-from keras.src.utils.module_utils import optree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils.module_utils import dmtree
+from ncps.mini_keras.utils.module_utils import optree
 
 if optree.available:
-    from keras.src.tree import optree_impl as tree_impl
+    from ncps.mini_keras.tree import optree_impl as tree_impl
 elif dmtree.available:
-    from keras.src.tree import dmtree_impl as tree_impl
+    from ncps.mini_keras.tree import dmtree_impl as tree_impl
 else:
     raise ImportError(
         "To use Keras, you need to have `optree` installed. "
@@ -19,22 +19,22 @@ def register_tree_node_class(cls):
     return tree_impl.register_tree_node_class(cls)
 
 
-@keras_export("keras.tree.MAP_TO_NONE")
+@keras_mini_export("ncps.mini_keras.tree.MAP_TO_NONE")
 class MAP_TO_NONE:
     """Special value for use with `traverse()`."""
 
     pass
 
 
-@keras_export("keras.tree.is_nested")
+@keras_mini_export("ncps.mini_keras.tree.is_nested")
 def is_nested(structure):
     """Checks if a given structure is nested.
 
     Examples:
 
-    >>> keras.tree.is_nested(42)
+    >>> ncps.mini_keras.tree.is_nested(42)
     False
-    >>> keras.tree.is_nested({"foo": 42})
+    >>> ncps.mini_keras.tree.is_nested({"foo": 42})
     True
 
     Args:
@@ -47,7 +47,7 @@ def is_nested(structure):
     return tree_impl.is_nested(structure)
 
 
-@keras_export("keras.tree.traverse")
+@keras_mini_export("ncps.mini_keras.tree.traverse")
 def traverse(func, structure, top_down=True):
     """Traverses the given nested structure, applying the given function.
 
@@ -58,13 +58,13 @@ def traverse(func, structure, top_down=True):
     Examples:
 
     >>> v = []
-    >>> keras.tree.traverse(v.append, [(1, 2), [3], {"a": 4}], top_down=True)
+    >>> ncps.mini_keras.tree.traverse(v.append, [(1, 2), [3], {"a": 4}], top_down=True)
     [(1, 2), [3], {'a': 4}]
     >>> v
     [[(1, 2), [3], {'a': 4}], (1, 2), 1, 2, [3], 3, {'a': 4}, 4]
 
     >>> v = []
-    >>> keras.tree.traverse(v.append, [(1, 2), [3], {"a": 4}], top_down=False)
+    >>> ncps.mini_keras.tree.traverse(v.append, [(1, 2), [3], {"a": 4}], top_down=False)
     [(1, 2), [3], {'a': 4}]
     >>> v
     [1, 2, (1, 2), 3, [3], 4, {'a': 4}, [(1, 2), [3], {'a': 4}]]
@@ -100,7 +100,7 @@ def traverse(func, structure, top_down=True):
     return tree_impl.traverse(func, structure, top_down=top_down)
 
 
-@keras_export("keras.tree.flatten")
+@keras_mini_export("ncps.mini_keras.tree.flatten")
 def flatten(structure):
     """Flattens a possibly nested structure into a list.
 
@@ -115,13 +115,13 @@ def flatten(structure):
 
     Examples:
 
-    >>> keras.tree.flatten([[1, 2, 3], [4, [5], [[6]]]])
+    >>> ncps.mini_keras.tree.flatten([[1, 2, 3], [4, [5], [[6]]]])
     [1, 2, 3, 4, 5, 6]
-    >>> keras.tree.flatten(None)
+    >>> ncps.mini_keras.tree.flatten(None)
     [None]
-    >>> keras.tree.flatten(1)
+    >>> ncps.mini_keras.tree.flatten(1)
     [1]
-    >>> keras.tree.flatten({100: 'world!', 6: 'Hello'})
+    >>> ncps.mini_keras.tree.flatten({100: 'world!', 6: 'Hello'})
     ['Hello', 'world!']
 
     Args:
@@ -133,7 +133,7 @@ def flatten(structure):
     return tree_impl.flatten(structure)
 
 
-@keras_export("keras.tree.flatten_with_path")
+@keras_mini_export("ncps.mini_keras.tree.flatten_with_path")
 def flatten_with_path(structure):
     """Flattens a possibly nested structure into a list.
 
@@ -159,21 +159,21 @@ def flatten_with_path(structure):
     return tree_impl.flatten_with_path(structure)
 
 
-@keras_export("keras.tree.map_structure")
+@keras_mini_export("ncps.mini_keras.tree.map_structure")
 def map_structure(func, *structures):
     """Maps `func` through given structures.
 
     Examples:
 
     >>> structure = [[1], [2], [3]]
-    >>> keras.tree.map_structure(lambda v: v**2, structure)
+    >>> ncps.mini_keras.tree.map_structure(lambda v: v**2, structure)
     [[1], [4], [9]]
-    >>> keras.tree.map_structure(lambda x, y: x * y, structure, structure)
+    >>> ncps.mini_keras.tree.map_structure(lambda x, y: x * y, structure, structure)
     [[1], [4], [9]]
 
     >>> Foo = collections.namedtuple('Foo', ['a', 'b'])
     >>> structure = Foo(a=1, b=2)
-    >>> keras.tree.map_structure(lambda v: v * 2, structure)
+    >>> ncps.mini_keras.tree.map_structure(lambda v: v * 2, structure)
     Foo(a=2, b=4)
 
     Args:
@@ -192,7 +192,7 @@ def map_structure(func, *structures):
     return tree_impl.map_structure(func, *structures)
 
 
-@keras_export("keras.tree.map_structure_up_to")
+@keras_mini_export("ncps.mini_keras.tree.map_structure_up_to")
 def map_structure_up_to(shallow_structure, func, *structures):
     """Maps `func` through given structures up to `shallow_structure`.
 
@@ -203,11 +203,11 @@ def map_structure_up_to(shallow_structure, func, *structures):
 
     >>> shallow_structure = [None, None]
     >>> structure = [[1, 1], [2, 2]]
-    >>> keras.tree.map_structure_up_to(shallow_structure, len, structure)
+    >>> ncps.mini_keras.tree.map_structure_up_to(shallow_structure, len, structure)
     [2, 2]
 
     >>> shallow_structure = [None, [None, None]]
-    >>> keras.tree.map_structure_up_to(shallow_structure, str, structure)
+    >>> ncps.mini_keras.tree.map_structure_up_to(shallow_structure, str, structure)
     ['[1, 1]', ['2', '2']]
 
     Args:
@@ -229,7 +229,7 @@ def map_structure_up_to(shallow_structure, func, *structures):
     return tree_impl.map_structure_up_to(shallow_structure, func, *structures)
 
 
-@keras_export("keras.tree.assert_same_structure")
+@keras_mini_export("ncps.mini_keras.tree.assert_same_structure")
 def assert_same_structure(a, b, check_types=None):
     """Asserts that two structures are nested in the same way.
 
@@ -243,12 +243,12 @@ def assert_same_structure(a, b, check_types=None):
 
     Examples:
 
-    >>> keras.tree.assert_same_structure([(0, 1)], [(2, 3)])
+    >>> ncps.mini_keras.tree.assert_same_structure([(0, 1)], [(2, 3)])
 
     >>> Foo = collections.namedtuple('Foo', ['a', 'b'])
     >>> AlsoFoo = collections.namedtuple('Foo', ['a', 'b'])
-    >>> keras.tree.assert_same_structure(Foo(0, 1), Foo(2, 3))
-    >>> keras.tree.assert_same_structure(Foo(0, 1), AlsoFoo(2, 3))
+    >>> ncps.mini_keras.tree.assert_same_structure(Foo(0, 1), Foo(2, 3))
+    >>> ncps.mini_keras.tree.assert_same_structure(Foo(0, 1), AlsoFoo(2, 3))
     Traceback (most recent call last):
         ...
     ValueError: The two structures don't have the same nested structure.
@@ -277,7 +277,7 @@ def assert_same_structure(a, b, check_types=None):
             warnings.warn(
                 "The `check_types` argument is deprecated and no longer has "
                 "any effect. For a looser check, use "
-                "`keras.tree.assert_same_paths()`, which considers `list`, "
+                "`ncps.mini_keras.tree.assert_same_paths()`, which considers `list`, "
                 "`tuple`, `namedtuple` and `deque` as matching",
                 DeprecationWarning,
                 stacklevel=2,
@@ -285,7 +285,7 @@ def assert_same_structure(a, b, check_types=None):
     return tree_impl.assert_same_structure(a, b)
 
 
-@keras_export("keras.tree.assert_same_paths")
+@keras_mini_export("ncps.mini_keras.tree.assert_same_paths")
 def assert_same_paths(a, b):
     """Asserts that two structures have identical paths in their tree structure.
 
@@ -297,10 +297,10 @@ def assert_same_paths(a, b):
     and not field names for the path.
 
     Examples:
-    >>> keras.tree.assert_same_paths([0, 1], (2, 3))
+    >>> ncps.mini_keras.tree.assert_same_paths([0, 1], (2, 3))
     >>> Point1 = collections.namedtuple('Point1', ['x', 'y'])
     >>> Point2 = collections.namedtuple('Point2', ['x', 'y'])
-    >>> keras.tree.assert_same_paths(Point1(0, 1), Point2(2, 3))
+    >>> ncps.mini_keras.tree.assert_same_paths(Point1(0, 1), Point2(2, 3))
 
     Args:
         a: an arbitrarily nested structure.
@@ -314,7 +314,7 @@ def assert_same_paths(a, b):
     return tree_impl.assert_same_paths(a, b)
 
 
-@keras_export("keras.tree.pack_sequence_as")
+@keras_mini_export("ncps.mini_keras.tree.pack_sequence_as")
 def pack_sequence_as(structure, flat_sequence):
     """Returns a given flattened sequence packed into a given structure.
 
@@ -334,29 +334,29 @@ def pack_sequence_as(structure, flat_sequence):
 
     >>> structure = {"key3": "", "key1": "", "key2": ""}
     >>> flat_sequence = ["value1", "value2", "value3"]
-    >>> keras.tree.pack_sequence_as(structure, flat_sequence)
+    >>> ncps.mini_keras.tree.pack_sequence_as(structure, flat_sequence)
     {"key3": "value3", "key1": "value1", "key2": "value2"}
 
     >>> structure = (("a", "b"), ("c", "d", "e"), "f")
     >>> flat_sequence = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
-    >>> keras.tree.pack_sequence_as(structure, flat_sequence)
+    >>> ncps.mini_keras.tree.pack_sequence_as(structure, flat_sequence)
     ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
 
     >>> structure = {"key3": {"c": ("alpha", "beta"), "a": ("gamma")},
     ... "key1": {"e": "val1", "d": "val2"}}
     >>> flat_sequence = ["val2", "val1", 3.0, 1.0, 2.0]
-    >>> keras.tree.pack_sequence_as(structure, flat_sequence)
+    >>> ncps.mini_keras.tree.pack_sequence_as(structure, flat_sequence)
     {'key3': {'c': (1.0, 2.0), 'a': 3.0}, 'key1': {'e': 'val1', 'd': 'val2'}}
 
     >>> structure = ["a"]
     >>> flat_sequence = [np.array([[1, 2], [3, 4]])]
-    >>> keras.tree.pack_sequence_as(structure, flat_sequence)
+    >>> ncps.mini_keras.tree.pack_sequence_as(structure, flat_sequence)
     [array([[1, 2],
        [3, 4]])]
 
     >>> structure = ["a"]
     >>> flat_sequence = [keras.ops.ones([2, 2])]
-    >>> keras.tree.pack_sequence_as(structure, flat_sequence)
+    >>> ncps.mini_keras.tree.pack_sequence_as(structure, flat_sequence)
     [array([[1., 1.],
        [1., 1.]]]
 
@@ -376,7 +376,7 @@ def pack_sequence_as(structure, flat_sequence):
     return tree_impl.pack_sequence_as(structure, flat_sequence)
 
 
-@keras_export("keras.tree.lists_to_tuples")
+@keras_mini_export("ncps.mini_keras.tree.lists_to_tuples")
 def lists_to_tuples(structure):
     """Returns the structure with list instances changed to tuples.
 
@@ -389,9 +389,9 @@ def lists_to_tuples(structure):
     return tree_impl.lists_to_tuples(structure)
 
 
-@keras_export("keras.tree.map_shape_structure")
+@keras_mini_export("ncps.mini_keras.tree.map_shape_structure")
 def map_shape_structure(func, structure):
-    """Variant of keras.tree.map_structure that operates on shape tuples.
+    """Variant of ncps.mini_keras.tree.map_structure that operates on shape tuples.
 
     Tuples containing ints and Nones are considered shapes and passed to `func`.
 

@@ -1,4 +1,4 @@
-from keras.src import backend
+from ncps.mini_keras import backend
 
 
 def is_in_jax_tracing_scope(x=None):

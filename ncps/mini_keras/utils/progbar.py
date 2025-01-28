@@ -3,12 +3,12 @@ import os
 import sys
 import time
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.utils import io_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils import io_utils
 
 
-@keras_export("keras.utils.Progbar")
+@keras_mini_export("ncps.mini_keras.utils.Progbar")
 class Progbar:
     """Displays a progress bar.
 

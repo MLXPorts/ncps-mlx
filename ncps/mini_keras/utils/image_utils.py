@@ -6,8 +6,8 @@ import warnings
 
 import numpy as np
 
-from keras.src import backend
-from keras.src.api_export import keras_export
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
 
 try:
     from PIL import Image as pil_image
@@ -32,10 +32,10 @@ if pil_image_resampling is not None:
     }
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.utils.array_to_img",
-        "keras.preprocessing.image.array_to_img",
+        "ncps.mini_keras.utils.array_to_img",
+        "ncps.mini_keras.preprocessing.image.array_to_img",
     ]
 )
 def array_to_img(x, data_format=None, scale=True, dtype=None):
@@ -107,10 +107,10 @@ def array_to_img(x, data_format=None, scale=True, dtype=None):
         raise ValueError(f"Unsupported channel number: {x.shape[2]}")
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.utils.img_to_array",
-        "keras.preprocessing.image.img_to_array",
+        "ncps.mini_keras.utils.img_to_array",
+        "ncps.mini_keras.preprocessing.image.img_to_array",
     ]
 )
 def img_to_array(img, data_format=None, dtype=None):
@@ -159,7 +159,7 @@ def img_to_array(img, data_format=None, dtype=None):
     return x
 
 
-@keras_export(["keras.utils.save_img", "keras.preprocessing.image.save_img"])
+@keras_mini_export(["ncps.mini_keras.utils.save_img", "ncps.mini_keras.preprocessing.image.save_img"])
 def save_img(path, x, data_format=None, file_format=None, scale=True, **kwargs):
     """Saves an image stored as a NumPy array to a path or file object.
 
@@ -184,7 +184,7 @@ def save_img(path, x, data_format=None, file_format=None, scale=True, **kwargs):
     img.save(path, format=file_format, **kwargs)
 
 
-@keras_export(["keras.utils.load_img", "keras.preprocessing.image.load_img"])
+@keras_mini_export(["ncps.mini_keras.utils.load_img", "ncps.mini_keras.preprocessing.image.load_img"])
 def load_img(
     path,
     color_mode="rgb",
@@ -293,7 +293,7 @@ def load_img(
     return img
 
 
-@keras_export("keras.preprocessing.image.smart_resize")
+@keras_mini_export("ncps.mini_keras.preprocessing.image.smart_resize")
 def smart_resize(
     x,
     size,

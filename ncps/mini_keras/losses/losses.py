@@ -1563,8 +1563,8 @@ def hinge(y_true, y_pred):
 
 @keras_mini_export(
     [
-        "keras.metrics.squared_hinge",
-        "keras.losses.squared_hinge",
+        "ncps.mini_keras.metrics.squared_hinge",
+        "ncps.mini_keras.losses.squared_hinge",
     ]
 )
 def squared_hinge(y_true, y_pred):
@@ -1849,7 +1849,7 @@ def cosine_similarity(y_true, y_pred, axis=-1):
     return -ops.sum(y_true * y_pred, axis=axis)
 
 
-@keras_mini_export(["ncps.mini_keras.losses.huber", "keras.metrics.huber"])
+@keras_mini_export(["ncps.mini_keras.losses.huber", "ncps.mini_keras.metrics.huber"])
 def huber(y_true, y_pred, delta=1.0):
     """Computes Huber loss value.
 
@@ -1999,8 +1999,8 @@ def kl_divergence(y_true, y_pred):
 
 @keras_mini_export(
     [
-        "keras.metrics.poisson",
-        "keras.losses.poisson",
+        "ncps.mini_keras.metrics.poisson",
+        "ncps.mini_keras.losses.poisson",
     ]
 )
 def poisson(y_true, y_pred):

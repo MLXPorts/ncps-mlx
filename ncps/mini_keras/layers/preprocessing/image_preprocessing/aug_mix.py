@@ -1,12 +1,12 @@
 import random as py_random
 
-import keras.src.layers as layers
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
+import ncps.mini_keras.layers as layers
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
     BaseImagePreprocessingLayer,
 )
-from keras.src.random import SeedGenerator
-from keras.src.utils import backend_utils
+from ncps.mini_keras.random import SeedGenerator
+from ncps.mini_keras.utils import backend_utils
 
 AUGMENT_LAYERS_ALL = [
     "random_shear",
@@ -33,7 +33,7 @@ AUGMENT_LAYERS = [
 ]
 
 
-@keras_export("keras.layers.AugMix")
+@keras_mini_export("ncps.mini_keras.layers.AugMix")
 class AugMix(BaseImagePreprocessingLayer):
     """Performs the AugMix data augmentation technique.
 

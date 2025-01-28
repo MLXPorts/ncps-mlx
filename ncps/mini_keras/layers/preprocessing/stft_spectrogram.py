@@ -1,15 +1,15 @@
 import math
 import warnings
 
-from keras.src import backend
-from keras.src import initializers
-from keras.src import layers
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.utils.module_utils import scipy
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import layers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils.module_utils import scipy
 
 
-@keras_export("keras.layers.STFTSpectrogram")
+@keras_mini_export("ncps.mini_keras.layers.STFTSpectrogram")
 class STFTSpectrogram(layers.Layer):
     """Layer to compute the Short-Time Fourier Transform (STFT) on a 1D signal.
 

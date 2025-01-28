@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from keras.src import initializers
-from keras.src import layers
-from keras.src import testing
+from ncps.mini_keras import initializers
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
 
 
 class SimpleRNNTest(testing.TestCase):

@@ -3,25 +3,25 @@ import inspect
 import typing
 import warnings
 
-from keras.src import backend
-from keras.src import ops
-from keras.src import tree
-from keras.src.backend.common import global_state
-from keras.src.layers.core.input_layer import Input
-from keras.src.layers.core.input_layer import InputLayer
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.layer import Layer
-from keras.src.legacy.saving import saving_utils
-from keras.src.legacy.saving import serialization as legacy_serialization
-from keras.src.models.model import Model
-from keras.src.ops.function import Function
-from keras.src.ops.function import _build_map
-from keras.src.ops.function import make_node_key
-from keras.src.ops.node import KerasHistory
-from keras.src.ops.node import Node
-from keras.src.ops.operation import Operation
-from keras.src.saving import serialization_lib
-from keras.src.utils import tracking
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.layers.core.input_layer import Input
+from ncps.mini_keras.layers.core.input_layer import InputLayer
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.legacy.saving import saving_utils
+from ncps.mini_keras.legacy.saving import serialization as legacy_serialization
+from ncps.mini_keras.models.model import Model
+from ncps.mini_keras.ops.function import Function
+from ncps.mini_keras.ops.function import _build_map
+from ncps.mini_keras.ops.function import make_node_key
+from ncps.mini_keras.ops.node import KerasHistory
+from ncps.mini_keras.ops.node import Node
+from ncps.mini_keras.ops.operation import Operation
+from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.utils import tracking
 
 
 class Functional(Function, Model):

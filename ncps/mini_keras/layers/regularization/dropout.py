@@ -1,9 +1,9 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
 
 
-@keras_export("keras.layers.Dropout")
+@keras_mini_export("ncps.mini_keras.layers.Dropout")
 class Dropout(Layer):
     """Applies dropout to the input.
 

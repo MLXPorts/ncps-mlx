@@ -1,24 +1,25 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.optimizers import base_optimizer
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.optimizers import base_optimizer
 
 if backend.backend() == "tensorflow":
-    from keras.src.backend.tensorflow.optimizer import (
+    from ncps.mini_keras.backend.tensorflow.optimizer import (
         TFOptimizer as BackendOptimizer,
     )
 elif backend.backend() == "torch":
-    from keras.src.backend.torch.optimizers import (
+    from ncps.mini_keras.backend.torch.optimizers import (
         TorchOptimizer as BackendOptimizer,
     )
 elif backend.backend() == "jax":
-    from keras.src.backend.jax.optimizer import JaxOptimizer as BackendOptimizer
+    from ncps.mini_keras.backend.jax.optimizer import JaxOptimizer as BackendOptimizer
+elif backend.backend() == "mlx":
+    from ncps.mini_keras.backend.mlx.optimizer import MLXOptimizer as BackendOptimizer
 else:
-
     class BackendOptimizer(base_optimizer.BaseOptimizer):
         pass
 
 
-@keras_export(["keras.Optimizer", "keras.optimizers.Optimizer"])
+@keras_mini_export(["ncps.mini_keras.Optimizer", "ncps.mini_keras.optimizers.Optimizer"])
 class Optimizer(BackendOptimizer, base_optimizer.BaseOptimizer):
     pass
 

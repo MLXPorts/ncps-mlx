@@ -7,18 +7,18 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import metrics
-from keras.src import models
-from keras.src import saving
-from keras.src import testing
-from keras.src import tree
-from keras.src import utils
-from keras.src.dtype_policies.dtype_policy import DTypePolicy
-from keras.src.saving import object_registration
-from keras.src.utils.jax_layer import FlaxLayer
-from keras.src.utils.jax_layer import JaxLayer
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import metrics
+from ncps.mini_keras import models
+from ncps.mini_keras import saving
+from ncps.mini_keras import testing
+from ncps.mini_keras import tree
+from ncps.mini_keras import utils
+from ncps.mini_keras.dtype_policies.dtype_policy import DTypePolicy
+from ncps.mini_keras.saving import object_registration
+from ncps.mini_keras.utils.jax_layer import FlaxLayer
+from ncps.mini_keras.utils.jax_layer import JaxLayer
 
 try:
     import flax

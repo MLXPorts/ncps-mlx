@@ -1,11 +1,14 @@
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras import backend
 from ncps.mini_keras import initializers
 from ncps.mini_keras import layers
 from ncps.mini_keras import ops
 from ncps.mini_keras import random
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.layers.layer import Layer
 from ncps.mini_keras.models import Functional
@@ -547,10 +550,10 @@ def ConvNeXt(
 ## Instantiating variants ##
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.convnext.ConvNeXtTiny",
-        "keras.applications.ConvNeXtTiny",
+        "ncps.mini_keras.applications.convnext.ConvNeXtTiny",
+        "ncps.mini_keras.applications.ConvNeXtTiny",
     ]
 )
 def ConvNeXtTiny(
@@ -583,10 +586,10 @@ def ConvNeXtTiny(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.convnext.ConvNeXtSmall",
-        "keras.applications.ConvNeXtSmall",
+        "ncps.mini_keras.applications.convnext.ConvNeXtSmall",
+        "ncps.mini_keras.applications.ConvNeXtSmall",
     ]
 )
 def ConvNeXtSmall(
@@ -619,10 +622,10 @@ def ConvNeXtSmall(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.convnext.ConvNeXtBase",
-        "keras.applications.ConvNeXtBase",
+        "ncps.mini_keras.applications.convnext.ConvNeXtBase",
+        "ncps.mini_keras.applications.ConvNeXtBase",
     ]
 )
 def ConvNeXtBase(
@@ -655,10 +658,10 @@ def ConvNeXtBase(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.convnext.ConvNeXtLarge",
-        "keras.applications.ConvNeXtLarge",
+        "ncps.mini_keras.applications.convnext.ConvNeXtLarge",
+        "ncps.mini_keras.applications.ConvNeXtLarge",
     ]
 )
 def ConvNeXtLarge(
@@ -691,10 +694,10 @@ def ConvNeXtLarge(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.convnext.ConvNeXtXLarge",
-        "keras.applications.ConvNeXtXLarge",
+        "ncps.mini_keras.applications.convnext.ConvNeXtXLarge",
+        "ncps.mini_keras.applications.ConvNeXtXLarge",
     ]
 )
 def ConvNeXtXLarge(
@@ -734,7 +737,7 @@ ConvNeXtLarge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtLarge")
 ConvNeXtXLarge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtXLarge")
 
 
-@keras_export("keras.applications.convnext.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.convnext.preprocess_input")
 def preprocess_input(x, data_format=None):
     """A placeholder method for backward compatibility.
 
@@ -756,7 +759,7 @@ def preprocess_input(x, data_format=None):
     return x
 
 
-@keras_export("keras.applications.convnext.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.convnext.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

@@ -1,10 +1,10 @@
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.backend import KerasTensor
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend import KerasTensor
+from ncps.mini_keras.layers.layer import Layer
 
 
-@keras_export("keras.layers.Identity")
+@keras_mini_export("ncps.mini_keras.layers.Identity")
 class Identity(Layer):
     """Identity layer.
 

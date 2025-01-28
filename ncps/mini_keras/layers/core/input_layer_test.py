@@ -1,10 +1,10 @@
 import numpy as np
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import testing
-from keras.src.backend import KerasTensor
-from keras.src.layers import InputLayer
+from ncps.mini_keras import backend
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend import KerasTensor
+from ncps.mini_keras.layers import InputLayer
 
 
 class InputLayerTest(testing.TestCase):

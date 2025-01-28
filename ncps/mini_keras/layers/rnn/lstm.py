@@ -1,18 +1,18 @@
-from keras.src import activations
-from keras.src import backend
-from keras.src import constraints
-from keras.src import initializers
-from keras.src import ops
-from keras.src import regularizers
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.layer import Layer
-from keras.src.layers.rnn.dropout_rnn_cell import DropoutRNNCell
-from keras.src.layers.rnn.rnn import RNN
+from ncps.mini_keras import activations
+from ncps.mini_keras import backend
+from ncps.mini_keras import constraints
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras import regularizers
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.layers.rnn.dropout_rnn_cell import DropoutRNNCell
+from ncps.mini_keras.layers.rnn.rnn import RNN
 
 
-@keras_export("keras.layers.LSTMCell")
+@keras_mini_export("ncps.mini_keras.layers.LSTMCell")
 class LSTMCell(Layer, DropoutRNNCell):
     """Cell class for the LSTM layer.
 
@@ -329,7 +329,7 @@ class LSTMCell(Layer, DropoutRNNCell):
         ]
 
 
-@keras_export("keras.layers.LSTM")
+@keras_mini_export("ncps.mini_keras.layers.LSTM")
 class LSTM(RNN):
     """Long Short-Term Memory layer - Hochreiter 1997.
 

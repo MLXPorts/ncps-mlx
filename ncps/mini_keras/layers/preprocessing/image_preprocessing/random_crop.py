@@ -1,18 +1,18 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
     BaseImagePreprocessingLayer,
 )
-from keras.src.layers.preprocessing.image_preprocessing.bounding_boxes.converters import (  # noqa: E501
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.bounding_boxes.converters import (  # noqa: E501
     convert_format,
 )
-from keras.src.layers.preprocessing.image_preprocessing.bounding_boxes.validation import (  # noqa: E501
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.bounding_boxes.validation import (  # noqa: E501
     densify_bounding_boxes,
 )
-from keras.src.random.seed_generator import SeedGenerator
+from ncps.mini_keras.random.seed_generator import SeedGenerator
 
 
-@keras_export("keras.layers.RandomCrop")
+@keras_mini_export("ncps.mini_keras.layers.RandomCrop")
 class RandomCrop(BaseImagePreprocessingLayer):
     """A preprocessing layer which randomly crops images during training.
 

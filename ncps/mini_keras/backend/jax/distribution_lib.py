@@ -3,7 +3,7 @@
 import jax
 import numpy as np
 
-from keras.src.utils import jax_utils
+from ncps.mini_keras.utils import jax_utils
 
 
 def list_devices(device_type=None):

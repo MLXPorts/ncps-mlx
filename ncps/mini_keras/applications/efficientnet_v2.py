@@ -4,7 +4,7 @@ import math
 from ncps.mini_keras import backend
 from ncps.mini_keras import initializers
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -538,7 +538,7 @@ https://keras.io/guides/transfer_learning/).
 Note: each Keras Application expects a specific kind of input preprocessing.
 For EfficientNetV2, by default input preprocessing is included as a part of
 the model (as a `Rescaling` layer), and thus
-`keras.applications.efficientnet_v2.preprocess_input` is actually a
+`ncps.mini_keras.applications.efficientnet_v2.preprocess_input` is actually a
 pass-through function. In this use case, EfficientNetV2 models expect their
 inputs to be float tensors of pixels with values in the `[0, 255]` range.
 At the same time, preprocessing as a part of the model (i.e. `Rescaling`
@@ -1083,10 +1083,10 @@ def EfficientNetV2(
     return model
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.efficientnet_v2.EfficientNetV2B0",
-        "keras.applications.EfficientNetV2B0",
+        "ncps.mini_keras.applications.efficientnet_v2.EfficientNetV2B0",
+        "ncps.mini_keras.applications.EfficientNetV2B0",
     ]
 )
 def EfficientNetV2B0(
@@ -1117,10 +1117,10 @@ def EfficientNetV2B0(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.efficientnet_v2.EfficientNetV2B1",
-        "keras.applications.EfficientNetV2B1",
+        "ncps.mini_keras.applications.efficientnet_v2.EfficientNetV2B1",
+        "ncps.mini_keras.applications.EfficientNetV2B1",
     ]
 )
 def EfficientNetV2B1(
@@ -1151,10 +1151,10 @@ def EfficientNetV2B1(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.efficientnet_v2.EfficientNetV2B2",
-        "keras.applications.EfficientNetV2B2",
+        "ncps.mini_keras.applications.efficientnet_v2.EfficientNetV2B2",
+        "ncps.mini_keras.applications.EfficientNetV2B2",
     ]
 )
 def EfficientNetV2B2(
@@ -1185,10 +1185,10 @@ def EfficientNetV2B2(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.efficientnet_v2.EfficientNetV2B3",
-        "keras.applications.EfficientNetV2B3",
+        "ncps.mini_keras.applications.efficientnet_v2.EfficientNetV2B3",
+        "ncps.mini_keras.applications.EfficientNetV2B3",
     ]
 )
 def EfficientNetV2B3(
@@ -1219,10 +1219,10 @@ def EfficientNetV2B3(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.efficientnet_v2.EfficientNetV2S",
-        "keras.applications.EfficientNetV2S",
+        "ncps.mini_keras.applications.efficientnet_v2.EfficientNetV2S",
+        "ncps.mini_keras.applications.EfficientNetV2S",
     ]
 )
 def EfficientNetV2S(
@@ -1253,10 +1253,10 @@ def EfficientNetV2S(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.efficientnet_v2.EfficientNetV2M",
-        "keras.applications.EfficientNetV2M",
+        "ncps.mini_keras.applications.efficientnet_v2.EfficientNetV2M",
+        "ncps.mini_keras.applications.EfficientNetV2M",
     ]
 )
 def EfficientNetV2M(
@@ -1287,10 +1287,10 @@ def EfficientNetV2M(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.efficientnet_v2.EfficientNetV2L",
-        "keras.applications.EfficientNetV2L",
+        "ncps.mini_keras.applications.efficientnet_v2.EfficientNetV2L",
+        "ncps.mini_keras.applications.EfficientNetV2L",
     ]
 )
 def EfficientNetV2L(
@@ -1330,7 +1330,7 @@ EfficientNetV2M.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2M")
 EfficientNetV2L.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2L")
 
 
-@keras_export("keras.applications.efficientnet_v2.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.efficientnet_v2.preprocess_input")
 def preprocess_input(x, data_format=None):
     """A placeholder method for backward compatibility.
 
@@ -1352,7 +1352,7 @@ def preprocess_input(x, data_format=None):
     return x
 
 
-@keras_export("keras.applications.efficientnet_v2.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.efficientnet_v2.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

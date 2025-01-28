@@ -1,10 +1,10 @@
 import numpy as np
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import dtype_policies
-from keras.src import layers
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import dtype_policies
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
 
 
 class ZeroPadding3DTest(testing.TestCase):

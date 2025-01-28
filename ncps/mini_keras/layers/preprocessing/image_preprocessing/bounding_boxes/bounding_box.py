@@ -1,6 +1,6 @@
 import math
 
-from keras.src.utils import backend_utils
+from ncps.mini_keras.utils import backend_utils
 
 SUPPORTED_FORMATS = (
     "xyxy",

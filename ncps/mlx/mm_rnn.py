@@ -16,10 +16,10 @@
 
 import ncps
 import mlx.core as mx
-from ncps.mini_keras.layers import AbstractRNNCell
+from ncps.mini_keras.layers.rnn import AbstractRNNCell
+from ncps.mini_keras.utils import register_mini_keras_serializable
 
-
-@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="MixedMemoryRNN")
+@register_mini_keras_serializable(package="ncps", name="MixedMemoryRNN")
 class MixedMemoryRNN(AbstractRNNCell):
     def __init__(self, rnn_cell, forget_gate_bias=1.0, **kwargs):
         super().__init__(**kwargs)

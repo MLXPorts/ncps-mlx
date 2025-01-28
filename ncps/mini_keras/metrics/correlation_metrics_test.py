@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.stats import pearsonr
 
-from keras.src import testing
-from keras.src.metrics import ConcordanceCorrelation
-from keras.src.metrics import PearsonCorrelation
-from keras.src.metrics import correlation_metrics
+from ncps.mini_keras import testing
+from ncps.mini_keras.metrics import ConcordanceCorrelation
+from ncps.mini_keras.metrics import PearsonCorrelation
+from ncps.mini_keras.metrics import correlation_metrics
 
 
 class CorrelationsTest(testing.TestCase):

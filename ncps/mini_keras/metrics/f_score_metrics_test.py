@@ -1,8 +1,8 @@
 import numpy as np
 from absl.testing import parameterized
 
-from keras.src import testing
-from keras.src.metrics import f_score_metrics
+from ncps.mini_keras import testing
+from ncps.mini_keras.metrics import f_score_metrics
 
 
 class FBetaScoreTest(testing.TestCase):

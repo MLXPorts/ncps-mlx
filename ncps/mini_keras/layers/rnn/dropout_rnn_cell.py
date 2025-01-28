@@ -1,5 +1,5 @@
-from keras.src import backend
-from keras.src import ops
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
 
 
 class DropoutRNNCell:

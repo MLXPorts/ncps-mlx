@@ -1,12 +1,12 @@
 import math
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import ops
-from keras.src.api_export import keras_export
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
 
 
-@keras_export("keras.layers.GaussianDropout")
+@keras_mini_export("ncps.mini_keras.layers.GaussianDropout")
 class GaussianDropout(layers.Layer):
     """Apply multiplicative 1-centered Gaussian noise.
 

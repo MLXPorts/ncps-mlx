@@ -1,11 +1,11 @@
-from keras.src import ops
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import ops
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.saving import serialization_lib
 
 
-@keras_export("keras.layers.StackedRNNCells")
+@keras_mini_export("ncps.mini_keras.layers.StackedRNNCells")
 class StackedRNNCells(Layer):
     """Wrapper allowing a stack of RNN cells to behave as a single cell.
 

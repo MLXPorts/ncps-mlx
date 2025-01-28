@@ -1,9 +1,9 @@
 import numpy as np
 import scipy.linalg as sl
 
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.numpy.core import convert_to_tensor
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.numpy.core import convert_to_tensor
 
 
 def cholesky(a):

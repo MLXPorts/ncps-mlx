@@ -1,5 +1,3 @@
-import jax
-import ml_dtypes
 import mlx.core as mx
 
 from ncps.mini_keras import backend

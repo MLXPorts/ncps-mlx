@@ -3,9 +3,9 @@ import numpy as np
 import pytest
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
 
 
 class UpSampling2dTest(testing.TestCase):

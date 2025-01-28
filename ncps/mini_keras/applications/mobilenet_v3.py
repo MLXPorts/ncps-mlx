@@ -2,7 +2,7 @@ import warnings
 
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -69,7 +69,7 @@ https://keras.io/guides/transfer_learning/).
 Note: each Keras Application expects a specific kind of input preprocessing.
 For MobileNetV3, by default input preprocessing is included as a part of the
 model (as a `Rescaling` layer), and thus
-`keras.applications.mobilenet_v3.preprocess_input` is actually a
+`ncps.mini_keras.applications.mobilenet_v3.preprocess_input` is actually a
 pass-through function. In this use case, MobileNetV3 models expect their
 inputs to be float tensors of pixels with values in the `[0-255]` range.
 At the same time, preprocessing as a part of the model (i.e. `Rescaling`
@@ -401,7 +401,7 @@ def MobileNetV3(
     return model
 
 
-@keras_export("keras.applications.MobileNetV3Small")
+@keras_mini_export("ncps.mini_keras.applications.MobileNetV3Small")
 def MobileNetV3Small(
     input_shape=None,
     alpha=1.0,
@@ -468,7 +468,7 @@ def MobileNetV3Small(
     )
 
 
-@keras_export("keras.applications.MobileNetV3Large")
+@keras_mini_export("ncps.mini_keras.applications.MobileNetV3Large")
 def MobileNetV3Large(
     input_shape=None,
     alpha=1.0,
@@ -655,7 +655,7 @@ def _inverted_res_block(
     return x
 
 
-@keras_export("keras.applications.mobilenet_v3.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.mobilenet_v3.preprocess_input")
 def preprocess_input(x, data_format=None):
     """A placeholder method for backward compatibility.
 
@@ -678,7 +678,7 @@ def preprocess_input(x, data_format=None):
     return x
 
 
-@keras_export("keras.applications.mobilenet_v3.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.mobilenet_v3.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

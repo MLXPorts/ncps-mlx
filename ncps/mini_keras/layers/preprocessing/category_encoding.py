@@ -1,11 +1,11 @@
-from keras.src.api_export import keras_export
-from keras.src.backend import KerasTensor
-from keras.src.layers.preprocessing.tf_data_layer import TFDataLayer
-from keras.src.utils import backend_utils
-from keras.src.utils import numerical_utils
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend import KerasTensor
+from ncps.mini_keras.layers.preprocessing.tf_data_layer import TFDataLayer
+from ncps.mini_keras.utils import backend_utils
+from ncps.mini_keras.utils import numerical_utils
 
 
-@keras_export("keras.layers.CategoryEncoding")
+@keras_mini_export("ncps.mini_keras.layers.CategoryEncoding")
 class CategoryEncoding(TFDataLayer):
     """A preprocessing layer which encodes integer features.
 

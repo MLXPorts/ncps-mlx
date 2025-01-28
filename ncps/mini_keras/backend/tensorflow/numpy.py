@@ -10,17 +10,17 @@ import tensorflow as tf
 from tensorflow.python.ops.linalg.sparse import sparse_csr_matrix_ops
 from tensorflow.python.ops.math_ops import is_nan
 
-from keras.src import tree
-from keras.src.backend import config
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.common.backend_utils import canonicalize_axis
-from keras.src.backend.common.backend_utils import to_tuple_or_list
-from keras.src.backend.common.backend_utils import vectorize_impl
-from keras.src.backend.tensorflow import sparse
-from keras.src.backend.tensorflow.core import cast
-from keras.src.backend.tensorflow.core import convert_to_tensor
-from keras.src.backend.tensorflow.core import shape as shape_op
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.common.backend_utils import canonicalize_axis
+from ncps.mini_keras.backend.common.backend_utils import to_tuple_or_list
+from ncps.mini_keras.backend.common.backend_utils import vectorize_impl
+from ncps.mini_keras.backend.tensorflow import sparse
+from ncps.mini_keras.backend.tensorflow.core import cast
+from ncps.mini_keras.backend.tensorflow.core import convert_to_tensor
+from ncps.mini_keras.backend.tensorflow.core import shape as shape_op
 
 
 def rot90(array, k=1, axes=(0, 1)):
@@ -515,7 +515,7 @@ def matmul(x1, x2):
         )
 
     if x1_sparse or x2_sparse:
-        from keras.src.ops.operation_utils import compute_matmul_output_shape
+        from ncps.mini_keras.ops.operation_utils import compute_matmul_output_shape
 
         output_shape = compute_matmul_output_shape(x1_shape, x2_shape)
         if x1_sparse and x2_sparse:
@@ -1306,7 +1306,7 @@ def expand_dims(x, axis):
     out_ndim = len(x.shape) + len(axis)
     axis = sorted([canonicalize_axis(a, out_ndim) for a in axis])
     if isinstance(x, tf.SparseTensor):
-        from keras.src.ops.operation_utils import (
+        from ncps.mini_keras.ops.operation_utils import (
             compute_expand_dims_output_shape,
         )
 
@@ -1951,7 +1951,7 @@ def repeat(x, repeats, axis=None):
 def reshape(x, newshape):
     x = convert_to_tensor(x)
     if isinstance(x, tf.SparseTensor):
-        from keras.src.ops.operation_utils import compute_reshape_output_shape
+        from ncps.mini_keras.ops.operation_utils import compute_reshape_output_shape
 
         output_shape = compute_reshape_output_shape(
             x.shape, newshape, "newshape"
@@ -2141,7 +2141,7 @@ def take(x, indices, axis=None):
 
 
 def take_along_axis(x, indices, axis=None):
-    from keras.src.ops.operation_utils import (
+    from ncps.mini_keras.ops.operation_utils import (
         compute_take_along_axis_output_shape,
     )
 
@@ -2534,7 +2534,7 @@ def squeeze(x, axis=None):
 
 def transpose(x, axes=None):
     if isinstance(x, tf.SparseTensor):
-        from keras.src.ops.operation_utils import compute_transpose_output_shape
+        from ncps.mini_keras.ops.operation_utils import compute_transpose_output_shape
 
         output = tf.sparse.transpose(x, perm=axes)
         output.set_shape(compute_transpose_output_shape(x.shape, axes))

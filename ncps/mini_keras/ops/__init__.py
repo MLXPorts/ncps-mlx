@@ -14,6 +14,7 @@ from ncps.mini_keras.ops.linalg import *  # noqa: F403
 from ncps.mini_keras.ops.math import *  # noqa: F403
 from ncps.mini_keras.ops.nn import *  # noqa: F403
 from ncps.mini_keras.ops.numpy import *  # noqa: F403
+from ncps.mini_keras.ops.ode import *  # noqa: F403
 
 __all__ = [ "cast", "cond", "is_tensor", "name_scope", "random", "image", "operation_utils" ]
 

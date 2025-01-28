@@ -4,8 +4,8 @@ import operator
 
 import tensorflow as tf
 
-from keras.src import backend
-from keras.src.backend.tensorflow.core import convert_to_tensor
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.tensorflow.core import convert_to_tensor
 
 RESIZE_INTERPOLATIONS = (
     "bilinear",

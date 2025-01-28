@@ -1,5 +1,5 @@
-from keras.src.testing import test_case
-from keras.src.utils import naming
+from ncps.mini_keras.testing import test_case
+from ncps.mini_keras.utils import naming
 
 
 class NamingUtilsTest(test_case.TestCase):

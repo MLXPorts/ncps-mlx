@@ -1,15 +1,15 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
-from keras.src.layers.rnn.dropout_rnn_cell import DropoutRNNCell
-from keras.src.layers.rnn.stacked_rnn_cells import StackedRNNCells
-from keras.src.saving import serialization_lib
-from keras.src.utils import tracking
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.layers.rnn.dropout_rnn_cell import DropoutRNNCell
+from ncps.mini_keras.layers.rnn.stacked_rnn_cells import StackedRNNCells
+from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.utils import tracking
 
 
-@keras_export("keras.layers.RNN")
+@keras_mini_export("ncps.mini_keras.layers.RNN")
 class RNN(Layer):
     """Base class for recurrent layers.
 

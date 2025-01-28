@@ -1,5 +1,5 @@
-from keras.src import backend
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import backend
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
 def get_tensor_spec(t, dynamic_batch=False, name=None):

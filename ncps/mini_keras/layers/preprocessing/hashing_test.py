@@ -5,11 +5,11 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import models
-from keras.src import testing
-from keras.src.saving import load_model
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import testing
+from ncps.mini_keras.saving import load_model
 
 
 class ArrayLike:

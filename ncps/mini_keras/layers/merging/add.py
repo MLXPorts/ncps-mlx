@@ -1,9 +1,9 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.merging.base_merge import Merge
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.merging.base_merge import Merge
 
 
-@keras_export("keras.layers.Add")
+@keras_mini_export("ncps.mini_keras.layers.Add")
 class Add(Merge):
     """Performs elementwise addition operation.
 
@@ -37,7 +37,7 @@ class Add(Merge):
         return output
 
 
-@keras_export("keras.layers.add")
+@keras_mini_export("ncps.mini_keras.layers.add")
 def add(inputs, **kwargs):
     """Functional interface to the `keras.layers.Add` layer.
 

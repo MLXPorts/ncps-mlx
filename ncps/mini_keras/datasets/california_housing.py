@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from keras.src.api_export import keras_export
-from keras.src.utils.file_utils import get_file
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils.file_utils import get_file
 
 
-@keras_export("keras.datasets.california_housing.load_data")
+@keras_mini_export("ncps.mini_keras.datasets.california_housing.load_data")
 def load_data(
     version="large", path="california_housing.npz", test_split=0.2, seed=113
 ):

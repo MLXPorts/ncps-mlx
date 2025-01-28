@@ -1,12 +1,12 @@
 import numpy as np
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.backend.common.keras_tensor import KerasTensor
-from keras.src.ops import linalg
-from keras.src.testing.test_utils import named_product
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras.ops import linalg
+from ncps.mini_keras.testing.test_utils import named_product
 
 
 class LinalgOpsDynamicShapeTest(testing.TestCase):

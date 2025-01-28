@@ -2,12 +2,12 @@
 
 import math
 
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.saving import serialization_lib
 
 
-@keras_export("keras.optimizers.schedules.LearningRateSchedule")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.LearningRateSchedule")
 class LearningRateSchedule:
     """The learning rate schedule base class.
 
@@ -76,7 +76,7 @@ class LearningRateSchedule:
         return cls(**config)
 
 
-@keras_export("keras.optimizers.schedules.ExponentialDecay")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.ExponentialDecay")
 class ExponentialDecay(LearningRateSchedule):
     """A `LearningRateSchedule` that uses an exponential decay schedule.
 
@@ -184,7 +184,7 @@ class ExponentialDecay(LearningRateSchedule):
         }
 
 
-@keras_export("keras.optimizers.schedules.PiecewiseConstantDecay")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.PiecewiseConstantDecay")
 class PiecewiseConstantDecay(LearningRateSchedule):
     """A `LearningRateSchedule` that uses a piecewise constant decay schedule.
 
@@ -301,7 +301,7 @@ class PiecewiseConstantDecay(LearningRateSchedule):
         }
 
 
-@keras_export("keras.optimizers.schedules.PolynomialDecay")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.PolynomialDecay")
 class PolynomialDecay(LearningRateSchedule):
     """A `LearningRateSchedule` that uses a polynomial decay schedule.
 
@@ -457,7 +457,7 @@ class PolynomialDecay(LearningRateSchedule):
         }
 
 
-@keras_export("keras.optimizers.schedules.InverseTimeDecay")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.InverseTimeDecay")
 class InverseTimeDecay(LearningRateSchedule):
     """A `LearningRateSchedule` that uses an inverse time decay schedule.
 
@@ -569,7 +569,7 @@ class InverseTimeDecay(LearningRateSchedule):
         }
 
 
-@keras_export("keras.optimizers.schedules.CosineDecay")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.CosineDecay")
 class CosineDecay(LearningRateSchedule):
     """A `LearningRateSchedule` that uses a cosine decay with optional warmup.
 
@@ -760,7 +760,7 @@ class CosineDecay(LearningRateSchedule):
         }
 
 
-@keras_export("keras.optimizers.schedules.CosineDecayRestarts")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.CosineDecayRestarts")
 class CosineDecayRestarts(LearningRateSchedule):
     """A `LearningRateSchedule` that uses a cosine decay schedule with restarts.
 
@@ -909,7 +909,7 @@ class CosineDecayRestarts(LearningRateSchedule):
         }
 
 
-@keras_export("keras.optimizers.schedules.serialize")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.serialize")
 def serialize(learning_rate_schedule):
     """Serializes a `LearningRateSchedule` into a JSON-compatible dict.
 
@@ -931,7 +931,7 @@ def serialize(learning_rate_schedule):
     return serialization_lib.serialize_keras_object(learning_rate_schedule)
 
 
-@keras_export("keras.optimizers.schedules.deserialize")
+@keras_mini_export("ncps.mini_keras.optimizers.schedules.deserialize")
 def deserialize(config, custom_objects=None):
     """Instantiates a `LearningRateSchedule` object from a serialized form.
 

@@ -1,18 +1,18 @@
-from keras.src.api_export import keras_export
-from keras.src.optimizers.adadelta import Adadelta
-from keras.src.optimizers.adafactor import Adafactor
-from keras.src.optimizers.adagrad import Adagrad
-from keras.src.optimizers.adam import Adam
-from keras.src.optimizers.adamax import Adamax
-from keras.src.optimizers.adamw import AdamW
-from keras.src.optimizers.ftrl import Ftrl
-from keras.src.optimizers.lion import Lion
-from keras.src.optimizers.loss_scale_optimizer import LossScaleOptimizer
-from keras.src.optimizers.nadam import Nadam
-from keras.src.optimizers.optimizer import Optimizer
-from keras.src.optimizers.rmsprop import RMSprop
-from keras.src.optimizers.sgd import SGD
-from keras.src.saving import serialization_lib
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.optimizers.adadelta import Adadelta
+from ncps.mini_keras.optimizers.adafactor import Adafactor
+from ncps.mini_keras.optimizers.adagrad import Adagrad
+from ncps.mini_keras.optimizers.adam import Adam
+from ncps.mini_keras.optimizers.adamax import Adamax
+from ncps.mini_keras.optimizers.adamw import AdamW
+from ncps.mini_keras.optimizers.ftrl import Ftrl
+from ncps.mini_keras.optimizers.lion import Lion
+from ncps.mini_keras.optimizers.loss_scale_optimizer import LossScaleOptimizer
+from ncps.mini_keras.optimizers.nadam import Nadam
+from ncps.mini_keras.optimizers.optimizer import Optimizer
+from ncps.mini_keras.optimizers.rmsprop import RMSprop
+from ncps.mini_keras.optimizers.sgd import SGD
+from ncps.mini_keras.saving import serialization_lib
 
 ALL_OBJECTS = {
     Optimizer,
@@ -32,7 +32,7 @@ ALL_OBJECTS = {
 ALL_OBJECTS_DICT = {cls.__name__.lower(): cls for cls in ALL_OBJECTS}
 
 
-@keras_export("keras.optimizers.serialize")
+@keras_mini_export("ncps.mini_keras.optimizers.serialize")
 def serialize(optimizer):
     """Returns the optimizer configuration as a Python dict.
 
@@ -45,7 +45,7 @@ def serialize(optimizer):
     return serialization_lib.serialize_keras_object(optimizer)
 
 
-@keras_export("keras.optimizers.deserialize")
+@keras_mini_export("ncps.mini_keras.optimizers.deserialize")
 def deserialize(config, custom_objects=None):
     """Returns a Keras optimizer object via its configuration.
 
@@ -69,7 +69,7 @@ def deserialize(config, custom_objects=None):
     )
 
 
-@keras_export("keras.optimizers.get")
+@keras_mini_export("ncps.mini_keras.optimizers.get")
 def get(identifier):
     """Retrieves a Keras Optimizer instance.
 
@@ -100,14 +100,14 @@ def get(identifier):
 # We will add this temporarily so that tensorflow packages that depend on
 # estimators will continue to import (there are a large number). Note that
 # Keras 3 will not work with the estimators API.
-@keras_export(
+@keras_mini_export(
     [
-        "keras.optimizers.legacy.Adagrad",
-        "keras.optimizers.legacy.Adam",
-        "keras.optimizers.legacy.Ftrl",
-        "keras.optimizers.legacy.RMSprop",
-        "keras.optimizers.legacy.SGD",
-        "keras.optimizers.legacy.Optimizer",
+        "ncps.mini_keras.optimizers.legacy.Adagrad",
+        "ncps.mini_keras.optimizers.legacy.Adam",
+        "ncps.mini_keras.optimizers.legacy.Ftrl",
+        "ncps.mini_keras.optimizers.legacy.RMSprop",
+        "ncps.mini_keras.optimizers.legacy.SGD",
+        "ncps.mini_keras.optimizers.legacy.Optimizer",
     ]
 )
 class LegacyOptimizerWarning:

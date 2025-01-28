@@ -1,8 +1,8 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.regularization.dropout import Dropout
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.regularization.dropout import Dropout
 
 
 class BaseSpatialDropout(Dropout):
@@ -28,7 +28,7 @@ class BaseSpatialDropout(Dropout):
         }
 
 
-@keras_export("keras.layers.SpatialDropout1D")
+@keras_mini_export("ncps.mini_keras.layers.SpatialDropout1D")
 class SpatialDropout1D(BaseSpatialDropout):
     """Spatial 1D version of Dropout.
 
@@ -68,7 +68,7 @@ class SpatialDropout1D(BaseSpatialDropout):
         return (input_shape[0], 1, input_shape[2])
 
 
-@keras_export("keras.layers.SpatialDropout2D")
+@keras_mini_export("ncps.mini_keras.layers.SpatialDropout2D")
 class SpatialDropout2D(BaseSpatialDropout):
     """Spatial 2D version of Dropout.
 
@@ -130,7 +130,7 @@ class SpatialDropout2D(BaseSpatialDropout):
         return {**base_config, **config}
 
 
-@keras_export("keras.layers.SpatialDropout3D")
+@keras_mini_export("ncps.mini_keras.layers.SpatialDropout3D")
 class SpatialDropout3D(BaseSpatialDropout):
     """Spatial 3D version of Dropout.
 

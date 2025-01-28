@@ -1,9 +1,9 @@
 import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.optimizers.lamb import Lamb
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.optimizers.lamb import Lamb
 
 
 class LambTest(testing.TestCase):

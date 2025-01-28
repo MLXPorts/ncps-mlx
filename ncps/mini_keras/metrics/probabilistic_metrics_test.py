@@ -1,7 +1,7 @@
 import numpy as np
 
-from keras.src import metrics
-from keras.src import testing
+from ncps.mini_keras import metrics
+from ncps.mini_keras import testing
 
 
 class KLDivergenceTest(testing.TestCase):

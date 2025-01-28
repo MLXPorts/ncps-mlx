@@ -3,35 +3,37 @@ import json
 import typing
 import warnings
 
-from keras.src import backend
-from keras.src import utils
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
-from keras.src.models.variable_mapping import map_saveable_variables
-from keras.src.saving import saving_api
-from keras.src.trainers import trainer as base_trainer
-from keras.src.utils import summary_utils
-from keras.src.utils import traceback_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras import utils
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.models.variable_mapping import map_saveable_variables
+from ncps.mini_keras.saving import saving_api
+from ncps.mini_keras.trainers import trainer as base_trainer
+from ncps.mini_keras.utils import summary_utils
+from ncps.mini_keras.utils import traceback_utils
 
 if backend.backend() == "tensorflow":
-    from keras.src.backend.tensorflow.trainer import (
+    from ncps.mini_keras.backend.tensorflow.trainer import (
         TensorFlowTrainer as Trainer,
     )
 elif backend.backend() == "jax":
-    from keras.src.backend.jax.trainer import JAXTrainer as Trainer
+    from ncps.mini_keras.backend.jax.trainer import JAXTrainer as Trainer
 elif backend.backend() == "torch":
-    from keras.src.backend.torch.trainer import TorchTrainer as Trainer
+    from ncps.mini_keras.backend.torch.trainer import TorchTrainer as Trainer
 elif backend.backend() == "numpy":
-    from keras.src.backend.numpy.trainer import NumpyTrainer as Trainer
+    from ncps.mini_keras.backend.numpy.trainer import NumpyTrainer as Trainer
+elif backend.backend() == "mlx":
+    from ncps.mini_keras.backend.mlx.trainer import MLXTrainer as Trainer
 elif backend.backend() == "openvino":
-    from keras.src.backend.openvino.trainer import OpenVINOTrainer as Trainer
+    from ncps.mini_keras.backend.openvino.trainer import OpenVINOTrainer as Trainer
 else:
     raise RuntimeError(
         f"Backend '{backend.backend()}' must implement the Trainer class."
     )
 
 
-@keras_export(["keras.Model", "keras.models.Model"])
+@keras_mini_export(["ncps.mini_keras.Model", "ncps.mini_keras.models.Model"])
 class Model(Trainer, base_trainer.Trainer, Layer):
     """A model grouping layers into an object with training/inference features.
 
@@ -140,14 +142,14 @@ class Model(Trainer, base_trainer.Trainer, Layer):
     def __new__(cls, *args, **kwargs):
         # Signature detection for usage of `Model` as a `Functional`
         if functional_init_arguments(args, kwargs) and cls == Model:
-            from keras.src.models.functional import Functional
+            from ncps.mini_keras.models.functional import Functional
 
             return Functional.__new__(Functional, *args, **kwargs)
         return typing.cast(cls, super().__new__(cls))
 
     def __init__(self, *args, **kwargs):
         Trainer.__init__(self)
-        from keras.src.models import functional
+        from ncps.mini_keras.models import functional
 
         # Signature detection for usage of a `Model` subclass
         # as a `Functional` subclass
@@ -367,7 +369,7 @@ class Model(Trainer, base_trainer.Trainer, Layer):
             mode: The mode of the quantization. Only 'int8' is supported at this
                 time.
         """
-        from keras.src.dtype_policies import QUANTIZATION_MODES
+        from ncps.mini_keras.dtype_policies import QUANTIZATION_MODES
 
         type_check = kwargs.pop("type_check", True)
         if kwargs:
@@ -455,7 +457,7 @@ class Model(Trainer, base_trainer.Trainer, Layer):
         Returns:
             A JSON string.
         """
-        from keras.src.saving import serialization_lib
+        from ncps.mini_keras.saving import serialization_lib
 
         model_config = serialization_lib.serialize_keras_object(self)
         return json.dumps(model_config, **kwargs)
@@ -525,8 +527,8 @@ class Model(Trainer, base_trainer.Trainer, Layer):
         predictions = ort_session.run(None, ort_inputs)
         ```
         """
-        from keras.src.export import export_onnx
-        from keras.src.export import export_saved_model
+        from ncps.mini_keras.export import export_onnx
+        from ncps.mini_keras.export import export_saved_model
 
         available_formats = ("tf_saved_model", "onnx")
         if format not in available_formats:
@@ -554,7 +556,7 @@ class Model(Trainer, base_trainer.Trainer, Layer):
 
     @classmethod
     def from_config(cls, config, custom_objects=None):
-        from keras.src.models.functional import Functional
+        from ncps.mini_keras.models.functional import Functional
 
         functional_config_keys = [
             "name",
@@ -577,7 +579,7 @@ class Model(Trainer, base_trainer.Trainer, Layer):
         if is_functional_config and revivable_as_functional:
             # Revive Functional model
             # (but not Functional subclasses with a custom __init__)
-            from keras.src.models.functional import functional_from_config
+            from ncps.mini_keras.models.functional import functional_from_config
 
             return functional_from_config(
                 cls, config, custom_objects=custom_objects
@@ -781,7 +783,7 @@ class Model(Trainer, base_trainer.Trainer, Layer):
         return flat_dict
 
 
-@keras_export("keras.models.model_from_json")
+@keras_mini_export("ncps.mini_keras.models.model_from_json")
 def model_from_json(json_string, custom_objects=None):
     """Parses a JSON model configuration string and returns a model instance.
 
@@ -802,7 +804,7 @@ def model_from_json(json_string, custom_objects=None):
     Returns:
         A Keras model instance (uncompiled).
     """
-    from keras.src.saving import serialization_lib
+    from ncps.mini_keras.saving import serialization_lib
 
     model_config = json.loads(json_string)
     return serialization_lib.deserialize_keras_object(
@@ -820,7 +822,7 @@ def functional_init_arguments(args, kwargs):
 
 def inject_functional_model_class(cls):
     """Inject `Functional` into the hierarchy of this class if needed."""
-    from keras.src.models import functional
+    from ncps.mini_keras.models import functional
 
     if cls is Model:
         return functional.Functional

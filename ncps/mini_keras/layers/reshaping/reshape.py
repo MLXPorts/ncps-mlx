@@ -1,11 +1,11 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.backend.common.keras_tensor import KerasTensor
-from keras.src.layers.layer import Layer
-from keras.src.ops import operation_utils
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.ops import operation_utils
 
 
-@keras_export("keras.layers.Reshape")
+@keras_mini_export("ncps.mini_keras.layers.Reshape")
 class Reshape(Layer):
     """Layer that reshapes inputs into the given shape.
 

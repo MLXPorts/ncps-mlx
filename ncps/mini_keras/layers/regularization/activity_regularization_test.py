@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from keras.src import layers
-from keras.src.testing import test_case
+from ncps.mini_keras import layers
+from ncps.mini_keras.testing import test_case
 
 
 class ActivityRegularizationTest(test_case.TestCase):

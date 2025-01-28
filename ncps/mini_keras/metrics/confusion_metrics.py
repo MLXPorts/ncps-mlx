@@ -1,13 +1,13 @@
 import numpy as np
 
-from keras.src import activations
-from keras.src import backend
-from keras.src import initializers
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.metrics import metrics_utils
-from keras.src.metrics.metric import Metric
-from keras.src.utils.python_utils import to_list
+from ncps.mini_keras import activations
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.metrics import metrics_utils
+from ncps.mini_keras.metrics.metric import Metric
+from ncps.mini_keras.utils.python_utils import to_list
 
 
 class _ConfusionMatrixConditionCount(Metric):
@@ -75,7 +75,7 @@ class _ConfusionMatrixConditionCount(Metric):
         return {**base_config, **config}
 
 
-@keras_export("keras.metrics.FalsePositives")
+@keras_mini_export("ncps.mini_keras.metrics.FalsePositives")
 class FalsePositives(_ConfusionMatrixConditionCount):
     """Calculates the number of false positives.
 
@@ -119,7 +119,7 @@ class FalsePositives(_ConfusionMatrixConditionCount):
         )
 
 
-@keras_export("keras.metrics.FalseNegatives")
+@keras_mini_export("ncps.mini_keras.metrics.FalseNegatives")
 class FalseNegatives(_ConfusionMatrixConditionCount):
     """Calculates the number of false negatives.
 
@@ -163,7 +163,7 @@ class FalseNegatives(_ConfusionMatrixConditionCount):
         )
 
 
-@keras_export("keras.metrics.TrueNegatives")
+@keras_mini_export("ncps.mini_keras.metrics.TrueNegatives")
 class TrueNegatives(_ConfusionMatrixConditionCount):
     """Calculates the number of true negatives.
 
@@ -207,7 +207,7 @@ class TrueNegatives(_ConfusionMatrixConditionCount):
         )
 
 
-@keras_export("keras.metrics.TruePositives")
+@keras_mini_export("ncps.mini_keras.metrics.TruePositives")
 class TruePositives(_ConfusionMatrixConditionCount):
     """Calculates the number of true positives.
 
@@ -251,7 +251,7 @@ class TruePositives(_ConfusionMatrixConditionCount):
         )
 
 
-@keras_export("keras.metrics.Precision")
+@keras_mini_export("ncps.mini_keras.metrics.Precision")
 class Precision(Metric):
     """Computes the precision of the predictions with respect to the labels.
 
@@ -411,7 +411,7 @@ class Precision(Metric):
         return {**base_config, **config}
 
 
-@keras_export("keras.metrics.Recall")
+@keras_mini_export("ncps.mini_keras.metrics.Recall")
 class Recall(Metric):
     """Computes the recall of the predictions with respect to the labels.
 
@@ -671,7 +671,7 @@ class SensitivitySpecificityBase(Metric):
         return ops.where(feasible_exists, max_dependent, 0.0)
 
 
-@keras_export("keras.metrics.SensitivityAtSpecificity")
+@keras_mini_export("ncps.mini_keras.metrics.SensitivityAtSpecificity")
 class SensitivityAtSpecificity(SensitivitySpecificityBase):
     """Computes best sensitivity where specificity is >= specified value.
 
@@ -775,7 +775,7 @@ class SensitivityAtSpecificity(SensitivitySpecificityBase):
         return {**base_config, **config}
 
 
-@keras_export("keras.metrics.SpecificityAtSensitivity")
+@keras_mini_export("ncps.mini_keras.metrics.SpecificityAtSensitivity")
 class SpecificityAtSensitivity(SensitivitySpecificityBase):
     """Computes best specificity where sensitivity is >= specified value.
 
@@ -879,7 +879,7 @@ class SpecificityAtSensitivity(SensitivitySpecificityBase):
         return {**base_config, **config}
 
 
-@keras_export("keras.metrics.PrecisionAtRecall")
+@keras_mini_export("ncps.mini_keras.metrics.PrecisionAtRecall")
 class PrecisionAtRecall(SensitivitySpecificityBase):
     """Computes best precision where recall is >= specified value.
 
@@ -966,7 +966,7 @@ class PrecisionAtRecall(SensitivitySpecificityBase):
         return {**base_config, **config}
 
 
-@keras_export("keras.metrics.RecallAtPrecision")
+@keras_mini_export("ncps.mini_keras.metrics.RecallAtPrecision")
 class RecallAtPrecision(SensitivitySpecificityBase):
     """Computes best recall where precision is >= specified value.
 
@@ -1064,7 +1064,7 @@ class RecallAtPrecision(SensitivitySpecificityBase):
         return {**base_config, **config}
 
 
-@keras_export("keras.metrics.AUC")
+@keras_mini_export("ncps.mini_keras.metrics.AUC")
 class AUC(Metric):
     """Approximates the AUC (Area under the curve) of the ROC or PR curves.
 

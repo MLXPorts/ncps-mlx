@@ -1,11 +1,11 @@
 import numpy as np
 
 from conftest import skip_if_backend
-from keras.src import backend
-from keras.src import initializers
-from keras.src import random
-from keras.src import testing
-from keras.src import utils
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import random
+from ncps.mini_keras import testing
+from ncps.mini_keras import utils
 
 
 class RandomInitializersTest(testing.TestCase):

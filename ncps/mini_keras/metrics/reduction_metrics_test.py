@@ -1,10 +1,10 @@
 import numpy as np
 
-from keras.src import backend
-from keras.src import testing
-from keras.src.backend.common.keras_tensor import KerasTensor
-from keras.src.metrics import reduction_metrics
-from keras.src.saving import register_keras_serializable
+from ncps.mini_keras import backend
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras.metrics import reduction_metrics
+from ncps.mini_keras.saving import register_keras_serializable
 
 
 class SumTest(testing.TestCase):

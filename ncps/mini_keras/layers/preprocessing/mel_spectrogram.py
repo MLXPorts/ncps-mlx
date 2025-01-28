@@ -1,12 +1,12 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.tf_data_layer import TFDataLayer
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.tf_data_layer import TFDataLayer
 
 # mel spectrum constants.
 _MEL_BREAK_FREQUENCY_HERTZ = 700.0
 _MEL_HIGH_FREQUENCY_Q = 1127.0
 
 
-@keras_export("keras.layers.MelSpectrogram")
+@keras_mini_export("ncps.mini_keras.layers.MelSpectrogram")
 class MelSpectrogram(TFDataLayer):
     """A preprocessing layer to convert raw audio signals to Mel spectrograms.
 

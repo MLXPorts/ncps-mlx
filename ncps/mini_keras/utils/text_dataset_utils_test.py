@@ -2,8 +2,8 @@ import os
 import random
 import string
 
-from keras.src import testing
-from keras.src.utils import text_dataset_utils
+from ncps.mini_keras import testing
+from ncps.mini_keras.utils import text_dataset_utils
 
 
 class TextDatasetFromDirectoryTest(testing.TestCase):

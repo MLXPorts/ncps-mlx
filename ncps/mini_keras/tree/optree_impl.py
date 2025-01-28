@@ -1,7 +1,7 @@
 import optree
 import optree.utils
 
-from keras.src.backend.config import backend
+from ncps.mini_keras.backend.config import backend
 
 
 def register_tree_node_class(cls):

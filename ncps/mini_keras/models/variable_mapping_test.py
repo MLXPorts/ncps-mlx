@@ -1,7 +1,7 @@
 import numpy as np
 
-from keras.src import testing
-from keras.src.saving import saving_lib_test
+from ncps.mini_keras import testing
+from ncps.mini_keras.saving import saving_lib_test
 
 
 class VariableMappingTest(testing.TestCase):

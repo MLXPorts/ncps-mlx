@@ -2,16 +2,16 @@ import functools
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.visualization.draw_segmentation_masks import (
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.visualization.draw_segmentation_masks import (
     draw_segmentation_masks,
 )
-from keras.src.visualization.plot_image_gallery import plot_image_gallery
+from ncps.mini_keras.visualization.plot_image_gallery import plot_image_gallery
 
 
-@keras_export("keras.visualization.plot_segmentation_mask_gallery")
+@keras_mini_export("ncps.mini_keras.visualization.plot_segmentation_mask_gallery")
 def plot_segmentation_mask_gallery(
     images,
     num_classes,

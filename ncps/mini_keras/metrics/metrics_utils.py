@@ -2,10 +2,10 @@ from enum import Enum
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.losses.loss import squeeze_or_expand_to_same_rank
-from keras.src.utils.python_utils import to_list
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.losses.loss import squeeze_or_expand_to_same_rank
+from ncps.mini_keras.utils.python_utils import to_list
 
 NEG_INF = -1e10
 

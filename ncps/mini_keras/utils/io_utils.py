@@ -2,14 +2,14 @@ import sys
 
 from absl import logging
 
-from keras.src.api_export import keras_export
-from keras.src.backend.common import global_state
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common import global_state
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.config.enable_interactive_logging",
-        "keras.utils.enable_interactive_logging",
+        "ncps.mini_keras.config.enable_interactive_logging",
+        "ncps.mini_keras.utils.enable_interactive_logging",
     ]
 )
 def enable_interactive_logging():
@@ -22,10 +22,10 @@ def enable_interactive_logging():
     global_state.set_global_attribute("interactive_logging", True)
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.config.disable_interactive_logging",
-        "keras.utils.disable_interactive_logging",
+        "ncps.mini_keras.config.disable_interactive_logging",
+        "ncps.mini_keras.utils.disable_interactive_logging",
     ]
 )
 def disable_interactive_logging():
@@ -38,10 +38,10 @@ def disable_interactive_logging():
     global_state.set_global_attribute("interactive_logging", False)
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.config.is_interactive_logging_enabled",
-        "keras.utils.is_interactive_logging_enabled",
+        "ncps.mini_keras.config.is_interactive_logging_enabled",
+        "ncps.mini_keras.utils.is_interactive_logging_enabled",
     ]
 )
 def is_interactive_logging_enabled():

@@ -1,8 +1,8 @@
 import collections
 import re
 
-from keras.src.api_export import keras_export
-from keras.src.backend.common import global_state
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common import global_state
 
 
 def auto_name(prefix):
@@ -31,7 +31,7 @@ def to_snake_case(name):
     return name
 
 
-@keras_export("keras.backend.get_uid")
+@keras_mini_export("ncps.mini_keras.backend.get_uid")
 def get_uid(prefix=""):
     """Associates a string prefix with an integer counter.
 

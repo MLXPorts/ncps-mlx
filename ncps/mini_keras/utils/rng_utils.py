@@ -2,12 +2,12 @@ import random
 
 import numpy as np
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
-@keras_export("keras.utils.set_random_seed")
+@keras_mini_export("ncps.mini_keras.utils.set_random_seed")
 def set_random_seed(seed):
     """Sets all random seeds (Python, NumPy, and backend framework, e.g. TF).
 

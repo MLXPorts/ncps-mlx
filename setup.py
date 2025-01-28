@@ -32,11 +32,12 @@ setup(
     # download of the gpu version or the cpu version.
     # users should install it manually.
     install_requires=[
-        "packaging>=20.0",
-        "future>=0.18.2",
-        "mlx>=0.1.0"
-        # "networkx",
-        # "matplotlib",
+        "packaging>=20.0", 
+        "future>=0.18.2", 
+        "mlx>=0.1.0", 
+        "numpy>=1.19.2", 
+        "scipy>=1.5.2", 
+        "onnxruntime>=1.8.0",
     ],
     extras_require={
         "dev": [

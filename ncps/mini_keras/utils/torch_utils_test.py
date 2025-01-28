@@ -5,12 +5,12 @@ import pytest
 import torch
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import models
-from keras.src import saving
-from keras.src import testing
-from keras.src.utils.torch_utils import TorchModuleWrapper
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import saving
+from ncps.mini_keras import testing
+from ncps.mini_keras.utils.torch_utils import TorchModuleWrapper
 
 
 class Classifier(models.Model):

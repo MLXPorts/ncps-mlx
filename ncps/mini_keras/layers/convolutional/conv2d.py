@@ -1,8 +1,8 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.convolutional.base_conv import BaseConv
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.convolutional.base_conv import BaseConv
 
 
-@keras_export(["keras.layers.Conv2D", "keras.layers.Convolution2D"])
+@keras_mini_export(["ncps.mini_keras.layers.Conv2D", "ncps.mini_keras.layers.Convolution2D"])
 class Conv2D(BaseConv):
     """2D convolution layer.
 

@@ -1,12 +1,12 @@
-from keras.src import initializers
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers import Wrapper
-from keras.src.layers.input_spec import InputSpec
-from keras.src.utils.numerical_utils import normalize
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers import Wrapper
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.utils.numerical_utils import normalize
 
 
-@keras_export("keras.layers.SpectralNormalization")
+@keras_mini_export("ncps.mini_keras.layers.SpectralNormalization")
 class SpectralNormalization(Wrapper):
     """Performs spectral normalization on the weights of a target layer.
 

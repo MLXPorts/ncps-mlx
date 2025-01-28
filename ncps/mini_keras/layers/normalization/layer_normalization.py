@@ -1,13 +1,13 @@
-from keras.src import backend
-from keras.src import constraints
-from keras.src import initializers
-from keras.src import ops
-from keras.src import regularizers
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import backend
+from ncps.mini_keras import constraints
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras import regularizers
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
 
 
-@keras_export("keras.layers.LayerNormalization")
+@keras_mini_export("ncps.mini_keras.layers.LayerNormalization")
 class LayerNormalization(Layer):
     """Layer normalization layer (Ba et al., 2016).
 

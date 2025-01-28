@@ -1,9 +1,9 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.convolutional.base_conv import BaseConv
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.convolutional.base_conv import BaseConv
 
 
-@keras_export(["keras.layers.Conv1D", "keras.layers.Convolution1D"])
+@keras_mini_export(["ncps.mini_keras.layers.Conv1D", "ncps.mini_keras.layers.Convolution1D"])
 class Conv1D(BaseConv):
     """1D convolution layer (e.g. temporal convolution).
 

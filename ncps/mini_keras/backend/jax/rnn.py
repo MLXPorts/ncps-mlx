@@ -3,8 +3,8 @@ import contextlib
 from jax import lax
 from jax import numpy as jnp
 
-from keras.src import tree
-from keras.src.backend.common import stateless_scope
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.common import stateless_scope
 
 
 def rnn(

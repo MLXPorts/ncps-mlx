@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
 
-from keras.src import layers
-from keras.src import models
-from keras.src import testing
-from keras.src.metrics import iou_metrics as metrics
-from keras.src.ops import convert_to_tensor
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import testing
+from ncps.mini_keras.metrics import iou_metrics as metrics
+from ncps.mini_keras.ops import convert_to_tensor
 
 
 class IoUTest(testing.TestCase):

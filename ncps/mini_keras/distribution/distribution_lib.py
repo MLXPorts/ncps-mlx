@@ -12,24 +12,24 @@ import warnings
 
 import numpy as np
 
-from keras.src.api_export import keras_export
-from keras.src.backend import KerasTensor
-from keras.src.backend import distribution_lib
-from keras.src.backend.common import global_state
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend import KerasTensor
+from ncps.mini_keras.backend import distribution_lib
+from ncps.mini_keras.backend.common import global_state
 
 DEFAULT_BATCH_DIM_NAME = "batch"
 GLOBAL_ATTRIBUTE_NAME = "distribution"
 
 
-@keras_export("keras.distribution.list_devices")
+@keras_mini_export("ncps.mini_keras.distribution.list_devices")
 def list_devices(device_type=None):
     """Return all the available devices based on the device type.
 
     Note: in a distributed setting, global devices are returned.
 
     Args:
-        device_type: string, one of `"cpu"`, `"gpu"` or `"tpu"`.
-            Defaults to `"gpu"` or `"tpu"` if available when
+        device_type: string, one of `"cpu"`, `"gpu"`, `"tpu"`, or `"mlx"`.
+            Defaults to `"gpu"`, `"tpu"`, or `"mlx"` if available when
             `device_type` is not provided. Otherwise
             will return the `"cpu"` devices.
 
@@ -39,12 +39,12 @@ def list_devices(device_type=None):
     return distribution_lib.list_devices(device_type)
 
 
-@keras_export("keras.distribution.initialize")
+@keras_mini_export("ncps.mini_keras.distribution.initialize")
 def initialize(job_addresses=None, num_processes=None, process_id=None):
     """Initialize the distribution system for multi-host/process setting.
 
     Calling `initialize` will prepare the backend for execution on multi-host
-    GPU or TPUs. It should be called before any computations.
+    GPU, TPUs, or MLX. It should be called before any computations.
 
     Note that the parameters can also be injected via environment variables,
     which can be better controlled by the launch script at startup time.
@@ -129,7 +129,7 @@ def initialize(job_addresses=None, num_processes=None, process_id=None):
     distribution_lib.initialize(job_addresses, num_processes, process_id)
 
 
-@keras_export("keras.distribution.DeviceMesh")
+@keras_mini_export("ncps.mini_keras.distribution.DeviceMesh")
 class DeviceMesh:
     """A cluster of computation devices for distributed computation.
 
@@ -207,7 +207,7 @@ class DeviceMesh:
         return self.__repr__()
 
 
-@keras_export("keras.distribution.TensorLayout")
+@keras_mini_export("ncps.mini_keras.distribution.TensorLayout")
 class TensorLayout:
     """A layout to apply to a tensor.
 
@@ -366,7 +366,7 @@ class Distribution:
         return self.__repr__()
 
 
-@keras_export("keras.distribution.DataParallel")
+@keras_mini_export("ncps.mini_keras.distribution.DataParallel")
 class DataParallel(Distribution):
     """Distribution for data parallelism.
 
@@ -457,7 +457,7 @@ class DataParallel(Distribution):
             distribute as tf_data_distribute,
         )
 
-        from keras.src.utils.module_utils import tensorflow as tf
+        from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
         if not isinstance(dataset, tf.data.Dataset):
             raise ValueError(
@@ -490,7 +490,7 @@ class DataParallel(Distribution):
         return distributed_dataset.prefetch(tf.data.AUTOTUNE)
 
 
-@keras_export("keras.distribution.ModelParallel")
+@keras_mini_export("ncps.mini_keras.distribution.ModelParallel")
 class ModelParallel(Distribution):
     """Distribution that shards model variables.
 
@@ -612,7 +612,7 @@ class ModelParallel(Distribution):
             distribute as tf_data_distribute,
         )
 
-        from keras.src.utils.module_utils import tensorflow as tf
+        from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
         if not isinstance(dataset, tf.data.Dataset):
             raise ValueError(
@@ -682,7 +682,7 @@ class ModelParallel(Distribution):
             return distributed_dataset.prefetch(tf.data.AUTOTUNE)
 
 
-@keras_export("keras.distribution.LayoutMap")
+@keras_mini_export("ncps.mini_keras.distribution.LayoutMap")
 class LayoutMap(collections.abc.MutableMapping):
     """A dict-like object that maps string to `TensorLayout` instances.
 
@@ -804,7 +804,7 @@ class LayoutMap(collections.abc.MutableMapping):
 LayoutMap.get.__doc__ = LayoutMap.__getitem__.__doc__
 
 
-@keras_export("keras.distribution.distribute_tensor")
+@keras_mini_export("ncps.mini_keras.distribution.distribute_tensor")
 def distribute_tensor(tensor, layout):
     """Change the layout of a Tensor value in the jit function execution.
 
@@ -822,13 +822,13 @@ def distribute_tensor(tensor, layout):
     return distribution_lib.distribute_tensor(tensor, layout)
 
 
-@keras_export("keras.distribution.distribution")
+@keras_mini_export("ncps.mini_keras.distribution.distribution")
 def distribution():
     """Retrieve the current distribution from global context."""
     return global_state.get_global_attribute(GLOBAL_ATTRIBUTE_NAME)
 
 
-@keras_export("keras.distribution.set_distribution")
+@keras_mini_export("ncps.mini_keras.distribution.set_distribution")
 def set_distribution(value):
     """Set the distribution as the global distribution setting.
 

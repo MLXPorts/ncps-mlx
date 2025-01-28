@@ -1,7 +1,7 @@
 import torch
 
-from keras.src.backend.common.stateless_scope import in_stateless_scope
-from keras.src.ops.operation import Operation
+from ncps.mini_keras.backend.common.stateless_scope import in_stateless_scope
+from ncps.mini_keras.ops.operation import Operation
 
 
 class TorchLayer(torch.nn.Module):
@@ -41,14 +41,14 @@ class TorchLayer(torch.nn.Module):
         return Operation.__call__(self, *args, **kwargs)
 
     def _setattr_hook(self, name, value):
-        from keras.src.layers import Layer
+        from ncps.mini_keras.layers import Layer
 
         if (
             isinstance(value, torch.nn.Module)
             and not isinstance(value, Layer)
             and not name == "_torch_params"
         ):
-            from keras.src.utils.torch_utils import TorchModuleWrapper
+            from ncps.mini_keras.utils.torch_utils import TorchModuleWrapper
 
             if not isinstance(self, TorchModuleWrapper):
                 value = TorchModuleWrapper(value)

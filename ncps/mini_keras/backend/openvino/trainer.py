@@ -2,16 +2,16 @@ import numpy as np
 import openvino as ov
 import openvino.runtime.opset14 as ov_opset
 
-from keras.src import backend
-from keras.src import callbacks as callbacks_module
-from keras.src import tree
-from keras.src.backend.openvino.core import OPENVINO_DTYPES
-from keras.src.backend.openvino.core import OpenVINOKerasTensor
-from keras.src.backend.openvino.core import get_device
-from keras.src.trainers import trainer as base_trainer
-from keras.src.trainers.data_adapters import data_adapter_utils
-from keras.src.trainers.epoch_iterator import EpochIterator
-from keras.src.utils import traceback_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras import callbacks as callbacks_module
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.openvino.core import OPENVINO_DTYPES
+from ncps.mini_keras.backend.openvino.core import OpenVINOKerasTensor
+from ncps.mini_keras.backend.openvino.core import get_device
+from ncps.mini_keras.trainers import trainer as base_trainer
+from ncps.mini_keras.trainers.data_adapters import data_adapter_utils
+from ncps.mini_keras.trainers.epoch_iterator import EpochIterator
+from ncps.mini_keras.utils import traceback_utils
 
 
 class OpenVINOTrainer(base_trainer.Trainer):

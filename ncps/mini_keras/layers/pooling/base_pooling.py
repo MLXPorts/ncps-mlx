@@ -1,9 +1,9 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.layer import Layer
-from keras.src.ops.operation_utils import compute_pooling_output_shape
-from keras.src.utils import argument_validation
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.ops.operation_utils import compute_pooling_output_shape
+from ncps.mini_keras.utils import argument_validation
 
 
 class BasePooling(Layer):

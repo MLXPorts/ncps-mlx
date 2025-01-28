@@ -3,9 +3,9 @@ import pytest
 from absl.testing import parameterized
 from numpy.lib.stride_tricks import as_strided
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
 
 
 def _same_padding(input_size, pool_size, stride):

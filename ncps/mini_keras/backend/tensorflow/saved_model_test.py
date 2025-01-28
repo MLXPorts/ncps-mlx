@@ -7,15 +7,15 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import metrics
-from keras.src import models
-from keras.src import ops
-from keras.src import optimizers
-from keras.src import testing
-from keras.src.saving import object_registration
-from keras.src.testing.test_utils import named_product
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import metrics
+from ncps.mini_keras import models
+from ncps.mini_keras import ops
+from ncps.mini_keras import optimizers
+from ncps.mini_keras import testing
+from ncps.mini_keras.saving import object_registration
+from ncps.mini_keras.testing.test_utils import named_product
 
 
 @object_registration.register_keras_serializable(package="my_package")

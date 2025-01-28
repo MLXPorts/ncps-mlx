@@ -1,11 +1,11 @@
 import math
 
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.utils.numerical_utils import normalize
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils.numerical_utils import normalize
 
 
-@keras_export(["keras.Regularizer", "keras.regularizers.Regularizer"])
+@keras_mini_export(["ncps.mini_keras.Regularizer", "ncps.mini_keras.regularizers.Regularizer"])
 class Regularizer:
     """Regularizer base class.
 
@@ -165,7 +165,7 @@ class Regularizer:
         raise NotImplementedError(f"{self} does not implement get_config()")
 
 
-@keras_export(["keras.regularizers.L1L2", "keras.regularizers.l1_l2"])
+@keras_mini_export(["ncps.mini_keras.regularizers.L1L2", "ncps.mini_keras.regularizers.l1_l2"])
 class L1L2(Regularizer):
     """A regularizer that applies both L1 and L2 regularization penalties.
 
@@ -210,7 +210,7 @@ class L1L2(Regularizer):
         return {"l1": float(self.l1), "l2": float(self.l2)}
 
 
-@keras_export(["keras.regularizers.L1", "keras.regularizers.l1"])
+@keras_mini_export(["ncps.mini_keras.regularizers.L1", "ncps.mini_keras.regularizers.l1"])
 class L1(Regularizer):
     """A regularizer that applies a L1 regularization penalty.
 
@@ -239,7 +239,7 @@ class L1(Regularizer):
         return {"l1": float(self.l1)}
 
 
-@keras_export(["keras.regularizers.L2", "keras.regularizers.l2"])
+@keras_mini_export(["ncps.mini_keras.regularizers.L2", "ncps.mini_keras.regularizers.l2"])
 class L2(Regularizer):
     """A regularizer that applies a L2 regularization penalty.
 
@@ -268,10 +268,10 @@ class L2(Regularizer):
         return {"l2": float(self.l2)}
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.regularizers.OrthogonalRegularizer",
-        "keras.regularizers.orthogonal_regularizer",
+        "ncps.mini_keras.regularizers.OrthogonalRegularizer",
+        "ncps.mini_keras.regularizers.orthogonal_regularizer",
     ]
 )
 class OrthogonalRegularizer(Regularizer):

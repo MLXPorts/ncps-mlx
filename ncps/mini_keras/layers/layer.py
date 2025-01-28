@@ -21,46 +21,51 @@ import inspect
 import warnings
 from functools import wraps
 
-from keras.src import backend
-from keras.src import constraints
-from keras.src import dtype_policies
-from keras.src import initializers
-from keras.src import regularizers
-from keras.src import tree
-from keras.src import utils
-from keras.src.api_export import keras_export
-from keras.src.backend import KerasTensor
-from keras.src.backend.common import global_state
-from keras.src.backend.common.name_scope import current_path
-from keras.src.backend.common.symbolic_scope import in_symbolic_scope
-from keras.src.distribution import distribution_lib
-from keras.src.dtype_policies import DTypePolicyMap
-from keras.src.layers import input_spec
-from keras.src.metrics.metric import Metric
-from keras.src.ops.operation import Operation
-from keras.src.saving.keras_saveable import KerasSaveable
-from keras.src.utils import python_utils
-from keras.src.utils import summary_utils
-from keras.src.utils import traceback_utils
-from keras.src.utils import tracking
+from ncps.mini_keras import activations
+from ncps.mini_keras import backend
+from ncps.mini_keras import constraints
+from ncps.mini_keras import dtype_policies
+from ncps.mini_keras import initializers
+from ncps.mini_keras import regularizers
+from ncps.mini_keras import tree
+from ncps.mini_keras import utils
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend import KerasTensor
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.backend.common.name_scope import current_path
+from ncps.mini_keras.backend.common.symbolic_scope import in_symbolic_scope
+from ncps.mini_keras.distribution import distribution_lib
+from ncps.mini_keras.dtype_policies import DTypePolicyMap
+from ncps.mini_keras.layers import input_spec
+from ncps.mini_keras.metrics.metric import Metric
+from ncps.mini_keras.ops.operation import Operation
+from ncps.mini_keras.saving.keras_saveable import KerasSaveable
+from ncps.mini_keras.testing.test_case import is_shape_tuple
+from ncps.mini_keras.utils import python_utils
+from ncps.mini_keras.utils import summary_utils
+from ncps.mini_keras.utils import traceback_utils
+from ncps.mini_keras.utils import tracking
+import mlx.core as mx
 
 if backend.backend() == "tensorflow":
-    from keras.src.backend.tensorflow.layer import TFLayer as BackendLayer
+    from ncps.mini_keras.backend.tensorflow.layer import TFLayer as BackendLayer
 elif backend.backend() == "jax":
-    from keras.src.backend.jax.layer import JaxLayer as BackendLayer
+    from ncps.mini_keras.backend.jax.layer import JaxLayer as BackendLayer
 elif backend.backend() == "torch":
-    from keras.src.backend.torch.layer import TorchLayer as BackendLayer
+    from ncps.mini_keras.backend.torch.layer import TorchLayer as BackendLayer
 elif backend.backend() == "numpy":
-    from keras.src.backend.numpy.layer import NumpyLayer as BackendLayer
+    from ncps.mini_keras.backend.numpy.layer import NumpyLayer as BackendLayer
 elif backend.backend() == "openvino":
-    from keras.src.backend.openvino.layer import OpenvinoLayer as BackendLayer
+    from ncps.mini_keras.backend.openvino.layer import OpenvinoLayer as BackendLayer
+elif backend.backend() == "mlx":
+    from ncps.mini_keras.backend.mlx.layer import MLXLayer as BackendLayer
 else:
     raise RuntimeError(
         f"Backend '{backend.backend()}' must implement a layer mixin class."
     )
 
 
-@keras_export(["keras.Layer", "keras.layers.Layer"])
+@keras_mini_export(["ncps.mini_keras.Layer", "ncps.mini_keras.layers.Layer"])
 class Layer(BackendLayer, Operation, KerasSaveable):
     """This is the class from which all layers inherit.
 
@@ -1560,6 +1565,33 @@ class Layer(BackendLayer, Operation, KerasSaveable):
             self._parent_path = current_path()
         return backend.name_scope(self.name, caller=self)
 
+    def _handle_input(self, input_tensor):
+        """Internal method to handle input tensor and its type."""
+        if backend.backend() == "mlx":
+            # Handle both KerasTensor and MLX array cases
+            if isinstance(input_tensor, KerasTensor):
+                dtype = input_tensor.dtype
+            elif hasattr(input_tensor, "Dtype"):
+                dtype = input_tensor.Dtype
+            elif hasattr(type(input_tensor), "Dtype"):
+                dtype = type(input_tensor).Dtype
+            else:
+                dtype = mx.float32
+                
+            if not isinstance(input_tensor, (mx.array, KerasTensor)):
+                input_tensor = mx.array(input_tensor, dtype=dtype)
+        return input_tensor
+
+    def build_wrapper(self, *args, **kwargs):
+        """Wrapper around the Layer's build method to handle MLX types."""
+        try:
+            return self.build(*args, **kwargs)
+        except AttributeError as e:
+            if ("dtype" in str(e) or "Dtype" in str(e)) and backend.backend() == "mlx":
+                # Convert args to use MLX's type system
+                new_args = [self._handle_input(arg) for arg in args]
+                return self.build(*new_args, **kwargs)
+            raise e
 
 def is_backend_tensor_or_symbolic(x, allow_none=False):
     if allow_none and x is None:

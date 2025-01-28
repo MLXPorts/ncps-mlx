@@ -3,13 +3,13 @@ import os
 import pytest
 from tensorflow import data as tf_data
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import models
-from keras.src import ops
-from keras.src import testing
-from keras.src.layers.preprocessing import feature_space
-from keras.src.saving import saving_api
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.layers.preprocessing import feature_space
+from ncps.mini_keras.saving import saving_api
 
 
 class FeatureSpaceTest(testing.TestCase):

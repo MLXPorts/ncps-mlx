@@ -1,7 +1,7 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.merging.base_merge import Merge
-from keras.src.utils.numerical_utils import normalize
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.merging.base_merge import Merge
+from ncps.mini_keras.utils.numerical_utils import normalize
 
 
 def batch_dot(x, y, axes=None):
@@ -194,7 +194,7 @@ def batch_dot(x, y, axes=None):
     return result
 
 
-@keras_export("keras.layers.Dot")
+@keras_mini_export("ncps.mini_keras.layers.Dot")
 class Dot(Merge):
     """Computes element-wise dot product of two tensors.
 
@@ -356,7 +356,7 @@ class Dot(Merge):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-@keras_export("keras.layers.dot")
+@keras_mini_export("ncps.mini_keras.layers.dot")
 def dot(inputs, axes=-1, **kwargs):
     """Functional interface to the `Dot` layer.
 

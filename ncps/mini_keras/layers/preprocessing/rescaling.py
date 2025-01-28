@@ -1,10 +1,10 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.tf_data_layer import TFDataLayer
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.tf_data_layer import TFDataLayer
+from ncps.mini_keras.saving import serialization_lib
 
 
-@keras_export("keras.layers.Rescaling")
+@keras_mini_export("ncps.mini_keras.layers.Rescaling")
 class Rescaling(TFDataLayer):
     """A preprocessing layer which rescales input values to a new range.
 

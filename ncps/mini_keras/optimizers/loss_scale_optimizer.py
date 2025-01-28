@@ -1,16 +1,16 @@
-from keras.src import backend
-from keras.src import initializers
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.optimizers import optimizer
-from keras.src.saving import serialization_lib
-from keras.src.utils import tracking
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.optimizers import optimizer
+from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.utils import tracking
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.optimizers.LossScaleOptimizer",
-        "keras.mixed_precision.LossScaleOptimizer",
+        "ncps.mini_keras.optimizers.LossScaleOptimizer",
+        "ncps.mini_keras.mixed_precision.LossScaleOptimizer",
     ]
 )
 class LossScaleOptimizer(optimizer.Optimizer):
@@ -209,7 +209,7 @@ class LossScaleOptimizer(optimizer.Optimizer):
 
     def _tf_apply(self, grads, trainable_variables=None):
         """Tensorflow specific logic for apply, which handles distribution."""
-        from keras.src.utils.module_utils import tensorflow as tf
+        from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
         if tf.distribute.in_cross_replica_context():
             raise ValueError("apply() must be called in a replica context.")

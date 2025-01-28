@@ -1,10 +1,10 @@
-import keras.src.backend
-from keras.src import tree
-from keras.src.layers.layer import Layer
-from keras.src.random.seed_generator import SeedGenerator
-from keras.src.utils import backend_utils
-from keras.src.utils import jax_utils
-from keras.src.utils import tracking
+import ncps.mini_keras.backend
+from ncps.mini_keras import tree
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.random.seed_generator import SeedGenerator
+from ncps.mini_keras.utils import backend_utils
+from ncps.mini_keras.utils import jax_utils
+from ncps.mini_keras.utils import tracking
 
 
 class TFDataLayer(Layer):

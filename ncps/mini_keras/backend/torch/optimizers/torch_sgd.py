@@ -1,7 +1,7 @@
 import torch
 
-from keras.src import optimizers
-from keras.src.backend.torch.optimizers import torch_parallel_optimizer
+from ncps.mini_keras import optimizers
+from ncps.mini_keras.backend.torch.optimizers import torch_parallel_optimizer
 
 
 class SGD(torch_parallel_optimizer.TorchParallelOptimizer, optimizers.SGD):

@@ -3,10 +3,10 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import testing
-from keras.src.testing.test_utils import named_product
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
+from ncps.mini_keras.testing.test_utils import named_product
 
 
 class HashedCrossingTest(testing.TestCase):

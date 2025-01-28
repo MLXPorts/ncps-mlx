@@ -1,14 +1,14 @@
 import re
 import warnings
 
-from keras.src import backend
-from keras.src import initializers
-from keras.src import ops
-from keras.src.optimizers.schedules import learning_rate_schedule
-from keras.src.saving import serialization_lib
-from keras.src.saving.keras_saveable import KerasSaveable
-from keras.src.utils import tracking
-from keras.src.utils.naming import auto_name
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.optimizers.schedules import learning_rate_schedule
+from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.saving.keras_saveable import KerasSaveable
+from ncps.mini_keras.utils import tracking
+from ncps.mini_keras.utils.naming import auto_name
 
 
 class BaseOptimizer(KerasSaveable):

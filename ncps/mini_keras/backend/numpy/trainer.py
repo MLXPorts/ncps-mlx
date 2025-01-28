@@ -1,15 +1,15 @@
 import numpy as np
 
-from keras.src import backend
-from keras.src import callbacks as callbacks_module
-from keras.src import tree
-from keras.src.backend.common import standardize_dtype
-from keras.src.backend.common.keras_tensor import KerasTensor
-from keras.src.backend.numpy.core import is_tensor
-from keras.src.trainers import trainer as base_trainer
-from keras.src.trainers.data_adapters import data_adapter_utils
-from keras.src.trainers.epoch_iterator import EpochIterator
-from keras.src.utils import traceback_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras import callbacks as callbacks_module
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.common import standardize_dtype
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras.backend.numpy.core import is_tensor
+from ncps.mini_keras.trainers import trainer as base_trainer
+from ncps.mini_keras.trainers.data_adapters import data_adapter_utils
+from ncps.mini_keras.trainers.epoch_iterator import EpochIterator
+from ncps.mini_keras.utils import traceback_utils
 
 
 class NumpyTrainer(base_trainer.Trainer):

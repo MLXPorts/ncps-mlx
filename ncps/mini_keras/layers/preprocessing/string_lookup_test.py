@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 from tensorflow import data as tf_data
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import testing
-from keras.src.ops import convert_to_tensor
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import testing
+from ncps.mini_keras.ops import convert_to_tensor
 
 
 class StringLookupTest(testing.TestCase):

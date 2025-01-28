@@ -2,13 +2,13 @@ import pickle
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import dtype_policies
-from keras.src import initializers
-from keras.src import metrics as metrics_module
-from keras.src import ops
-from keras.src import testing
-from keras.src.metrics.metric import Metric
+from ncps.mini_keras import backend
+from ncps.mini_keras import dtype_policies
+from ncps.mini_keras import initializers
+from ncps.mini_keras import metrics as metrics_module
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.metrics.metric import Metric
 
 
 class ExampleMetric(Metric):

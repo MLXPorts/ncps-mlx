@@ -1,11 +1,11 @@
 import numpy as np
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
 
 
-@keras_export("keras.visualization.draw_segmentation_masks")
+@keras_mini_export("ncps.mini_keras.visualization.draw_segmentation_masks")
 def draw_segmentation_masks(
     images,
     segmentation_masks,

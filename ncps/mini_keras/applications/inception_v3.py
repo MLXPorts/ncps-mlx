@@ -1,6 +1,6 @@
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -16,10 +16,10 @@ WEIGHTS_PATH_NO_TOP = (
 )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.inception_v3.InceptionV3",
-        "keras.applications.InceptionV3",
+        "ncps.mini_keras.applications.inception_v3.InceptionV3",
+        "ncps.mini_keras.applications.InceptionV3",
     ]
 )
 def InceptionV3(
@@ -51,7 +51,7 @@ def InceptionV3(
 
     Note: each Keras Application expects a specific kind of input preprocessing.
     For `InceptionV3`, call
-    `keras.applications.inception_v3.preprocess_input` on your inputs
+    `ncps.mini_keras.applications.inception_v3.preprocess_input` on your inputs
     before passing them to the model.
     `inception_v3.preprocess_input` will scale input pixels between -1 and 1.
 
@@ -422,14 +422,14 @@ def conv2d_bn(
     return x
 
 
-@keras_export("keras.applications.inception_v3.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.inception_v3.preprocess_input")
 def preprocess_input(x, data_format=None):
     return imagenet_utils.preprocess_input(
         x, data_format=data_format, mode="tf"
     )
 
 
-@keras_export("keras.applications.inception_v3.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.inception_v3.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

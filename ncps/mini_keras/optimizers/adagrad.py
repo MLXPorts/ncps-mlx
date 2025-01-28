@@ -1,10 +1,10 @@
-from keras.src import initializers
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.optimizers import optimizer
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.optimizers import optimizer
 
 
-@keras_export(["keras.optimizers.Adagrad"])
+@keras_mini_export(["ncps.mini_keras.optimizers.Adagrad"])
 class Adagrad(optimizer.Optimizer):
     """Optimizer that implements the Adagrad algorithm.
 

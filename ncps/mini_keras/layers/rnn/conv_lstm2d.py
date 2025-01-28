@@ -1,8 +1,8 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.rnn.conv_lstm import ConvLSTM
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.rnn.conv_lstm import ConvLSTM
 
 
-@keras_export("keras.layers.ConvLSTM2D")
+@keras_mini_export("ncps.mini_keras.layers.ConvLSTM2D")
 class ConvLSTM2D(ConvLSTM):
     """2D Convolutional LSTM.
 

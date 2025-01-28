@@ -3,12 +3,12 @@ import math
 import jax
 import jax.numpy as jnp
 
-from keras.src.backend import config
-from keras.src.backend import standardize_dtype
-from keras.src.backend.common import dtypes
-from keras.src.backend.jax.core import cast
-from keras.src.backend.jax.core import convert_to_tensor
-from keras.src.utils.module_utils import scipy
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend import standardize_dtype
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.jax.core import cast
+from ncps.mini_keras.backend.jax.core import convert_to_tensor
+from ncps.mini_keras.utils.module_utils import scipy
 
 
 def segment_sum(data, segment_ids, num_segments=None, sorted=False):
@@ -290,7 +290,7 @@ def norm(x, ord=None, axis=None, keepdims=False):
 
 
 def logdet(x):
-    from keras.src.backend.jax.numpy import slogdet
+    from ncps.mini_keras.backend.jax.numpy import slogdet
 
     # In JAX (like in NumPy) slogdet is more stable than
     # `np.log(np.linalg.det(x))`. See

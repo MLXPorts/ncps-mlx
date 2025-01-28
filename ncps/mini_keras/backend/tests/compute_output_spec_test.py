@@ -2,9 +2,9 @@ import unittest
 
 import pytest
 
-from keras.src import backend
-from keras.src import ops
-from keras.src.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
 
 
 def single_arg_test_fn(x):

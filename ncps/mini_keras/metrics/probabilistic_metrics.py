@@ -1,13 +1,13 @@
-from keras.src.api_export import keras_export
-from keras.src.losses.losses import binary_crossentropy
-from keras.src.losses.losses import categorical_crossentropy
-from keras.src.losses.losses import kl_divergence
-from keras.src.losses.losses import poisson
-from keras.src.losses.losses import sparse_categorical_crossentropy
-from keras.src.metrics import reduction_metrics
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.losses.losses import binary_crossentropy
+from ncps.mini_keras.losses.losses import categorical_crossentropy
+from ncps.mini_keras.losses.losses import kl_divergence
+from ncps.mini_keras.losses.losses import poisson
+from ncps.mini_keras.losses.losses import sparse_categorical_crossentropy
+from ncps.mini_keras.metrics import reduction_metrics
 
 
-@keras_export("keras.metrics.KLDivergence")
+@keras_mini_export("ncps.mini_keras.metrics.KLDivergence")
 class KLDivergence(reduction_metrics.MeanMetricWrapper):
     """Computes Kullback-Leibler divergence metric between `y_true` and
     `y_pred`.
@@ -55,7 +55,7 @@ class KLDivergence(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.Poisson")
+@keras_mini_export("ncps.mini_keras.metrics.Poisson")
 class Poisson(reduction_metrics.MeanMetricWrapper):
     """Computes the Poisson metric between `y_true` and `y_pred`.
 
@@ -98,7 +98,7 @@ class Poisson(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.BinaryCrossentropy")
+@keras_mini_export("ncps.mini_keras.metrics.BinaryCrossentropy")
 class BinaryCrossentropy(reduction_metrics.MeanMetricWrapper):
     """Computes the crossentropy metric between the labels and predictions.
 
@@ -168,7 +168,7 @@ class BinaryCrossentropy(reduction_metrics.MeanMetricWrapper):
         }
 
 
-@keras_export("keras.metrics.CategoricalCrossentropy")
+@keras_mini_export("ncps.mini_keras.metrics.CategoricalCrossentropy")
 class CategoricalCrossentropy(reduction_metrics.MeanMetricWrapper):
     """Computes the crossentropy metric between the labels and predictions.
 
@@ -255,7 +255,7 @@ class CategoricalCrossentropy(reduction_metrics.MeanMetricWrapper):
         }
 
 
-@keras_export("keras.metrics.SparseCategoricalCrossentropy")
+@keras_mini_export("ncps.mini_keras.metrics.SparseCategoricalCrossentropy")
 class SparseCategoricalCrossentropy(reduction_metrics.MeanMetricWrapper):
     """Computes the crossentropy metric between the labels and predictions.
 

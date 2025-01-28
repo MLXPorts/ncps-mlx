@@ -1,15 +1,12 @@
 # Copyright (2017-2021)
 # The Wormnet project
 # Mathias Lechner (mlechner@ist.ac.at)
-import tensorflow as tf
 import ncps
 import ncps.mini_keras as ks
 from ncps import wirings
-import mlx.core as mx
+from ncps.mini_keras.layers import RNN
 
 import ncps.mlx
-from ncps.mini_keras.layers import RNN
-from ncps.mini_keras import ops
 
 
 # Custom LightningModule equivalent
@@ -59,22 +56,25 @@ class SequenceLearner:
 
 # Define the models with ncps.mini_keras
 def build_models(in_features, out_features):
-    return [
-        ncps.mlx.LTCCell(wiring=list,
-                         input_mapping="relu",
-                         output_mapping="affine",
-                         ode_unfolds=6,
-                         in_features=in_features,
-                         out_features=out_features),
+    models = []
+    models.append(
         ks.Sequential([
-            ks.layers.Input(shape=(None, in_features)),
+            ks.layers.Input(shape=(None, in_features)),  # Explicitly use shape= keyword
             ks.layers.RNN(
-                ks.layers.RNN(wiring=wirings.FullyConnected(8, out_features)),
+                ncps.mlx.LTCCell(
+                    wiring=wirings.Random(128, output_dim=out_features, sparsity_level=0.5),
+                    input_mapping="affine",
+                    output_mapping="affine",
+                    ode_unfolds=6,
+                    dtype="float32"  # Use string dtype
+                ),
                 return_sequences=True,
             )
-        ]),
+        ])
+    )
+    models.append(
         ks.Sequential([
-            ks.layers.Input(shape=(None, in_features)),
+            ks.layers.Input(shape=(None, in_features)),  # Explicitly use shape= keyword
             ks.layers.RNN(
                 ks.WiredCfCCell(
                     wiring=wirings.NCP(
@@ -90,45 +90,52 @@ def build_models(in_features, out_features):
                 return_sequences=True,
             )
         ])
-    ]
+    )
+    return models
 
 
-# First, let's define a RNN Cell, as a layer subclass.
-class MinimalRNNCell(ks.layers.Layer):
-    def __init__(self, units, **kwargs):
-        self.units = units
-        super(MinimalRNNCell, self).__init__(**kwargs)
+# Example of single and stacked RNN usage
+def create_example_models():
+    # Single cell example
+    cell = ncps.mlx.LTCCell(
+        wiring=wirings.Random(128, output_dim=1, sparsity_level=0.5),
+        input_mapping="affine",
+        output_mapping="affine",
+        ode_unfolds=6,
+        dtype="float32"  # Use string dtype
+    )
+    x = ncps.mini_keras.layers.Input(shape=(None, 5))
+    single_layer = RNN(cell)
+    y_single = single_layer(x)
 
-    def build(self, input_shape):
-        self.kernel = self.add_weight(shape=(input_shape[-1], self.units),
-                                      initializer='uniform',
-                                      name='kernel')
-        self.recurrent_kernel = self.add_weight(
-            shape=(self.units, self.units),
-            initializer='uniform',
-            name='recurrent_kernel')
-        self.built = True
-
-    def call(self, inputs, states):
-        prev_output = states[0]
-        h = ops.matmul(inputs, self.kernel)
-        output = h + ops.matmul(prev_output, self.recurrent_kernel)
-        return output, [output]
+    # Stacked cells example
+    cells = [ncps.mlx.LTCCell(
+        wiring=wirings.Random(128, output_dim=1, sparsity_level=0.5),
+        input_mapping="affine",
+        output_mapping="affine",
+        ode_unfolds=6,
+        dtype="float32"
+    ) for _ in range(2)]  # Create 2 identical cells
+    stacked_layer = RNN(cells)
+    y_stacked = stacked_layer(x)
+    
+    return y_single, y_stacked
 
 
 # Data Preparation
 in_features = 2
 out_features = 1
 N = 48  # Length of the time-series
-
+import mlx.core as mx
 # Generate input features (sine and cosine wave)
-# Use mx instead of np for consistency with MLX
 data_x = mx.stack(
     [mx.sin(mx.linspace(0, 3 * mx.pi, N)), 
      mx.cos(mx.linspace(0, 3 * mx.pi, N))], 
     axis=1
 )
-data_x = mx.expand_dims(data_x, axis=0).astype(mx.float32)  # Add batch dimension
+# Add batch dimension and use MLX's Dtype
+data_x = mx.expand_dims(data_x, axis=0).astype(mx.float32)
+
 # Target output: sine wave with double the frequency
 data_y = mx.sin(mx.linspace(0, 6 * mx.pi, N)).reshape([1, N, 1]).astype(mx.float32)
 

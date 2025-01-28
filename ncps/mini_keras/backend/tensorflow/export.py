@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from keras.src import layers
+from ncps.mini_keras import layers
 
 
 class TFExportArchive:

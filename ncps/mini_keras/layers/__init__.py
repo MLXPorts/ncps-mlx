@@ -200,6 +200,7 @@ from ncps.mini_keras.layers.rnn.simple_rnn import SimpleRNNCell
 from ncps.mini_keras.layers.rnn.stacked_rnn_cells import StackedRNNCells
 from ncps.mini_keras.layers.rnn.time_distributed import TimeDistributed
 from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.layers.rnn.abstract_rnn_cell import AbstractRNNCell
 
 
 @keras_mini_export("ncps.mini_keras.layers.serialize")
@@ -258,4 +259,4 @@ __all__ = [ "Activation", "ELU", "LeakyReLU", "PReLU", "ReLU", "Softmax", "Addit
            "SpatialDropout2D", "SpatialDropout3D", "Cropping1D", "Cropping2D", "Cropping3D", "Flatten", "Permute",
               "RepeatVector", "Reshape", "UpSampling1D", "UpSampling2D", "UpSampling3D", "ZeroPadding1D", "ZeroPadding2D",
                 "ZeroPadding3D", "Bidirectional", "ConvLSTM1D", "ConvLSTM2D", "ConvLSTM3D", "GRU", "GRUCell", "LSTM", "LSTMCell",
-                    "RNN", "SimpleRNN", "SimpleRNNCell", "StackedRNNCells", "TimeDistributed", "serialize", "deserialize"]
+                    "RNN", "SimpleRNN", "SimpleRNNCell", "StackedRNNCells", "TimeDistributed", "serialize", "deserialize", "AbstractRNNCell"]

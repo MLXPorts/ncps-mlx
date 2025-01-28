@@ -9,14 +9,14 @@ from openvino import Tensor
 from openvino import compile_model
 from openvino.runtime import Type
 
-from keras.src import tree
-from keras.src.backend.common import KerasVariable
-from keras.src.backend.common import dtypes
-from keras.src.backend.common import global_state
-from keras.src.backend.common import standardize_dtype
-from keras.src.backend.common.dtypes import result_type
-from keras.src.backend.common.keras_tensor import KerasTensor
-from keras.src.backend.common.stateless_scope import StatelessScope
+from ncps.mini_keras import tree
+from ncps.mini_keras.backend.common import KerasVariable
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.backend.common import standardize_dtype
+from ncps.mini_keras.backend.common.dtypes import result_type
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras.backend.common.stateless_scope import StatelessScope
 
 SUPPORTS_SPARSE_TENSORS = False
 SUPPORTS_RAGGED_TENSORS = False

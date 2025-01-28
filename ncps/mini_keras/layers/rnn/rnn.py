@@ -89,7 +89,7 @@ class RNN(Layer):
 
     This layer supports masking for input data with a variable number
     of timesteps. To introduce masks to your data,
-    use a `keras.layers.Embedding` layer with the `mask_zero` parameter
+    use a `ncps.mini_keras.layers.Embedding` layer with the `mask_zero` parameter
     set to `True`.
 
     Note on using statefulness in RNNs:
@@ -106,7 +106,7 @@ class RNN(Layer):
         `batch_size=...` to the `Input` layer(s) of your model.
         Remember to also specify the same `batch_size=...` when
         calling `fit()`, or otherwise use a generator-like
-        data source like a `keras.utils.PyDataset` or a
+        data source like a `ncps.mini_keras.utils.PyDataset` or a
         `tf.data.Dataset`.
     - Specify `shuffle=False` when calling `fit()`, since your
         batches are expected to be temporally ordered.
@@ -129,11 +129,11 @@ class RNN(Layer):
     Examples:
 
     ```python
-    from keras.layers import RNN
-    from keras import ops
+    from ncps.mini_keras.layers import RNN
+    from ncps.mini_keras import ops
 
     # First, let's define a RNN Cell, as a layer subclass.
-    class MinimalRNNCell(keras.Layer):
+    class MinimalRNNCell(ncps.mini_keras.layers.Layer):
 
         def __init__(self, units, **kwargs):
             super().__init__(**kwargs)
@@ -159,14 +159,14 @@ class RNN(Layer):
     # Let's use this cell in a RNN layer:
 
     cell = MinimalRNNCell(32)
-    x = keras.Input((None, 5))
+    x = ncps.mini_keras.layers.Input((None, 5))
     layer = RNN(cell)
     y = layer(x)
 
     # Here's how to use the cell to build a stacked RNN:
 
     cells = [MinimalRNNCell(32), MinimalRNNCell(64)]
-    x = keras.Input((None, 5))
+    x = ncps.mini_keras.layers.Input((None, 5))
     layer = RNN(cells)
     y = layer(x)
     ```

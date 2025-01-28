@@ -1,6 +1,6 @@
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -381,11 +381,11 @@ def stack_residual_blocks_v2(x, filters, blocks, stride1=2, name=None):
     return x
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.resnet50.ResNet50",
-        "keras.applications.resnet.ResNet50",
-        "keras.applications.ResNet50",
+        "ncps.mini_keras.applications.resnet50.ResNet50",
+        "ncps.mini_keras.applications.resnet.ResNet50",
+        "ncps.mini_keras.applications.ResNet50",
     ]
 )
 def ResNet50(
@@ -422,10 +422,10 @@ def ResNet50(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.resnet.ResNet101",
-        "keras.applications.ResNet101",
+        "ncps.mini_keras.applications.resnet.ResNet101",
+        "ncps.mini_keras.applications.ResNet101",
     ]
 )
 def ResNet101(
@@ -462,10 +462,10 @@ def ResNet101(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.resnet.ResNet152",
-        "keras.applications.ResNet152",
+        "ncps.mini_keras.applications.resnet.ResNet152",
+        "ncps.mini_keras.applications.ResNet152",
     ]
 )
 def ResNet152(
@@ -502,10 +502,10 @@ def ResNet152(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.resnet50.preprocess_input",
-        "keras.applications.resnet.preprocess_input",
+        "ncps.mini_keras.applications.resnet50.preprocess_input",
+        "ncps.mini_keras.applications.resnet.preprocess_input",
     ]
 )
 def preprocess_input(x, data_format=None):
@@ -514,10 +514,10 @@ def preprocess_input(x, data_format=None):
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.resnet50.decode_predictions",
-        "keras.applications.resnet.decode_predictions",
+        "ncps.mini_keras.applications.resnet50.decode_predictions",
+        "ncps.mini_keras.applications.resnet.decode_predictions",
     ]
 )
 def decode_predictions(preds, top=5):
@@ -545,7 +545,7 @@ For transfer learning use cases, make sure to read the
     https://keras.io/guides/transfer_learning/).
 
 Note: each Keras Application expects a specific kind of input preprocessing.
-For ResNet, call `keras.applications.resnet.preprocess_input` on your
+For ResNet, call `ncps.mini_keras.applications.resnet.preprocess_input` on your
 inputs before passing them to the model. `resnet.preprocess_input` will convert
 the input images from RGB to BGR, then will zero-center each color channel with
 respect to the ImageNet dataset, without scaling.

@@ -1,13 +1,13 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.pooling.base_global_pooling import BaseGlobalPooling
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.pooling.base_global_pooling import BaseGlobalPooling
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.layers.GlobalAveragePooling1D",
-        "keras.layers.GlobalAvgPool1D",
+        "ncps.mini_keras.layers.GlobalAveragePooling1D",
+        "ncps.mini_keras.layers.GlobalAvgPool1D",
     ]
 )
 class GlobalAveragePooling1D(BaseGlobalPooling):

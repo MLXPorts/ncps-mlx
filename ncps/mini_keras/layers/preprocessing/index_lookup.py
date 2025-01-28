@@ -2,12 +2,12 @@ import collections
 
 import numpy as np
 
-from keras.src import backend
-from keras.src.layers.layer import Layer
-from keras.src.utils import argument_validation
-from keras.src.utils import numerical_utils
-from keras.src.utils import tf_utils
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import backend
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.utils import argument_validation
+from ncps.mini_keras.utils import numerical_utils
+from ncps.mini_keras.utils import tf_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
 class IndexLookup(Layer):
@@ -699,7 +699,7 @@ class IndexLookup(Layer):
             self.num_documents.assign(0)
 
     def call(self, inputs):
-        from keras.src.backend import tensorflow as tf_backend
+        from ncps.mini_keras.backend import tensorflow as tf_backend
 
         self._ensure_known_vocab_size()
 

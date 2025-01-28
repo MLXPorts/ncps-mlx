@@ -1,7 +1,7 @@
 import keras
-from keras.src import testing
-from keras.src.saving import object_registration
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import testing
+from ncps.mini_keras.saving import object_registration
+from ncps.mini_keras.saving import serialization_lib
 
 
 class TestObjectRegistration(testing.TestCase):

@@ -2,19 +2,19 @@ import inspect
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.backend.common.variables import is_float_dtype
-from keras.src.backend.common.variables import standardize_dtype
-from keras.src.layers.layer import Layer
-from keras.src.saving import serialization_lib
-from keras.src.utils import jax_utils
-from keras.src.utils import tracking
-from keras.src.utils.module_utils import jax
+from ncps.mini_keras import backend
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common.variables import is_float_dtype
+from ncps.mini_keras.backend.common.variables import standardize_dtype
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.utils import jax_utils
+from ncps.mini_keras.utils import tracking
+from ncps.mini_keras.utils.module_utils import jax
 
 
-@keras_export("keras.layers.JaxLayer")
+@keras_mini_export("ncps.mini_keras.layers.JaxLayer")
 class JaxLayer(Layer):
     """Keras Layer that wraps a JAX model.
 
@@ -456,7 +456,7 @@ class JaxLayer(Layer):
         return super().from_config(config)
 
 
-@keras_export("keras.layers.FlaxLayer")
+@keras_mini_export("ncps.mini_keras.layers.FlaxLayer")
 class FlaxLayer(JaxLayer):
     """Keras Layer that wraps a [Flax](https://flax.readthedocs.io) module.
 

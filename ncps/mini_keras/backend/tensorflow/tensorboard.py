@@ -1,4 +1,4 @@
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
 def start_trace(logdir):

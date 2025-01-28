@@ -2,9 +2,9 @@ import numpy as np
 import scipy.signal
 
 from conftest import skip_if_backend
-from keras.src import backend
-from keras.src import initializers
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import testing
 
 
 class ConstantInitializersTest(testing.TestCase):

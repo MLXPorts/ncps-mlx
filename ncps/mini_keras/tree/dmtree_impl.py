@@ -2,8 +2,8 @@ import collections
 import collections.abc
 import itertools
 
-from keras.src.backend.config import backend
-from keras.src.utils.module_utils import dmtree
+from ncps.mini_keras.backend.config import backend
+from ncps.mini_keras.utils.module_utils import dmtree
 
 # NOTE: There are two known discrepancies between this `dmtree` implementation
 # of the tree API and the `optree` implementation:

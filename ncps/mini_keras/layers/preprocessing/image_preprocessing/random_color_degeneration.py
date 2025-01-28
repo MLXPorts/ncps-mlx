@@ -1,11 +1,11 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
     BaseImagePreprocessingLayer,
 )
-from keras.src.random import SeedGenerator
+from ncps.mini_keras.random import SeedGenerator
 
 
-@keras_export("keras.layers.RandomColorDegeneration")
+@keras_mini_export("ncps.mini_keras.layers.RandomColorDegeneration")
 class RandomColorDegeneration(BaseImagePreprocessingLayer):
     """Randomly performs the color degeneration operation on given images.
 

@@ -1,8 +1,8 @@
-from keras.src.layers.layer import Layer
-from keras.src.metrics.metric import Metric
-from keras.src.optimizers.optimizer import Optimizer
-from keras.src.saving import saving_lib
-from keras.src.saving.keras_saveable import KerasSaveable
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.metrics.metric import Metric
+from ncps.mini_keras.optimizers.optimizer import Optimizer
+from ncps.mini_keras.saving import saving_lib
+from ncps.mini_keras.saving.keras_saveable import KerasSaveable
 
 
 def map_saveable_variables(saveable, store, visited_saveables):

@@ -1,14 +1,14 @@
 import numpy as np
 
-from keras.src.api_export import keras_export
-from keras.src.utils import dataset_utils
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils import dataset_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.utils.text_dataset_from_directory",
-        "keras.preprocessing.text_dataset_from_directory",
+        "ncps.mini_keras.utils.text_dataset_from_directory",
+        "ncps.mini_keras.preprocessing.text_dataset_from_directory",
     ]
 )
 def text_dataset_from_directory(

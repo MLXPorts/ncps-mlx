@@ -1,18 +1,18 @@
 import builtins
 import math
 
-import jax.experimental.sparse as jax_sparse
+import jax.experimental.sparse as jax_sparse # type: ignore
 import jax.numpy as jnp
 
-from keras.src.backend import config
-from keras.src.backend.common import dtypes
-from keras.src.backend.common.backend_utils import canonicalize_axis
-from keras.src.backend.common.backend_utils import to_tuple_or_list
-from keras.src.backend.common.variables import standardize_dtype
-from keras.src.backend.jax import nn
-from keras.src.backend.jax import sparse
-from keras.src.backend.jax.core import cast
-from keras.src.backend.jax.core import convert_to_tensor
+from ncps.mini_keras.backend import config
+from ncps.mini_keras.backend.common import dtypes
+from ncps.mini_keras.backend.common.backend_utils import canonicalize_axis
+from ncps.mini_keras.backend.common.backend_utils import to_tuple_or_list
+from ncps.mini_keras.backend.common.variables import standardize_dtype
+from ncps.mini_keras.backend.jax import nn
+from ncps.mini_keras.backend.jax import sparse
+from ncps.mini_keras.backend.jax.core import cast
+from ncps.mini_keras.backend.jax.core import convert_to_tensor
 
 
 def rot90(array, k=1, axes=(0, 1)):
@@ -943,7 +943,7 @@ def repeat(x, repeats, axis=None):
 
 def reshape(x, newshape):
     if isinstance(x, jax_sparse.BCOO):
-        from keras.src.ops import operation_utils
+        from ncps.mini_keras.ops import operation_utils
 
         # Resolve the -1 in `new_shape` if applicable and possible
         output_shape = operation_utils.compute_reshape_output_shape(

@@ -44,7 +44,45 @@ def _convert_conv_transpose_padding_args_from_keras_to_jax(
 
     return left_pad, right_pad
 
+def _convert_conv_transpose_padding_args_from_keras_to_mlx(
+    kernel_size, stride, dilation_rate, padding, output_padding
+):
+    """Convert the padding arguments from Keras to the ones used by MLX.
+    MLX starts with an shape of size `(input-1) * stride - kernel_size + 2`,
+    then adds `left_pad` on the left, and `right_pad` on the right.
+    In Keras, the `padding` argument determines a base shape, to which
+    `output_padding` is added on the right. If `output_padding` is None, it will
+    be given a default value.
+    """
 
+    assert padding.lower() in {"valid", "same"}
+    kernel_size = (kernel_size - 1) * dilation_rate + 1
+
+    if padding.lower() == "valid":
+        # If output_padding is None, we fill it so that the shape of the output
+        # is `(input-1)*s + max(kernel_size, stride)`
+        output_padding = (
+            max(kernel_size, stride) - kernel_size
+            if output_padding is None
+            else output_padding
+        )
+        left_pad = kernel_size - 1
+        right_pad = kernel_size - 1 + output_padding
+
+    else:
+        if output_padding is None:
+            # When output_padding is None, we want the shape of the output to
+            # be `input * s`, therefore a total padding of
+            # `stride + kernel_size - 2`
+            pad_len = stride + kernel_size - 2
+        else:
+            # When output_padding is filled, we want the shape of the output to
+            # be `(input-1)*stride + kernel_size%2 + output_padding`
+            pad_len = kernel_size + kernel_size % 2 - 2 + output_padding
+        left_pad = min(pad_len // 2 + pad_len % 2, kernel_size - 1)
+        right_pad = pad_len - left_pad
+
+    return left_pad, right_pad
 def _convert_conv_transpose_padding_args_from_keras_to_torch(
     kernel_size, stride, dilation_rate, padding, output_padding
 ):
@@ -185,6 +223,45 @@ def compute_conv_transpose_padding_args_for_torch(
         torch_output_paddings.append(torch_output_padding)
 
     return torch_paddings, torch_output_paddings
+
+
+def compute_conv_transpose_padding_args_for_mlx(
+    input_shape,
+    kernel_shape,
+    strides,
+    padding,
+    output_padding,
+    dilation_rate,
+):
+    num_spatial_dims = len(input_shape) - 2
+    kernel_spatial_shape = kernel_shape[:-2]
+
+    mlx_padding = []
+    for i in range(num_spatial_dims):
+        output_padding_i = (
+            output_padding
+            if output_padding is None or isinstance(output_padding, int)
+            else output_padding[i]
+        )
+        strides_i = strides if isinstance(strides, int) else strides[i]
+        dilation_rate_i = (
+            dilation_rate
+            if isinstance(dilation_rate, int)
+            else dilation_rate[i]
+        )
+        (
+            pad_left,
+            pad_right,
+        ) = _convert_conv_transpose_padding_args_from_keras_to_mlx(
+            kernel_size=kernel_spatial_shape[i],
+            stride=strides_i,
+            dilation_rate=dilation_rate_i,
+            padding=padding,
+            output_padding=output_padding_i,
+        )
+        mlx_padding.append((pad_left, pad_right))
+
+    return mlx_padding
 
 
 def _get_output_shape_given_tf_padding(
@@ -348,7 +425,7 @@ def _vectorize_parse_input_dimensions(
     args,
     input_core_dims,
 ):
-    from keras.src import ops
+    from ncps.mini_keras import ops
 
     if len(args) != len(input_core_dims):
         raise TypeError(
@@ -374,7 +451,7 @@ def _vectorize_check_output_dims(
     dim_sizes,
     expected_output_core_dims,
 ):
-    from keras.src import ops
+    from ncps.mini_keras import ops
 
     def wrapped(*args):
         out = func(*args)
@@ -434,7 +511,7 @@ def _vectorize_apply_excluded(func, excluded, args, kwargs):
 def vectorize_impl(pyfunc, vmap_fn, *, excluded=None, signature=None):
     """Implementation adapted from JAX and NumPy."""
 
-    from keras.src import ops
+    from ncps.mini_keras import ops
 
     excluded = None or set()
 

@@ -1,11 +1,11 @@
 import numpy as np
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.optimizers.loss_scale_optimizer import LossScaleOptimizer
-from keras.src.optimizers.sgd import SGD
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.optimizers.loss_scale_optimizer import LossScaleOptimizer
+from ncps.mini_keras.optimizers.sgd import SGD
 
 
 class LossScaleOptimizerTest(testing.TestCase):

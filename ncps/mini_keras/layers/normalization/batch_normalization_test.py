@@ -2,12 +2,12 @@ import numpy as np
 import pytest
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import layers
-from keras.src import ops
-from keras.src import testing
-from keras.src.losses import MeanSquaredError
-from keras.src.models import Model
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.losses import MeanSquaredError
+from ncps.mini_keras.models import Model
 
 
 class BatchNormalizationTest(testing.TestCase):

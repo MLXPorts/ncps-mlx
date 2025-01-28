@@ -1,14 +1,14 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
-from keras.src.utils import argument_validation
-from keras.src.utils import backend_utils
-from keras.src.utils import numerical_utils
-from keras.src.utils import tf_utils
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.utils import argument_validation
+from ncps.mini_keras.utils import backend_utils
+from ncps.mini_keras.utils import numerical_utils
+from ncps.mini_keras.utils import tf_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
-@keras_export("keras.layers.HashedCrossing")
+@keras_mini_export("ncps.mini_keras.layers.HashedCrossing")
 class HashedCrossing(Layer):
     """A preprocessing layer which crosses features using the "hashing trick".
 
@@ -136,7 +136,7 @@ class HashedCrossing(Layer):
         return tuple(input_shape[0])[:-1] + (self.num_bins,)
 
     def call(self, inputs):
-        from keras.src.backend import tensorflow as tf_backend
+        from ncps.mini_keras.backend import tensorflow as tf_backend
 
         self._check_at_least_two_inputs(inputs)
         inputs = [tf_utils.ensure_tensor(x) for x in inputs]

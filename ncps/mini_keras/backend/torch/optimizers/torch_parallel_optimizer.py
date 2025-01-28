@@ -1,7 +1,7 @@
 import torch
 
-from keras.src.optimizers.base_optimizer import BaseOptimizer
-from keras.src.utils import torch_utils
+from ncps.mini_keras.optimizers.base_optimizer import BaseOptimizer
+from ncps.mini_keras.utils import torch_utils
 
 
 class TorchParallelOptimizer(BaseOptimizer):

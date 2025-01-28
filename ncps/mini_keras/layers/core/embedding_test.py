@@ -4,14 +4,14 @@ import numpy as np
 import pytest
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import constraints
-from keras.src import export
-from keras.src import layers
-from keras.src import models
-from keras.src import ops
-from keras.src import saving
-from keras.src.testing import test_case
+from ncps.mini_keras import backend
+from ncps.mini_keras import constraints
+from ncps.mini_keras import export
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import ops
+from ncps.mini_keras import saving
+from ncps.mini_keras.testing import test_case
 
 
 class EmbeddingTest(test_case.TestCase):

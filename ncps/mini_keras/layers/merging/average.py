@@ -1,9 +1,9 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.merging.base_merge import Merge
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.merging.base_merge import Merge
 
 
-@keras_export("keras.layers.Average")
+@keras_mini_export("ncps.mini_keras.layers.Average")
 class Average(Merge):
     """Averages a list of inputs element-wise..
 
@@ -37,7 +37,7 @@ class Average(Merge):
         return output / len(inputs)
 
 
-@keras_export("keras.layers.average")
+@keras_mini_export("ncps.mini_keras.layers.average")
 def average(inputs, **kwargs):
     """Functional interface to the `keras.layers.Average` layer.
 

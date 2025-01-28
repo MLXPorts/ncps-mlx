@@ -6,11 +6,11 @@ import tensorflow as tf
 from tensorflow.python.eager import context
 
 import keras
-from keras.src import backend
-from keras.src import layers
-from keras.src import models
-from keras.src import testing
-from keras.src.backend.tensorflow import trainer as tf_trainer
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend.tensorflow import trainer as tf_trainer
 
 
 @pytest.mark.skipif(

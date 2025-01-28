@@ -1,12 +1,12 @@
 import warnings
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
-from keras.src.ops.node import Node
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.ops.node import Node
 
 
-@keras_export("keras.layers.InputLayer")
+@keras_mini_export("ncps.mini_keras.layers.InputLayer")
 class InputLayer(Layer):
     def __init__(
         self,
@@ -139,7 +139,7 @@ class InputLayer(Layer):
         }
 
 
-@keras_export(["keras.layers.Input", "keras.Input"])
+@keras_mini_export(["ncps.mini_keras.layers.Input", "ncps.mini_keras.Input"])
 def Input(
     shape=None,
     batch_size=None,

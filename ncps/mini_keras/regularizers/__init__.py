@@ -1,13 +1,13 @@
 import inspect
 
-from keras.src.api_export import keras_export
-from keras.src.regularizers.regularizers import L1
-from keras.src.regularizers.regularizers import L1L2
-from keras.src.regularizers.regularizers import L2
-from keras.src.regularizers.regularizers import OrthogonalRegularizer
-from keras.src.regularizers.regularizers import Regularizer
-from keras.src.saving import serialization_lib
-from keras.src.utils.naming import to_snake_case
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.regularizers.regularizers import L1
+from ncps.mini_keras.regularizers.regularizers import L1L2
+from ncps.mini_keras.regularizers.regularizers import L2
+from ncps.mini_keras.regularizers.regularizers import OrthogonalRegularizer
+from ncps.mini_keras.regularizers.regularizers import Regularizer
+from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.utils.naming import to_snake_case
 
 ALL_OBJECTS = {
     Regularizer,
@@ -23,12 +23,12 @@ ALL_OBJECTS_DICT.update(
 )
 
 
-@keras_export("keras.regularizers.serialize")
+@keras_mini_export("ncps.mini_keras.regularizers.serialize")
 def serialize(regularizer):
     return serialization_lib.serialize_keras_object(regularizer)
 
 
-@keras_export("keras.regularizers.deserialize")
+@keras_mini_export("ncps.mini_keras.regularizers.deserialize")
 def deserialize(config, custom_objects=None):
     """Return a Keras regularizer object via its config."""
     return serialization_lib.deserialize_keras_object(
@@ -38,7 +38,7 @@ def deserialize(config, custom_objects=None):
     )
 
 
-@keras_export("keras.regularizers.get")
+@keras_mini_export("ncps.mini_keras.regularizers.get")
 def get(identifier):
     """Retrieve a Keras regularizer object via an identifier."""
     if identifier is None:

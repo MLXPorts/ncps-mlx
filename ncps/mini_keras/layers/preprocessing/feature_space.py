@@ -1,14 +1,14 @@
-from keras.src import backend
-from keras.src import layers
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
-from keras.src.layers.preprocessing.tf_data_layer import TFDataLayer
-from keras.src.saving import saving_lib
-from keras.src.saving import serialization_lib
-from keras.src.utils import backend_utils
-from keras.src.utils.module_utils import tensorflow as tf
-from keras.src.utils.naming import auto_name
+from ncps.mini_keras import backend
+from ncps.mini_keras import layers
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.layers.preprocessing.tf_data_layer import TFDataLayer
+from ncps.mini_keras.saving import saving_lib
+from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.utils import backend_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
+from ncps.mini_keras.utils.naming import auto_name
 
 
 class Cross:
@@ -69,7 +69,7 @@ class Feature:
         return cls(**config)
 
 
-@keras_export("keras.utils.FeatureSpace")
+@keras_mini_export("ncps.mini_keras.utils.FeatureSpace")
 class FeatureSpace(Layer):
     """One-stop utility for preprocessing and encoding structured data.
 

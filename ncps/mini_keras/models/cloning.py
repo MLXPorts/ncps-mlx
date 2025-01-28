@@ -1,16 +1,16 @@
-from keras.src import backend
-from keras.src import tree
-from keras.src import utils
-from keras.src.api_export import keras_export
-from keras.src.layers import Input
-from keras.src.layers import InputLayer
-from keras.src.models.functional import Functional
-from keras.src.models.functional import functional_like_constructor
-from keras.src.models.sequential import Sequential
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import backend
+from ncps.mini_keras import tree
+from ncps.mini_keras import utils
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers import Input
+from ncps.mini_keras.layers import InputLayer
+from ncps.mini_keras.models.functional import Functional
+from ncps.mini_keras.models.functional import functional_like_constructor
+from ncps.mini_keras.models.sequential import Sequential
+from ncps.mini_keras.saving import serialization_lib
 
 
-@keras_export("keras.models.clone_model")
+@keras_mini_export("ncps.mini_keras.models.clone_model")
 def clone_model(
     model,
     input_tensors=None,

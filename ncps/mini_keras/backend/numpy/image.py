@@ -2,9 +2,9 @@ import jax
 import ml_dtypes
 import numpy as np
 
-from keras.src import backend
-from keras.src.backend.numpy.core import convert_to_tensor
-from keras.src.utils.module_utils import scipy
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.numpy.core import convert_to_tensor
+from ncps.mini_keras.utils.module_utils import scipy
 
 RESIZE_INTERPOLATIONS = (
     "bilinear",

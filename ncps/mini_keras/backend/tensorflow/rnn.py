@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from keras.src import tree
+from ncps.mini_keras import tree
 
 
 def rnn(
@@ -471,7 +471,7 @@ def gru(
     if not cudnn_supported:
         raise NotImplementedError
 
-    from keras.src.backend.tensorflow import Variable
+    from ncps.mini_keras.backend.tensorflow import Variable
 
     if isinstance(kernel, Variable):
         kernel = kernel.value
@@ -507,8 +507,8 @@ def _do_gru_arguments_support_cudnn(
     use_bias,
     reset_after,
 ):
-    from keras.src import activations
-    from keras.src import ops
+    from ncps.mini_keras import activations
+    from ncps.mini_keras import ops
 
     return (
         activation in (activations.tanh, tf.tanh, ops.tanh)
@@ -526,8 +526,8 @@ def _do_lstm_arguments_support_cudnn(
     unroll,
     use_bias,
 ):
-    from keras.src import activations
-    from keras.src import ops
+    from ncps.mini_keras import activations
+    from ncps.mini_keras import ops
 
     return (
         activation in (activations.tanh, tf.tanh, ops.tanh)
@@ -828,7 +828,7 @@ def lstm(
     if not cudnn_supported:
         raise NotImplementedError
 
-    from keras.src.backend.tensorflow import Variable
+    from ncps.mini_keras.backend.tensorflow import Variable
 
     if isinstance(kernel, Variable):
         kernel = kernel.value

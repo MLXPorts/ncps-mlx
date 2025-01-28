@@ -1,11 +1,11 @@
 import numpy as np
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.utils import tf_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.utils import tf_utils
 
 
-@keras_export("keras.utils.normalize")
+@keras_mini_export("ncps.mini_keras.utils.normalize")
 def normalize(x, axis=-1, order=2):
     """Normalizes an array.
 
@@ -20,7 +20,7 @@ def normalize(x, axis=-1, order=2):
     Returns:
         A normalized copy of the array.
     """
-    from keras.src import ops
+    from ncps.mini_keras import ops
 
     if isinstance(x, np.ndarray):
         # NumPy input
@@ -35,7 +35,7 @@ def normalize(x, axis=-1, order=2):
     return ops.nn.normalize(x, axis=axis, order=order)
 
 
-@keras_export("keras.utils.to_categorical")
+@keras_mini_export("ncps.mini_keras.utils.to_categorical")
 def to_categorical(x, num_classes=None):
     """Converts a class vector (integers) to binary class matrix.
 
@@ -200,7 +200,7 @@ def build_pos_neg_masks(
     key_labels,
     remove_diagonal=True,
 ):
-    from keras.src import ops
+    from ncps.mini_keras import ops
 
     if ops.ndim(query_labels) == 1:
         query_labels = ops.reshape(query_labels, (-1, 1))

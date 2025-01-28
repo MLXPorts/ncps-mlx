@@ -1,11 +1,11 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.convolutional.base_conv_transpose import BaseConvTranspose
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.convolutional.base_conv_transpose import BaseConvTranspose
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.layers.Conv2DTranspose",
-        "keras.layers.Convolution2DTranspose",
+        "ncps.mini_keras.layers.Conv2DTranspose",
+        "ncps.mini_keras.layers.Convolution2DTranspose",
     ]
 )
 class Conv2DTranspose(BaseConvTranspose):

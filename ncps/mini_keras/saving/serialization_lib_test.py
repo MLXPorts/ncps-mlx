@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 
 import keras
-from keras.src import ops
-from keras.src import testing
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.saving import serialization_lib
 
 
 def custom_fn(x):

@@ -3,9 +3,9 @@ import pytest
 import tensorflow as tf
 
 import keras
-from keras.src import backend
-from keras.src.testing import test_case
-from keras.src.utils import rng_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras.testing import test_case
+from ncps.mini_keras.utils import rng_utils
 
 
 class TestRandomSeedSetting(test_case.TestCase):

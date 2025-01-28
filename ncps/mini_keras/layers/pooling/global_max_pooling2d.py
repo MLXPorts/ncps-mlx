@@ -1,12 +1,12 @@
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.pooling.base_global_pooling import BaseGlobalPooling
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.pooling.base_global_pooling import BaseGlobalPooling
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.layers.GlobalMaxPooling2D",
-        "keras.layers.GlobalMaxPool2D",
+        "ncps.mini_keras.layers.GlobalMaxPooling2D",
+        "ncps.mini_keras.layers.GlobalMaxPool2D",
     ]
 )
 class GlobalMaxPooling2D(BaseGlobalPooling):

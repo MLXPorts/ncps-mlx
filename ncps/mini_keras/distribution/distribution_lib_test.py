@@ -7,10 +7,10 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
-from keras.src import backend
-from keras.src import testing
-from keras.src.backend import distribution_lib as backend_dlib
-from keras.src.distribution import distribution_lib
+from ncps.mini_keras import backend
+from ncps.mini_keras import testing
+from ncps.mini_keras.backend import distribution_lib as backend_dlib
+from ncps.mini_keras.distribution import distribution_lib
 
 
 @pytest.mark.skipif(

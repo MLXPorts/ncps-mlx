@@ -3,11 +3,11 @@ import zipfile
 
 from absl import logging
 
-from keras.src.api_export import keras_export
-from keras.src.legacy.saving import legacy_h5_format
-from keras.src.saving import saving_lib
-from keras.src.utils import file_utils
-from keras.src.utils import io_utils
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.legacy.saving import legacy_h5_format
+from ncps.mini_keras.saving import saving_lib
+from ncps.mini_keras.utils import file_utils
+from ncps.mini_keras.utils import io_utils
 
 try:
     import h5py
@@ -15,7 +15,7 @@ except ImportError:
     h5py = None
 
 
-@keras_export(["keras.saving.save_model", "keras.models.save_model"])
+@keras_mini_export(["ncps.mini_keras.saving.save_model", "ncps.mini_keras.models.save_model"])
 def save_model(model, filepath, overwrite=True, zipped=None, **kwargs):
     """Saves a model as a `.keras` file.
 
@@ -121,7 +121,7 @@ def save_model(model, filepath, overwrite=True, zipped=None, **kwargs):
     )
 
 
-@keras_export(["keras.saving.load_model", "keras.models.load_model"])
+@keras_mini_export(["ncps.mini_keras.saving.load_model", "ncps.mini_keras.models.load_model"])
 def load_model(filepath, custom_objects=None, compile=True, safe_mode=True):
     """Loads a model saved via `model.save()`.
 
@@ -218,7 +218,7 @@ def load_model(filepath, custom_objects=None, compile=True, safe_mode=True):
         )
 
 
-@keras_export("keras.saving.save_weights")
+@keras_mini_export("ncps.mini_keras.saving.save_weights")
 def save_weights(model, filepath, overwrite=True, **kwargs):
     if not str(filepath).endswith(".weights.h5"):
         raise ValueError(
@@ -236,7 +236,7 @@ def save_weights(model, filepath, overwrite=True, **kwargs):
     saving_lib.save_weights_only(model, filepath, **kwargs)
 
 
-@keras_export("keras.saving.load_weights")
+@keras_mini_export("ncps.mini_keras.saving.load_weights")
 def load_weights(model, filepath, skip_mismatch=False, **kwargs):
     if str(filepath).endswith(".keras"):
         if kwargs:

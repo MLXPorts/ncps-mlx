@@ -4,7 +4,7 @@ from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.layers.preprocessing.image_preprocessing.bounding_boxes.bounding_box import (  # noqa: E501
     BoundingBox,
 )
-from keras.src.utils import backend_utils
+from ncps.mini_keras.utils import backend_utils
 
 
 @keras_mini_export("ncps.mini_keras.utils.bounding_boxes.convert_format")

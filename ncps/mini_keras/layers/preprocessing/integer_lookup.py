@@ -1,13 +1,13 @@
 import numpy as np
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.index_lookup import IndexLookup
-from keras.src.utils import backend_utils
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.index_lookup import IndexLookup
+from ncps.mini_keras.utils import backend_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
-@keras_export("keras.layers.IntegerLookup")
+@keras_mini_export("ncps.mini_keras.layers.IntegerLookup")
 class IntegerLookup(IndexLookup):
     """A preprocessing layer that maps integers to (possibly encoded) indices.
 

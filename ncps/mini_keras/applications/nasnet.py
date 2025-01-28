@@ -2,7 +2,7 @@ import warnings
 
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -48,7 +48,7 @@ def NASNet(
       https://keras.io/guides/transfer_learning/).
 
     Note: each Keras Application expects a specific kind of input preprocessing.
-    For NasNet, call `keras.applications.nasnet.preprocess_input`
+    For NasNet, call `ncps.mini_keras.applications.nasnet.preprocess_input`
     on your inputs before passing them to the model.
     `nasnet.preprocess_input` will scale input pixels between -1 and 1.
 
@@ -312,10 +312,10 @@ def NASNet(
     return model
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.nasnet.NASNetMobile",
-        "keras.applications.NASNetMobile",
+        "ncps.mini_keras.applications.nasnet.NASNetMobile",
+        "ncps.mini_keras.applications.NASNetMobile",
     ]
 )
 def NASNetMobile(
@@ -339,7 +339,7 @@ def NASNetMobile(
     the one specified in your Keras config at `~/.keras/keras.json`.
 
     Note: each Keras Application expects a specific kind of input preprocessing.
-    For NASNet, call `keras.applications.nasnet.preprocess_input` on your
+    For NASNet, call `ncps.mini_keras.applications.nasnet.preprocess_input` on your
     inputs before passing them to the model.
 
     Args:
@@ -408,10 +408,10 @@ def NASNetMobile(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.nasnet.NASNetLarge",
-        "keras.applications.NASNetLarge",
+        "ncps.mini_keras.applications.nasnet.NASNetLarge",
+        "ncps.mini_keras.applications.NASNetLarge",
     ]
 )
 def NASNetLarge(
@@ -435,7 +435,7 @@ def NASNetLarge(
     the one specified in your Keras config at `~/.keras/keras.json`.
 
     Note: each Keras Application expects a specific kind of input preprocessing.
-    For NASNet, call `keras.applications.nasnet.preprocess_input` on your
+    For NASNet, call `ncps.mini_keras.applications.nasnet.preprocess_input` on your
     inputs before passing them to the model.
 
     Args:
@@ -850,14 +850,14 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
         return x, ip
 
 
-@keras_export("keras.applications.nasnet.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.nasnet.preprocess_input")
 def preprocess_input(x, data_format=None):
     return imagenet_utils.preprocess_input(
         x, data_format=data_format, mode="tf"
     )
 
 
-@keras_export("keras.applications.nasnet.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.nasnet.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

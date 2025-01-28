@@ -1,6 +1,6 @@
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -17,7 +17,7 @@ WEIGHTS_PATH_NO_TOP = (
 )
 
 
-@keras_export(["keras.applications.vgg19.VGG19", "keras.applications.VGG19"])
+@keras_mini_export(["ncps.mini_keras.applications.vgg19.VGG19", "ncps.mini_keras.applications.VGG19"])
 def VGG19(
     include_top=True,
     weights="imagenet",
@@ -45,7 +45,7 @@ def VGG19(
     The default input size for this model is 224x224.
 
     Note: each Keras Application expects a specific kind of input preprocessing.
-    For VGG19, call `keras.applications.vgg19.preprocess_input` on your
+    For VGG19, call `ncps.mini_keras.applications.vgg19.preprocess_input` on your
     inputs before passing them to the model.
     `vgg19.preprocess_input` will convert the input images from RGB to BGR,
     then will zero-center each color channel with respect to the ImageNet
@@ -236,12 +236,12 @@ def VGG19(
     return model
 
 
-@keras_export("keras.applications.vgg19.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.vgg19.preprocess_input")
 def preprocess_input(x, data_format=None):
     return imagenet_utils.preprocess_input(x, data_format=data_format, mode="caffe")
 
 
-@keras_export("keras.applications.vgg19.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.vgg19.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

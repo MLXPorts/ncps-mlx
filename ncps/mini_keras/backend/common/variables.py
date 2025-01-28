@@ -3,6 +3,8 @@ try:
 except ImportError:
     import numpy as np
 
+import mlx.core as mx  # Ensure mlx.core is imported
+
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.backend import config
@@ -147,17 +149,17 @@ class Variable:
         if callable(initializer):
             if shape is None:
                 raise ValueError(
-                    "When creating a Variable from an initializer, "
-                    "the `shape` argument should be specified. "
-                    f"Received: initializer={initializer} "
-                    f"and shape={shape}"
+                    "When passing a callable `initializer`, argument `shape` "
+                    "must be specified."
                 )
+            self._initializer = initializer
+            self._shape = standardize_shape(shape)
+            self._dtype = standardize_dtype(dtype)
+            register_uninitialized_variable(self)
         else:
-            initializer = self._convert_to_tensor(initializer, dtype=dtype)
-            # If dtype is None and `initializer` is an array, use its dtype.
-            if dtype is None:
-                dtype = initializer.dtype
-        self._dtype = standardize_dtype(dtype)
+            self._value = self._convert_to_tensor(initializer, dtype=dtype)
+            self._shape = tuple(self._value.shape)
+            self._dtype = standardize_dtype(self._value.dtype)
 
         if in_stateless_scope():
             if callable(initializer):
@@ -362,12 +364,10 @@ class Variable:
     @constraint.setter
     def constraint(self, value):
         from ncps.mini_keras.constraints import Constraint
-
         if value is not None and not isinstance(value, Constraint):
             raise ValueError(
-                "Invalid value for attribute `constraint`. Expected an "
-                "instance of `ncps.mini_keras.constraints.Constraint`, or `None`. "
-                f"Received: constraint={value}"
+                "The `constraint` property must be an instance "
+                f"of `Constraint`. Received: constraint={value}"
             )
         self._constraint = value
 
@@ -401,10 +401,16 @@ class Variable:
             if dtype is None:
                 dtype = self.dtype
             if isinstance(value, np.array):
-                if value.dtype != dtype:
-                    return value.astype(dtype)
+                # Convert string dtype to MLX Dtype for array operations
+                if isinstance(dtype, str):
+                    mlx_dtype = getattr(mx, dtype)
+                else:
+                    mlx_dtype = dtype
+                
+                if value.dtype != mlx_dtype:
+                    return value.astype(mlx_dtype)
                 return value
-            return np.array(value, dtype=dtype)
+            return np.array(value, dtype=mlx_dtype)
         else:
             raise NotImplementedError
 
@@ -562,12 +568,14 @@ def standardize_dtype(dtype):
     if backend.backend() == "mlx":
         if dtype is None:
             return config.floatx()
-        if isinstance(dtype, np.dtype):
-            dtype = str(dtype)
+        # Convert everything to string representation
+        if hasattr(dtype, "name"):
+            dtype = dtype.name
         elif hasattr(dtype, "__str__"):
             dtype = str(dtype).split(".")[-1]
         elif hasattr(dtype, "__name__"):
             dtype = dtype.__name__
+
         # Map MLX dtypes to standard string names
         dtype_map = {
             "bool_": "bool",
@@ -575,16 +583,22 @@ def standardize_dtype(dtype):
             "uint16": "uint16",
             "uint32": "uint32",
             "int8": "int8",
-            "int16": "int16", 
+            "int16": "int16",
+            "int": "int32",
             "int32": "int32",
             "float16": "float16",
             "float32": "float32",
-            "bfloat16": "bfloat16"
+            "bfloat16": "bfloat16",
+            # Add MLX-specific mappings
+            "Dtype.float32": "float32",
+            "Dtype.int32": "int32",
+            "float": "float32"
         }
         dtype = dtype_map.get(dtype, dtype)
     else:
         if dtype is None:
             return config.floatx()
+    
     dtype = dtypes.PYTHON_DTYPES_MAP.get(dtype, dtype)
     if hasattr(dtype, "name"):
         dtype = dtype.name
@@ -608,28 +622,24 @@ def standardize_shape(shape):
             raise ValueError(f"Cannot convert '{shape}' to a shape.")
         if config.backend() == "tensorflow":
             if isinstance(shape, tf.TensorShape):
-                # `tf.TensorShape` may contain `Dimension` objects.
-                # We need to convert the items in it to either int or `None`
                 shape = shape.as_list()
         shape = tuple(shape)
 
     if config.backend() == "torch":
-        # `shape` might be `torch.Size`. We need to convert the items in it to
-        # either int or `None`
         shape = tuple(map(lambda x: int(x) if x is not None else None, shape))
 
     for e in shape:
         if e is None:
             continue
         if config.backend() == "jax" and "_DimExpr" in str(type(e)):
-            # JAX2TF tracing uses JAX-native dimension expressions
             continue
-        if not is_int_dtype(type(e)):
+        # Handle both int instances and int type
+        if not (isinstance(e, (int, type(None)))):
             raise ValueError(
                 f"Cannot convert '{shape}' to a shape. "
                 f"Found invalid entry '{e}' of type '{type(e)}'. "
             )
-        if e < 0:
+        if e is not None and e < 0:
             raise ValueError(
                 f"Cannot convert '{shape}' to a shape. "
                 "Negative dimensions are not allowed."
@@ -659,10 +669,17 @@ def is_float_dtype(dtype):
 
 @keras_mini_export("ncps.mini_keras.backend.is_int_dtype")
 def is_int_dtype(dtype):
+    # Handle Python's built-in int type and MLX Dtype
+    if dtype == int or (hasattr(mx, 'Dtype') and isinstance(dtype, mx.Dtype)):
+        return True
+    
     if backend.backend() == "mlx":
-        if isinstance(dtype, np.dtype):
+        if isinstance(dtype, mx.Dtype):
             dtype = str(dtype)
-    dtype = standardize_dtype(dtype)
+    try:
+        dtype = standardize_dtype(dtype)
+    except ValueError:
+        return False
     return dtype.startswith("int") or dtype.startswith("uint")
 
 

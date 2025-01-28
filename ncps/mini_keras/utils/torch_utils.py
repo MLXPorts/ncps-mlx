@@ -2,14 +2,14 @@ import io
 
 from packaging.version import parse
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers import Layer
-from keras.src.ops import convert_to_numpy
-from keras.src.ops import convert_to_tensor
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers import Layer
+from ncps.mini_keras.ops import convert_to_numpy
+from ncps.mini_keras.ops import convert_to_tensor
 
 
-@keras_export("keras.layers.TorchModuleWrapper")
+@keras_mini_export("ncps.mini_keras.layers.TorchModuleWrapper")
 class TorchModuleWrapper(Layer):
     """Torch module wrapper layer.
 
@@ -84,7 +84,7 @@ class TorchModuleWrapper(Layer):
         super().__init__(name=name, **kwargs)
         import torch.nn as nn
 
-        from keras.src.backend.torch.core import get_device
+        from ncps.mini_keras.backend.torch.core import get_device
 
         if (
             isinstance(module, nn.modules.lazy.LazyModuleMixin)

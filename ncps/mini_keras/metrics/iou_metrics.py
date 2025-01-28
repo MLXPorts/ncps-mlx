@@ -1,11 +1,11 @@
 import warnings
 
-from keras.src import backend
-from keras.src import initializers
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.metrics.metric import Metric
-from keras.src.metrics.metrics_utils import confusion_matrix
+from ncps.mini_keras import backend
+from ncps.mini_keras import initializers
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.metrics.metric import Metric
+from ncps.mini_keras.metrics.metrics_utils import confusion_matrix
 
 
 class _IoUBase(Metric):
@@ -155,7 +155,7 @@ class _IoUBase(Metric):
         )
 
 
-@keras_export("keras.metrics.IoU")
+@keras_mini_export("ncps.mini_keras.metrics.IoU")
 class IoU(_IoUBase):
     """Computes the Intersection-Over-Union metric for specific target classes.
 
@@ -311,7 +311,7 @@ class IoU(_IoUBase):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-@keras_export("keras.metrics.BinaryIoU")
+@keras_mini_export("ncps.mini_keras.metrics.BinaryIoU")
 class BinaryIoU(IoU):
     """Computes the Intersection-Over-Union metric for class 0 and/or 1.
 
@@ -434,7 +434,7 @@ class BinaryIoU(IoU):
         }
 
 
-@keras_export("keras.metrics.MeanIoU")
+@keras_mini_export("ncps.mini_keras.metrics.MeanIoU")
 class MeanIoU(IoU):
     """Computes the mean Intersection-Over-Union metric.
 
@@ -537,7 +537,7 @@ class MeanIoU(IoU):
         }
 
 
-@keras_export("keras.metrics.OneHotIoU")
+@keras_mini_export("ncps.mini_keras.metrics.OneHotIoU")
 class OneHotIoU(IoU):
     """Computes the Intersection-Over-Union metric for one-hot encoded labels.
 
@@ -653,7 +653,7 @@ class OneHotIoU(IoU):
         }
 
 
-@keras_export("keras.metrics.OneHotMeanIoU")
+@keras_mini_export("ncps.mini_keras.metrics.OneHotMeanIoU")
 class OneHotMeanIoU(MeanIoU):
     """Computes mean Intersection-Over-Union metric for one-hot encoded labels.
 

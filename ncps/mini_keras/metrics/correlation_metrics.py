@@ -1,11 +1,11 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.losses.loss import squeeze_or_expand_to_same_rank
-from keras.src.metrics import reduction_metrics
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.losses.loss import squeeze_or_expand_to_same_rank
+from ncps.mini_keras.metrics import reduction_metrics
 
 
-@keras_export("keras.metrics.pearson_correlation")
+@keras_mini_export("ncps.mini_keras.metrics.pearson_correlation")
 def pearson_correlation(y_true, y_pred, axis=-1):
     """Computes the Pearson coefficient between labels and predictions.
 
@@ -45,7 +45,7 @@ def pearson_correlation(y_true, y_pred, axis=-1):
     return ops.mean(y_true_norm * y_pred_norm, axis=axis)
 
 
-@keras_export("keras.metrics.concordance_correlation")
+@keras_mini_export("ncps.mini_keras.metrics.concordance_correlation")
 def concordance_correlation(y_true, y_pred, axis=-1):
     """Computes the Concordance coefficient between labels and predictions.
 
@@ -92,7 +92,7 @@ def concordance_correlation(y_true, y_pred, axis=-1):
     return ops.mean(2 * covar / (norm + backend.epsilon()), axis=axis)
 
 
-@keras_export("keras.metrics.PearsonCorrelation")
+@keras_mini_export("ncps.mini_keras.metrics.PearsonCorrelation")
 class PearsonCorrelation(reduction_metrics.MeanMetricWrapper):
     """Calculates the Pearson Correlation Coefficient (PCC).
 
@@ -153,7 +153,7 @@ class PearsonCorrelation(reduction_metrics.MeanMetricWrapper):
         }
 
 
-@keras_export("keras.metrics.ConcordanceCorrelation")
+@keras_mini_export("ncps.mini_keras.metrics.ConcordanceCorrelation")
 class ConcordanceCorrelation(reduction_metrics.MeanMetricWrapper):
     """Calculates the Concordance Correlation Coefficient (CCC).
 

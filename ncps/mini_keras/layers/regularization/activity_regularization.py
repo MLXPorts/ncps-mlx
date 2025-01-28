@@ -1,9 +1,9 @@
-from keras.src import regularizers
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
+from ncps.mini_keras import regularizers
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
 
 
-@keras_export("keras.layers.ActivityRegularization")
+@keras_mini_export("ncps.mini_keras.layers.ActivityRegularization")
 class ActivityRegularization(Layer):
     """Layer that applies an update to the cost function based input activity.
 

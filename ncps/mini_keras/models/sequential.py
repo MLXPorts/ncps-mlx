@@ -1,22 +1,24 @@
 import copy
 import inspect
 import typing
+import mlx.core as mx
 
-from keras.src import backend
-from keras.src import tree
-from keras.src.api_export import keras_export
-from keras.src.backend.common import global_state
-from keras.src.backend.common import standardize_shape
-from keras.src.layers.core.input_layer import InputLayer
-from keras.src.layers.layer import Layer
-from keras.src.legacy.saving import saving_utils
-from keras.src.legacy.saving import serialization as legacy_serialization
-from keras.src.models.functional import Functional
-from keras.src.models.model import Model
-from keras.src.saving import serialization_lib
+from ncps.mini_keras import backend
+from ncps.mini_keras import tree
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.backend.common import global_state
+from ncps.mini_keras.backend.common import standardize_shape
+from ncps.mini_keras.layers.core.input_layer import InputLayer
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.legacy.saving import saving_utils
+from ncps.mini_keras.legacy.saving import serialization as legacy_serialization
+from ncps.mini_keras.models.functional import Functional
+from ncps.mini_keras.models.model import Model
+from ncps.mini_keras.saving import serialization_lib
+from ncps.mini_keras.backend import KerasTensor  # Add this import
 
 
-@keras_export(["keras.Sequential", "keras.models.Sequential"])
+@keras_mini_export(["ncps.mini_keras.Sequential", "ncps.mini_keras.models.Sequential"])
 class Sequential(Model):
     """`Sequential` groups a linear stack of layers into a `Model`.
 
@@ -153,60 +155,41 @@ class Sequential(Model):
     def _obj_type(self):
         return "Sequential"
 
-    def build(self, input_shape=None):
-        try:
-            input_shape = standardize_shape(input_shape)
-        except:
-            # Do not attempt to build if the model does not have a single
-            # input tensor.
-            return
-        if not self._layers:
-            raise ValueError(
-                f"Sequential model {self.name} cannot be built because it has "
-                "no layers. Call `model.add(layer)`."
-            )
-        if isinstance(self._layers[0], InputLayer):
-            if self._layers[0].batch_shape != input_shape:
-                raise ValueError(
-                    f"Sequential model '{self.name}' has already been "
-                    "configured to use input shape "
-                    f"{self._layers[0].batch_shape}. You cannot build it "
-                    f"with input_shape {input_shape}"
-                )
-        else:
-            dtype = self._layers[0].compute_dtype
-            self._layers = [
-                InputLayer(batch_shape=input_shape, dtype=dtype)
-            ] + self._layers
+    def build(self, input_shape):
+        """Builds the model based on input shapes received."""
+        input_shape = tuple(input_shape)
+        self.built = True
 
-        # Build functional model
-        inputs = self._layers[0].output
-        x = inputs
-        for layer in self._layers[1:]:
+        if not self.layers:
+            return
+
+        # Check input type and convert if necessary
+        if backend.backend() == "mlx":
+            # Get dtype as string, defaulting to "float32"
+            dtype = getattr(self.layers[0], "dtype", "float32")
+        else:
+            dtype = self.layers[0].dtype
+
+        x = backend.KerasTensor(input_shape, dtype=dtype)
+        
+        for layer in self.layers:
             try:
                 x = layer(x)
-            except NotImplementedError:
-                # Can happen if shape inference is not implemented.
-                # TODO: consider reverting inbound nodes on layers processed.
-                return
-            except TypeError as e:
-                signature = inspect.signature(layer.call)
-                positional_args = [
-                    param
-                    for param in signature.parameters.values()
-                    if param.default == inspect.Parameter.empty
-                ]
-                if len(positional_args) != 1:
-                    raise ValueError(
-                        "Layers added to a Sequential model "
-                        "can only have a single positional argument, "
-                        f"the input tensor. Layer {layer.__class__.__name__} "
-                        f"has multiple positional arguments: {positional_args}"
-                    )
-                raise e
-        outputs = x
-        self._functional = Functional(inputs=inputs, outputs=outputs)
-        self.built = True
+            except (AttributeError, TypeError) as e:
+                if "dtype" in str(e) or "Dtype" in str(e):
+                    # Get type as string
+                    if isinstance(x, KerasTensor):
+                        x_dtype = x.dtype
+                    else:
+                        x_dtype = "float32"
+                    # Create new tensor with proper dtype
+                    x = backend.cast(x, dtype=x_dtype)
+                    x = layer(x)
+                else:
+                    raise e
+
+        self._output_shape = tuple(x.shape)
+        self._dtype = dtype
 
     def call(self, inputs, training=None, mask=None):
         if self._functional:

@@ -1,10 +1,10 @@
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
     BaseImagePreprocessingLayer,
 )
 
 
-@keras_export("keras.layers.RandomPosterization")
+@keras_mini_export("ncps.mini_keras.layers.RandomPosterization")
 class RandomPosterization(BaseImagePreprocessingLayer):
     """Reduces the number of bits for each color channel.
 

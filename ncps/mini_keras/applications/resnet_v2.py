@@ -1,12 +1,12 @@
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.applications import resnet
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.ResNet50V2",
-        "keras.applications.resnet_v2.ResNet50V2",
+        "ncps.mini_keras.applications.ResNet50V2",
+        "ncps.mini_keras.applications.resnet_v2.ResNet50V2",
     ]
 )
 def ResNet50V2(
@@ -45,10 +45,10 @@ def ResNet50V2(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.ResNet101V2",
-        "keras.applications.resnet_v2.ResNet101V2",
+        "ncps.mini_keras.applications.ResNet101V2",
+        "ncps.mini_keras.applications.resnet_v2.ResNet101V2",
     ]
 )
 def ResNet101V2(
@@ -87,10 +87,10 @@ def ResNet101V2(
     )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.ResNet152V2",
-        "keras.applications.resnet_v2.ResNet152V2",
+        "ncps.mini_keras.applications.ResNet152V2",
+        "ncps.mini_keras.applications.resnet_v2.ResNet152V2",
     ]
 )
 def ResNet152V2(
@@ -129,14 +129,14 @@ def ResNet152V2(
     )
 
 
-@keras_export("keras.applications.resnet_v2.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.resnet_v2.preprocess_input")
 def preprocess_input(x, data_format=None):
     return imagenet_utils.preprocess_input(
         x, data_format=data_format, mode="tf"
     )
 
 
-@keras_export("keras.applications.resnet_v2.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.resnet_v2.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 
@@ -156,14 +156,14 @@ Reference:
     https://arxiv.org/abs/1603.05027) (CVPR 2016)
 
 For image classification use cases, see [this page for detailed examples](
-    https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+    https://ncps.mini_keras.io/api/applications/#usage-examples-for-image-classification-models).
 
 For transfer learning use cases, make sure to read the
 [guide to transfer learning & fine-tuning](
-    https://keras.io/guides/transfer_learning/).
+    https://ncps.mini_keras.io/guides/transfer_learning/).
 
 Note: each Keras Application expects a specific kind of input preprocessing.
-For ResNet, call `keras.applications.resnet_v2.preprocess_input` on your
+For ResNet, call `ncps.mini_keras.applications.resnet_v2.preprocess_input` on your
 inputs before passing them to the model. `resnet_v2.preprocess_input` will
 scale input pixels between -1 and 1.
 

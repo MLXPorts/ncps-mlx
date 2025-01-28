@@ -1,12 +1,15 @@
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import json
 import warnings
 
-import mlx.core as np
 
 from ncps.mini_keras import activations
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.utils import file_utils
 
 CLASS_INDEX = None
@@ -83,7 +86,7 @@ PREPROCESS_INPUT_RET_DOC_CAFFE = """
       zero-centered with respect to the ImageNet dataset, without scaling."""
 
 
-@keras_export("keras.applications.imagenet_utils.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.imagenet_utils.preprocess_input")
 def preprocess_input(x, data_format=None, mode="caffe"):
     """Preprocesses a tensor or Numpy array encoding a batch of images."""
     if mode not in {"caffe", "tf", "torch"}:
@@ -113,7 +116,7 @@ preprocess_input.__doc__ = PREPROCESS_INPUT_DOC.format(
 )
 
 
-@keras_export("keras.applications.imagenet_utils.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.imagenet_utils.decode_predictions")
 def decode_predictions(preds, top=5):
     """Decodes the prediction of an ImageNet model.
 

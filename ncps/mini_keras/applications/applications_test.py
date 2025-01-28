@@ -1,6 +1,9 @@
 import os
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 try:
     import pytest
 except ImportError:

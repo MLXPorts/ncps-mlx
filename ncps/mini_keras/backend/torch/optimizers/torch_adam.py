@@ -1,8 +1,8 @@
 import torch
 
-from keras.src import ops
-from keras.src import optimizers
-from keras.src.backend.torch.optimizers import torch_parallel_optimizer
+from ncps.mini_keras import ops
+from ncps.mini_keras import optimizers
+from ncps.mini_keras.backend.torch.optimizers import torch_parallel_optimizer
 
 
 class Adam(torch_parallel_optimizer.TorchParallelOptimizer, optimizers.Adam):

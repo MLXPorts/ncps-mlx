@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 
 import keras
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.optimizers.lion import Lion
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.optimizers.lion import Lion
 
 
 class LionTest(testing.TestCase):

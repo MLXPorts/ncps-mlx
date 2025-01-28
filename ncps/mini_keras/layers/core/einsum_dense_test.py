@@ -4,16 +4,16 @@ import numpy as np
 import pytest
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import constraints
-from keras.src import export
-from keras.src import layers
-from keras.src import models
-from keras.src import ops
-from keras.src import optimizers
-from keras.src import random
-from keras.src import saving
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import constraints
+from ncps.mini_keras import export
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import ops
+from ncps.mini_keras import optimizers
+from ncps.mini_keras import random
+from ncps.mini_keras import saving
+from ncps.mini_keras import testing
 
 
 class EinsumDenseTest(testing.TestCase):
@@ -716,7 +716,7 @@ class EinsumDenseTest(testing.TestCase):
     def test_quantize_float8(self):
         import ml_dtypes
 
-        from keras.src import quantizers
+        from ncps.mini_keras import quantizers
 
         layer = layers.EinsumDense(
             "ab,bc->ac",

@@ -1,12 +1,12 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.preprocessing.image_preprocessing.base_image_preprocessing_layer import (  # noqa: E501
     BaseImagePreprocessingLayer,
 )
-from keras.src.ops.core import _saturate_cast
+from ncps.mini_keras.ops.core import _saturate_cast
 
 
-@keras_export("keras.layers.AutoContrast")
+@keras_mini_export("ncps.mini_keras.layers.AutoContrast")
 class AutoContrast(BaseImagePreprocessingLayer):
     """Performs the auto-contrast operation on an image.
 

@@ -2,7 +2,7 @@ import warnings
 
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -13,10 +13,10 @@ BASE_WEIGHT_PATH = (
 )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.mobilenet.MobileNet",
-        "keras.applications.MobileNet",
+        "ncps.mini_keras.applications.mobilenet.MobileNet",
+        "ncps.mini_keras.applications.MobileNet",
     ]
 )
 def MobileNet(
@@ -51,7 +51,7 @@ def MobileNet(
     https://keras.io/guides/transfer_learning/).
 
     Note: each Keras Application expects a specific kind of input preprocessing.
-    For MobileNet, call `keras.applications.mobilenet.preprocess_input`
+    For MobileNet, call `ncps.mini_keras.applications.mobilenet.preprocess_input`
     on your inputs before passing them to the model.
     `mobilenet.preprocess_input` will scale input pixels between -1 and 1.
 
@@ -415,14 +415,14 @@ def _depthwise_conv_block(
     return layers.ReLU(6.0, name="conv_pw_%d_relu" % block_id)(x)
 
 
-@keras_export("keras.applications.mobilenet.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.mobilenet.preprocess_input")
 def preprocess_input(x, data_format=None):
     return imagenet_utils.preprocess_input(
         x, data_format=data_format, mode="tf"
     )
 
 
-@keras_export("keras.applications.mobilenet.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.mobilenet.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

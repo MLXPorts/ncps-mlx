@@ -11,10 +11,10 @@ import rich.markup
 # for below imports
 import rich.table
 
-from keras.src import backend
-from keras.src import tree
-from keras.src.utils import dtype_utils
-from keras.src.utils import io_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras import tree
+from ncps.mini_keras.utils import dtype_utils
+from ncps.mini_keras.utils import io_utils
 
 
 def count_params(weights):
@@ -154,8 +154,8 @@ def print_summary(
             matches `layer_range[1]`. By default (`None`) all
             layers in the model are included in the summary.
     """
-    from keras.src.models import Functional
-    from keras.src.models import Sequential
+    from ncps.mini_keras.models import Functional
+    from ncps.mini_keras.models import Sequential
 
     if not print_fn and not io_utils.is_interactive_logging_enabled():
         print_fn = io_utils.print_msg

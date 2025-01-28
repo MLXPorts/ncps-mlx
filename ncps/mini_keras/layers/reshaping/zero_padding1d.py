@@ -1,12 +1,12 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.input_spec import InputSpec
-from keras.src.layers.layer import Layer
-from keras.src.utils import argument_validation
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.input_spec import InputSpec
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.utils import argument_validation
 
 
-@keras_export("keras.layers.ZeroPadding1D")
+@keras_mini_export("ncps.mini_keras.layers.ZeroPadding1D")
 class ZeroPadding1D(Layer):
     """Zero-padding layer for 1D input (e.g. temporal sequence).
 

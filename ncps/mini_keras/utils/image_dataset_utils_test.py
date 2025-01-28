@@ -2,11 +2,11 @@ import os
 
 import numpy as np
 
-from keras.src import backend
-from keras.src import testing
-from keras.src.utils import image_dataset_utils
-from keras.src.utils import image_utils
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import backend
+from ncps.mini_keras import testing
+from ncps.mini_keras.utils import image_dataset_utils
+from ncps.mini_keras.utils import image_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
 class ImageDatasetFromDirectoryTest(testing.TestCase):

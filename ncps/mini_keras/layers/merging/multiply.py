@@ -1,10 +1,10 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.layers.merging.base_merge import Merge
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.merging.base_merge import Merge
 
 
-@keras_export("keras.layers.Multiply")
+@keras_mini_export("ncps.mini_keras.layers.Multiply")
 class Multiply(Merge):
     """Performs elementwise multiplication.
 
@@ -58,7 +58,7 @@ class Multiply(Merge):
         return output
 
 
-@keras_export("keras.layers.multiply")
+@keras_mini_export("ncps.mini_keras.layers.multiply")
 def multiply(inputs, **kwargs):
     """Functional interface to the `keras.layers.Multiply` layer.
 

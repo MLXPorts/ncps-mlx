@@ -1,10 +1,10 @@
-from keras.src import backend
-from keras.src import ops
-from keras.src.api_export import keras_export
-from keras.src.optimizers import optimizer
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.optimizers import optimizer
 
 
-@keras_export(["keras.optimizers.Adafactor"])
+@keras_mini_export(["ncps.mini_keras.optimizers.Adafactor"])
 class Adafactor(optimizer.Optimizer):
     """Optimizer that implements the Adafactor algorithm.
 

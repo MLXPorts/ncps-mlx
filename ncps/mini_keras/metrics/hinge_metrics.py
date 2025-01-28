@@ -1,11 +1,11 @@
-from keras.src.api_export import keras_export
-from keras.src.losses.losses import categorical_hinge
-from keras.src.losses.losses import hinge
-from keras.src.losses.losses import squared_hinge
-from keras.src.metrics import reduction_metrics
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.losses.losses import categorical_hinge
+from ncps.mini_keras.losses.losses import hinge
+from ncps.mini_keras.losses.losses import squared_hinge
+from ncps.mini_keras.metrics import reduction_metrics
 
 
-@keras_export("keras.metrics.Hinge")
+@keras_mini_export("ncps.mini_keras.metrics.Hinge")
 class Hinge(reduction_metrics.MeanMetricWrapper):
     """Computes the hinge metric between `y_true` and `y_pred`.
 
@@ -38,7 +38,7 @@ class Hinge(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.SquaredHinge")
+@keras_mini_export("ncps.mini_keras.metrics.SquaredHinge")
 class SquaredHinge(reduction_metrics.MeanMetricWrapper):
     """Computes the hinge metric between `y_true` and `y_pred`.
 
@@ -71,7 +71,7 @@ class SquaredHinge(reduction_metrics.MeanMetricWrapper):
         return {"name": self.name, "dtype": self.dtype}
 
 
-@keras_export("keras.metrics.CategoricalHinge")
+@keras_mini_export("ncps.mini_keras.metrics.CategoricalHinge")
 class CategoricalHinge(reduction_metrics.MeanMetricWrapper):
     """Computes the categorical hinge metric between `y_true` and `y_pred`.
 

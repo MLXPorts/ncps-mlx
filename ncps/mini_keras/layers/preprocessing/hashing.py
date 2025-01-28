@@ -1,13 +1,13 @@
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.layers.layer import Layer
-from keras.src.utils import backend_utils
-from keras.src.utils import numerical_utils
-from keras.src.utils import tf_utils
-from keras.src.utils.module_utils import tensorflow as tf
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.layers.layer import Layer
+from ncps.mini_keras.utils import backend_utils
+from ncps.mini_keras.utils import numerical_utils
+from ncps.mini_keras.utils import tf_utils
+from ncps.mini_keras.utils.module_utils import tensorflow as tf
 
 
-@keras_export("keras.layers.Hashing")
+@keras_mini_export("ncps.mini_keras.layers.Hashing")
 class Hashing(Layer):
     """A preprocessing layer which hashes and bins categorical features.
 
@@ -210,7 +210,7 @@ class Hashing(Layer):
         self.supports_jit = False
 
     def call(self, inputs):
-        from keras.src.backend import tensorflow as tf_backend
+        from ncps.mini_keras.backend import tensorflow as tf_backend
 
         inputs = tf_utils.ensure_tensor(inputs)
         if self.output_mode == "one_hot" and inputs.shape[-1] == 1:

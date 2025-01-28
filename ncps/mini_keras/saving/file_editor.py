@@ -7,12 +7,12 @@ import h5py
 import numpy as np
 import rich.console
 
-from keras.src import backend
-from keras.src.api_export import keras_export
-from keras.src.saving import saving_lib
-from keras.src.saving.saving_lib import H5IOStore
-from keras.src.utils import naming
-from keras.src.utils import summary_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras.api_export import keras_mini_export
+from ncps.mini_keras.saving import saving_lib
+from ncps.mini_keras.saving.saving_lib import H5IOStore
+from ncps.mini_keras.utils import naming
+from ncps.mini_keras.utils import summary_utils
 
 try:
     import IPython as ipython
@@ -33,7 +33,7 @@ def is_ipython_notebook():
         return False
 
 
-@keras_export("keras.saving.KerasFileEditor")
+@keras_mini_export("ncps.mini_keras.saving.KerasFileEditor")
 class KerasFileEditor:
     """Utility to inspect, edit, and resave Keras weights files.
 
@@ -590,7 +590,7 @@ class KerasFileEditor:
 
 
 def get_weight_spec_of_saveable(saveable, spec, visited_saveables=None):
-    from keras.src.saving.keras_saveable import KerasSaveable
+    from ncps.mini_keras.saving.keras_saveable import KerasSaveable
 
     visited_saveables = visited_saveables or set()
 
@@ -631,7 +631,7 @@ def get_weight_spec_of_saveable(saveable, spec, visited_saveables=None):
 
 
 def get_weight_spec_of_container(container, spec, visited_saveables):
-    from keras.src.saving.keras_saveable import KerasSaveable
+    from ncps.mini_keras.saving.keras_saveable import KerasSaveable
 
     used_names = {}
     if isinstance(container, dict):

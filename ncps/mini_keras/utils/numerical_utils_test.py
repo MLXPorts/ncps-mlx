@@ -1,9 +1,9 @@
 import numpy as np
 from absl.testing import parameterized
 
-from keras.src import backend
-from keras.src import testing
-from keras.src.utils import numerical_utils
+from ncps.mini_keras import backend
+from ncps.mini_keras import testing
+from ncps.mini_keras.utils import numerical_utils
 
 NUM_CLASSES = 5
 

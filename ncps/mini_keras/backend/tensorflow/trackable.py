@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from keras.src.utils import tracking
+from ncps.mini_keras.utils import tracking
 
 
 class KerasAutoTrackable(tf.__internal__.tracking.AutoTrackable):

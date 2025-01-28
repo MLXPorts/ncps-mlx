@@ -1,10 +1,10 @@
 import numpy as np
 
-from keras.src.backend.config import floatx
-from keras.src.backend.numpy.nn import softmax
-from keras.src.random.seed_generator import SeedGenerator
-from keras.src.random.seed_generator import draw_seed
-from keras.src.random.seed_generator import make_default_seed
+from ncps.mini_keras.backend.config import floatx
+from ncps.mini_keras.backend.numpy.nn import softmax
+from ncps.mini_keras.random.seed_generator import SeedGenerator
+from ncps.mini_keras.random.seed_generator import draw_seed
+from ncps.mini_keras.random.seed_generator import make_default_seed
 
 
 def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):

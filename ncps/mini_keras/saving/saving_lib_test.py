@@ -13,10 +13,10 @@ import pytest
 from absl.testing import parameterized
 
 import keras
-from keras.src import backend
-from keras.src import ops
-from keras.src import testing
-from keras.src.saving import saving_lib
+from ncps.mini_keras import backend
+from ncps.mini_keras import ops
+from ncps.mini_keras import testing
+from ncps.mini_keras.saving import saving_lib
 
 
 @keras.saving.register_keras_serializable(package="my_custom_package")
@@ -361,8 +361,8 @@ class SavingTest(testing.TestCase):
         )
         self.assertEqual(
             config_dict["compile_config"]["optimizer"],
-            keras.src.saving.serialize_keras_object(
-                keras.src.optimizers.get("adam")
+            ncps.mini_keras.saving.serialize_keras_object(
+                ncps.mini_keras.optimizers.get("adam")
             ),
         )
         self.assertEqual(
@@ -766,7 +766,7 @@ class SavingTest(testing.TestCase):
 @pytest.mark.requires_trainable_backend
 class SavingAPITest(testing.TestCase):
     def test_saving_api_errors(self):
-        from keras.src.saving import saving_api
+        from ncps.mini_keras.saving import saving_api
 
         model = _get_basic_functional_model()
 
@@ -1096,7 +1096,7 @@ class SavingBattleTest(testing.TestCase):
         temp_filepath = os.path.join(self.get_temp_dir(), "model.weights.h5")
 
         with mock.patch(
-            "keras.src.utils.file_utils.is_remote_path", is_remote_path
+            "ncps.mini_keras.utils.file_utils.is_remote_path", is_remote_path
         ):
             model = _get_basic_functional_model()
             model.save_weights(temp_filepath)

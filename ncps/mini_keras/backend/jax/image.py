@@ -3,8 +3,8 @@ import functools
 import jax
 import jax.numpy as jnp
 
-from keras.src import backend
-from keras.src.backend.jax.core import convert_to_tensor
+from ncps.mini_keras import backend
+from ncps.mini_keras.backend.jax.core import convert_to_tensor
 
 RESIZE_INTERPOLATIONS = (
     "bilinear",

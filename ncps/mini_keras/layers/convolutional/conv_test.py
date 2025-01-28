@@ -5,12 +5,12 @@ import pytest
 from absl.testing import parameterized
 from numpy.lib.stride_tricks import as_strided
 
-from keras.src import backend
-from keras.src import constraints
-from keras.src import layers
-from keras.src import models
-from keras.src import saving
-from keras.src import testing
+from ncps.mini_keras import backend
+from ncps.mini_keras import constraints
+from ncps.mini_keras import layers
+from ncps.mini_keras import models
+from ncps.mini_keras import saving
+from ncps.mini_keras import testing
 
 
 def _same_padding(input_size, kernel_size, stride):

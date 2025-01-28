@@ -1,6 +1,6 @@
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
-from ncps.mini_keras.api_export import keras_export
+from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.applications import imagenet_utils
 from ncps.mini_keras.models import Functional
 from ncps.mini_keras.ops import operation_utils
@@ -16,10 +16,10 @@ WEIGHTS_PATH_NO_TOP = (
 )
 
 
-@keras_export(
+@keras_mini_export(
     [
-        "keras.applications.xception.Xception",
-        "keras.applications.Xception",
+        "ncps.mini_keras.applications.xception.Xception",
+        "ncps.mini_keras.applications.Xception",
     ]
 )
 def Xception(
@@ -49,7 +49,7 @@ def Xception(
     The default input image size for this model is 299x299.
 
     Note: each Keras Application expects a specific kind of input preprocessing.
-    For Xception, call `keras.applications.xception.preprocess_input`
+    For Xception, call `ncps.mini_keras.applications.xception.preprocess_input`
     on your inputs before passing them to the model.
     `xception.preprocess_input` will scale input pixels between -1 and 1.
 
@@ -335,14 +335,14 @@ def Xception(
     return model
 
 
-@keras_export("keras.applications.xception.preprocess_input")
+@keras_mini_export("ncps.mini_keras.applications.xception.preprocess_input")
 def preprocess_input(x, data_format=None):
     return imagenet_utils.preprocess_input(
         x, data_format=data_format, mode="tf"
     )
 
 
-@keras_export("keras.applications.xception.decode_predictions")
+@keras_mini_export("ncps.mini_keras.applications.xception.decode_predictions")
 def decode_predictions(preds, top=5):
     return imagenet_utils.decode_predictions(preds, top=top)
 

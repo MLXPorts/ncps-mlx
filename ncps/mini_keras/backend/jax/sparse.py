@@ -1,9 +1,9 @@
 import functools
 
-import jax.experimental.sparse as jax_sparse
+import jax.experimental.sparse as jax_sparse # type: ignore
 import jax.numpy as jnp
 
-from keras.src.utils import jax_utils
+from ncps.mini_keras.utils import jax_utils
 
 
 def axis_shape_dims_for_broadcast_in_dim(axis, input_shape, insert_dims):
