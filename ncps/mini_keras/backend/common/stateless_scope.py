@@ -21,7 +21,7 @@ class StatelessScope:
 
     ```python
     state_mapping = [(k, ops.ones(k.shape, k.dtype)) for k in model.weights]
-    with keras.StatelessScope(state_mapping) as scope:
+    with ncps.mini_keras.StatelessScope(state_mapping) as scope:
         outputs = model.some_function(inputs)
 
     # All model variables remain unchanged. Their new values can be

@@ -21,7 +21,12 @@ import threading
 from typing import Union
 import warnings
 
-import mlx.core as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
 
 from tensorflow.core.framework import dataset_metadata_pb2
 from tensorflow.core.framework import dataset_options_pb2
@@ -845,7 +850,7 @@ class DatasetV2(
     def _normalize_id(self, iterator_id):
       # In debug mode, iterator ids may be eagerly-generated np.arrays instead
       # of Tensors. We convert them to scalars to make them hashable.
-      if isinstance(iterator_id, np.ndarray):
+      if isinstance(iterator_id, BackendArray):
         return iterator_id.item()
       return iterator_id
 
@@ -4779,7 +4784,7 @@ class NumpyIterator(tracking_base.Trackable):
         numpy = x._numpy()  # pylint: disable=protected-access
       else:
         numpy = x.numpy()
-      if isinstance(numpy, np.ndarray):
+      if isinstance(numpy, BackendArray):
         # `numpy` shares the same underlying buffer as the `x` Tensor.
         # Tensors are expected to be immutable, so we disable writes.
         numpy.setflags(write=False)
@@ -4917,7 +4922,7 @@ class _OptionsDataset(UnaryUnchangedStructureDataset):
     self._options_attr._set_mutable(False)
 
 
-def normalize_to_dense(dataset: Dataset):
+def normalize_to_dense(dataset: Dataset): # type: ignore
   """Normalizes non-tensor components in a dataset to dense representations.
 
   This is necessary for dataset transformations that slice along the batch

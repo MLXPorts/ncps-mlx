@@ -27,7 +27,7 @@ class Initializer:
             self.stddev = stddev
 
         def __call__(self, shape, dtype=None, **kwargs):
-            return keras.random.normal(
+            return ncps.mini_keras.random.normal(
                 shape, mean=self.mean, stddev=self.stddev, dtype=dtype
             )
 

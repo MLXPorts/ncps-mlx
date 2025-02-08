@@ -31,15 +31,15 @@ def save_model(model, filepath, overwrite=True, zipped=None, **kwargs):
     Example:
 
     ```python
-    model = keras.Sequential(
+    model = ncps.mini_keras.Sequential(
         [
-            keras.layers.Dense(5, input_shape=(3,)),
-            keras.layers.Softmax(),
+            ncps.mini_keras.layers.Dense(5, input_shape=(3,)),
+            ncps.mini_keras.layers.Softmax(),
         ],
     )
     model.save("model.keras")
-    loaded_model = keras.saving.load_model("model.keras")
-    x = keras.random.uniform((10, 3))
+    loaded_model = ncps.mini_keras.saving.load_model("model.keras")
+    x = ncps.mini_keras.random.uniform((10, 3))
     assert np.allclose(model.predict(x), loaded_model.predict(x))
     ```
 
@@ -144,11 +144,11 @@ def load_model(filepath, custom_objects=None, compile=True, safe_mode=True):
     Example:
 
     ```python
-    model = keras.Sequential([
-        keras.layers.Dense(5, input_shape=(3,)),
-        keras.layers.Softmax()])
+    model = ncps.mini_keras.Sequential([
+        ncps.mini_keras.layers.Dense(5, input_shape=(3,)),
+        ncps.mini_keras.layers.Softmax()])
     model.save("model.keras")
-    loaded_model = keras.saving.load_model("model.keras")
+    loaded_model = ncps.mini_keras.saving.load_model("model.keras")
     x = np.random.random((10, 3))
     assert np.allclose(model.predict(x), loaded_model.predict(x))
     ```

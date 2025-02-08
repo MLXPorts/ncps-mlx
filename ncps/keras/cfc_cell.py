@@ -18,11 +18,11 @@ import keras
 # http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
 @keras.utils.register_keras_serializable(package="", name="lecun_tanh")
 def lecun_tanh(x):
-    return 1.7159 * keras.activations.tanh(0.666 * x)
+    return 1.7159 * ncps.mini_keras.activations.tanh(0.666 * x)
 
 
 # Register the custom activation function
-from keras.src.activations import ALL_OBJECTS_DICT
+from ncps.mini_keras.src.activations import ALL_OBJECTS_DICT
 ALL_OBJECTS_DICT["lecun_tanh"] = lecun_tanh
 
 
@@ -70,7 +70,7 @@ class CfCCell(keras.layers.Layer):
             raise ValueError(f"Unknown mode '{mode}', valid options are {str(allowed_modes)}")
         self.mode = mode
         self.backbone_fn = None
-        self._activation = keras.activations.get(activation)
+        self._activation = ncps.mini_keras.activations.get(activation)
         self._backbone_units = backbone_units
         self._backbone_layers = backbone_layers
         self._backbone_dropout = backbone_dropout
@@ -81,7 +81,7 @@ class CfCCell(keras.layers.Layer):
         return self.units
 
     def build(self, input_shape):
-        if isinstance(input_shape[0], tuple) or isinstance(input_shape[0], keras.KerasTensor):
+        if isinstance(input_shape[0], tuple) or isinstance(input_shape[0], ncps.mini_keras.KerasTensor):
             # Nested tuple -> First item represent feature dimension
             input_dim = input_shape[0][-1]
         else:
@@ -93,7 +93,7 @@ class CfCCell(keras.layers.Layer):
                 backbone_layers.append(keras.layers.Dense(self._backbone_units, self._activation, name=f"backbone{i}"))
                 backbone_layers.append(keras.layers.Dropout(self._backbone_dropout))
 
-            self.backbone_fn = keras.models.Sequential(backbone_layers)
+            self.backbone_fn = ncps.mini_keras.models.Sequential(backbone_layers)
             self.backbone_fn.build((None, self.state_size + input_dim))
             cat_shape = int(self._backbone_units)
         else:
@@ -133,8 +133,8 @@ class CfCCell(keras.layers.Layer):
                 name="ff2_bias",
             )
 
-            self.time_a = keras.layers.Dense(self.state_size, name="time_a")
-            self.time_b = keras.layers.Dense(self.state_size, name="time_b")
+            self.time_a = ncps.mini_keras.layers.Dense(self.state_size, name="time_a")
+            self.time_b = ncps.mini_keras.layers.Dense(self.state_size, name="time_b")
             input_shape = (None, self.state_size + input_dim)
             if self._backbone_layers > 0:
                 input_shape = self.backbone_fn.output_shape
@@ -146,23 +146,23 @@ class CfCCell(keras.layers.Layer):
         if isinstance(inputs, (tuple, list)):
             # Irregularly sampled mode
             inputs, t = inputs
-            t = keras.ops.reshape(t, [-1, 1])
+            t = ncps.mini_keras.ops.reshape(t, [-1, 1])
         else:
             # Regularly sampled mode (elapsed time = 1 second)
             t = kwargs.get("time") or 1.0
-        x = keras.layers.Concatenate()([inputs, states[0]])
+        x = ncps.mini_keras.layers.Concatenate()([inputs, states[0]])
         if self._backbone_layers > 0:
             x = self.backbone_fn(x)
         if self.sparsity_mask is not None:
             ff1_kernel = self.ff1_kernel * self.sparsity_mask
-            ff1 = keras.ops.matmul(x, ff1_kernel) + self.ff1_bias
+            ff1 = ncps.mini_keras.ops.matmul(x, ff1_kernel) + self.ff1_bias
         else:
-            ff1 = keras.ops.matmul(x, self.ff1_kernel) + self.ff1_bias
+            ff1 = ncps.mini_keras.ops.matmul(x, self.ff1_kernel) + self.ff1_bias
         if self.mode == "pure":
             # Solution
             new_hidden = (
                 -self.A
-                * keras.ops.exp(-t * (keras.ops.abs(self.w_tau) + keras.ops.abs(ff1)))
+                * ncps.mini_keras.ops.exp(-t * (keras.ops.abs(self.w_tau) + ncps.mini_keras.ops.abs(ff1)))
                 * ff1
                 + self.A
             )
@@ -170,12 +170,12 @@ class CfCCell(keras.layers.Layer):
             # Cfc
             if self.sparsity_mask is not None:
                 ff2_kernel = self.ff2_kernel * self.sparsity_mask
-                ff2 = keras.ops.matmul(x, ff2_kernel) + self.ff2_bias
+                ff2 = ncps.mini_keras.ops.matmul(x, ff2_kernel) + self.ff2_bias
             else:
-                ff2 = keras.ops.matmul(x, self.ff2_kernel) + self.ff2_bias
+                ff2 = ncps.mini_keras.ops.matmul(x, self.ff2_kernel) + self.ff2_bias
             t_a = self.time_a(x)
             t_b = self.time_b(x)
-            t_interp = keras.activations.sigmoid(-t_a * t + t_b)
+            t_interp = ncps.mini_keras.activations.sigmoid(-t_a * t + t_b)
             if self.mode == "no_gate":
                 new_hidden = ff1 + t_interp * ff2
             else:

@@ -129,7 +129,7 @@ class RNN(Layer):
     Examples:
 
     ```python
-    from keras.layers import RNN
+    from ncps.mini_keras.layers import RNN
     from keras import ops
 
     # First, let's define a RNN Cell, as a layer subclass.
@@ -159,14 +159,14 @@ class RNN(Layer):
     # Let's use this cell in a RNN layer:
 
     cell = MinimalRNNCell(32)
-    x = keras.Input((None, 5))
+    x = ncps.mini_keras.Input((None, 5))
     layer = RNN(cell)
     y = layer(x)
 
     # Here's how to use the cell to build a stacked RNN:
 
     cells = [MinimalRNNCell(32), MinimalRNNCell(64)]
-    x = keras.Input((None, 5))
+    x = ncps.mini_keras.Input((None, 5))
     layer = RNN(cells)
     y = layer(x)
     ```

@@ -1,7 +1,6 @@
 import copy
 import inspect
 import typing
-import mlx.core as mx
 
 from ncps.mini_keras import backend
 from ncps.mini_keras import tree
@@ -15,7 +14,6 @@ from ncps.mini_keras.legacy.saving import serialization as legacy_serialization
 from ncps.mini_keras.models.functional import Functional
 from ncps.mini_keras.models.model import Model
 from ncps.mini_keras.saving import serialization_lib
-from ncps.mini_keras.backend import KerasTensor  # Add this import
 
 
 @keras_mini_export(["ncps.mini_keras.Sequential", "ncps.mini_keras.models.Sequential"])
@@ -25,21 +23,21 @@ class Sequential(Model):
     Examples:
 
     ```python
-    model = keras.Sequential()
+    model = ncps.mini_keras.Sequential()
     model.add(keras.Input(shape=(16,)))
     model.add(keras.layers.Dense(8))
 
     # Note that you can also omit the initial `Input`.
     # In that case the model doesn't have any weights until the first call
     # to a training/evaluation method (since it isn't yet built):
-    model = keras.Sequential()
+    model = ncps.mini_keras.Sequential()
     model.add(keras.layers.Dense(8))
     model.add(keras.layers.Dense(4))
     # model.weights not created yet
 
     # Whereas if you specify an `Input`, the model gets built
     # continuously as you are adding layers:
-    model = keras.Sequential()
+    model = ncps.mini_keras.Sequential()
     model.add(keras.Input(shape=(16,)))
     model.add(keras.layers.Dense(8))
     len(model.weights)  # Returns "2"
@@ -47,7 +45,7 @@ class Sequential(Model):
     # When using the delayed-build pattern (no input shape specified), you can
     # choose to manually build your model by calling
     # `build(batch_input_shape)`:
-    model = keras.Sequential()
+    model = ncps.mini_keras.Sequential()
     model.add(keras.layers.Dense(8))
     model.add(keras.layers.Dense(4))
     model.build((None, 16))
@@ -56,7 +54,7 @@ class Sequential(Model):
     # Note that when using the delayed-build pattern (no input shape specified),
     # the model gets built the first time you call `fit`, `eval`, or `predict`,
     # or the first time you call the model on some input data.
-    model = keras.Sequential()
+    model = ncps.mini_keras.Sequential()
     model.add(keras.layers.Dense(8))
     model.add(keras.layers.Dense(1))
     model.compile(optimizer='sgd', loss='mse')
@@ -89,7 +87,7 @@ class Sequential(Model):
             if getattr(layer, "_input_shape_arg", None) is not None:
                 self.add(InputLayer(shape=layer._input_shape_arg))
 
-        # If we are passed a Keras tensor created by keras.Input(), we
+        # If we are passed a Keras tensor created by ncps.mini_keras.Input(), we
         # extract the input layer from its keras history and use that.
         if hasattr(layer, "_keras_history"):
             origin_layer = layer._keras_history[0]
@@ -155,41 +153,60 @@ class Sequential(Model):
     def _obj_type(self):
         return "Sequential"
 
-    def build(self, input_shape):
-        """Builds the model based on input shapes received."""
-        input_shape = tuple(input_shape)
-        self.built = True
-
-        if not self.layers:
+    def build(self, input_shape=None):
+        try:
+            input_shape = standardize_shape(input_shape)
+        except:
+            # Do not attempt to build if the model does not have a single
+            # input tensor.
             return
-
-        # Check input type and convert if necessary
-        if backend.backend() == "mlx":
-            # Get dtype as string, defaulting to "float32"
-            dtype = getattr(self.layers[0], "dtype", "float32")
+        if not self._layers:
+            raise ValueError(
+                f"Sequential model {self.name} cannot be built because it has "
+                "no layers. Call `model.add(layer)`."
+            )
+        if isinstance(self._layers[0], InputLayer):
+            if self._layers[0].batch_shape != input_shape:
+                raise ValueError(
+                    f"Sequential model '{self.name}' has already been "
+                    "configured to use input shape "
+                    f"{self._layers[0].batch_shape}. You cannot build it "
+                    f"with input_shape {input_shape}"
+                )
         else:
-            dtype = self.layers[0].dtype
+            dtype = self._layers[0].compute_dtype
+            self._layers = [
+                InputLayer(batch_shape=input_shape, dtype=dtype)
+            ] + self._layers
 
-        x = backend.KerasTensor(input_shape, dtype=dtype)
-        
-        for layer in self.layers:
+        # Build functional model
+        inputs = self._layers[0].output
+        x = inputs
+        for layer in self._layers[1:]:
             try:
                 x = layer(x)
-            except (AttributeError, TypeError) as e:
-                if "dtype" in str(e) or "Dtype" in str(e):
-                    # Get type as string
-                    if isinstance(x, KerasTensor):
-                        x_dtype = x.dtype
-                    else:
-                        x_dtype = "float32"
-                    # Create new tensor with proper dtype
-                    x = backend.cast(x, dtype=x_dtype)
-                    x = layer(x)
-                else:
-                    raise e
-
-        self._output_shape = tuple(x.shape)
-        self._dtype = dtype
+            except NotImplementedError:
+                # Can happen if shape inference is not implemented.
+                # TODO: consider reverting inbound nodes on layers processed.
+                return
+            except TypeError as e:
+                signature = inspect.signature(layer.call)
+                positional_args = [
+                    param
+                    for param in signature.parameters.values()
+                    if param.default == inspect.Parameter.empty
+                ]
+                if len(positional_args) != 1:
+                    raise ValueError(
+                        "Layers added to a Sequential model "
+                        "can only have a single positional argument, "
+                        f"the input tensor. Layer {layer.__class__.__name__} "
+                        f"has multiple positional arguments: {positional_args}"
+                    )
+                raise e
+        outputs = x
+        self._functional = Functional(inputs=inputs, outputs=outputs)
+        self.built = True
 
     def call(self, inputs, training=None, mask=None):
         if self._functional:

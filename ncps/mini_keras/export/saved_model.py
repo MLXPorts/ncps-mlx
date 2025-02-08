@@ -223,8 +223,8 @@ class ExportArchive(BackendExportArchive):
             name="serve",
             fn=model.call,
             input_signature=[
-                keras.InputSpec(shape=(None, 3), dtype="float32"),
-                keras.InputSpec(shape=(None, 4), dtype="float32"),
+                ncps.mini_keras.InputSpec(shape=(None, 3), dtype="float32"),
+                ncps.mini_keras.InputSpec(shape=(None, 4), dtype="float32"),
             ],
         )
         ```
@@ -234,7 +234,7 @@ class ExportArchive(BackendExportArchive):
         a Functional model with 2 inputs):
 
         ```python
-        model = keras.Model(inputs=[x1, x2], outputs=outputs)
+        model = ncps.mini_keras.Model(inputs=[x1, x2], outputs=outputs)
 
         export_archive = ExportArchive()
         export_archive.track(model)
@@ -243,8 +243,8 @@ class ExportArchive(BackendExportArchive):
             fn=model.call,
             input_signature=[
                 [
-                    keras.InputSpec(shape=(None, 3), dtype="float32"),
-                    keras.InputSpec(shape=(None, 4), dtype="float32"),
+                    ncps.mini_keras.InputSpec(shape=(None, 3), dtype="float32"),
+                    ncps.mini_keras.InputSpec(shape=(None, 4), dtype="float32"),
                 ],
             ],
         )
@@ -253,7 +253,7 @@ class ExportArchive(BackendExportArchive):
         This also works with dictionary inputs:
 
         ```python
-        model = keras.Model(inputs={"x1": x1, "x2": x2}, outputs=outputs)
+        model = ncps.mini_keras.Model(inputs={"x1": x1, "x2": x2}, outputs=outputs)
 
         export_archive = ExportArchive()
         export_archive.track(model)
@@ -262,8 +262,8 @@ class ExportArchive(BackendExportArchive):
             fn=model.call,
             input_signature=[
                 {
-                    "x1": keras.InputSpec(shape=(None, 3), dtype="float32"),
-                    "x2": keras.InputSpec(shape=(None, 4), dtype="float32"),
+                    "x1": ncps.mini_keras.InputSpec(shape=(None, 3), dtype="float32"),
+                    "x2": ncps.mini_keras.InputSpec(shape=(None, 4), dtype="float32"),
                 },
             ],
         )
@@ -318,7 +318,7 @@ class ExportArchive(BackendExportArchive):
                     "    name='call',\n"
                     "    fn=model.call,\n"
                     "    input_signature=[\n"
-                    "        keras.InputSpec(\n"
+                    "        ncps.mini_keras.InputSpec(\n"
                     "            shape=(None, 224, 224, 3),\n"
                     "            dtype='float32',\n"
                     "        )\n"

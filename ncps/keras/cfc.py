@@ -31,7 +31,7 @@ class CfC(keras.layers.RNN):
             backbone_units: int = None,
             backbone_layers: int = None,
             backbone_dropout: float = None,
-            sparsity_mask: keras.layers.Layer = None,
+            sparsity_mask: ncps.mini_keras.layers.Layer = None,
             fully_recurrent: bool = True,
             return_sequences: bool = False,
             return_state: bool = False,
@@ -48,7 +48,7 @@ class CfC(keras.layers.RNN):
             >>> from ncps.keras import CfC
             >>>
             >>> rnn = CfC(50)
-            >>> x = keras.random.uniform((2, 10, 20))  # (B,L,C)
+            >>> x = ncps.mini_keras.random.uniform((2, 10, 20))  # (B,L,C)
             >>> y = rnn(x)
 
         :param units: Number of hidden units

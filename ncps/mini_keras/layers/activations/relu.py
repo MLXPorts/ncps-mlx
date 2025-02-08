@@ -17,7 +17,7 @@ class ReLU(Layer):
 
     Example:
     ``` python
-    relu_layer = keras.layers.ReLU(
+    relu_layer = ncps.mini_keras.layers.ReLU(
         max_value=10,
         negative_slope=0.5,
         threshold=0,

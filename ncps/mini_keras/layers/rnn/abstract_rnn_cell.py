@@ -1,10 +1,9 @@
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.layers.layer import Layer
-from abc import ABC
-from .rnn import RNN
+from abc import ABC, abstractmethod
 
 @keras_mini_export("ncps.mini_keras.layers.AbstractRNNCell")
-class AbstractRNNCell(RNN, ABC):
+class AbstractRNNCell(Layer, ABC):
     """Abstract base class for RNN cells.
 
     This class defines the interface for custom RNN cells. Subclasses must implement
@@ -13,33 +12,44 @@ class AbstractRNNCell(RNN, ABC):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._state_size = None
+        self._output_size = None
 
     @property
+    @abstractmethod
     def state_size(self):
-        return self.state_size
+        """Size of the state used by the cell."""
+        return self._state_size
 
     @property
+    @abstractmethod
     def output_size(self):
-        return self.output_size
+        """Size of the output produced by the cell."""
+        return self._output_size
 
+    @abstractmethod
     def build(self, input_shape):
-        self.build(input_shape)
-        self.built = True
+        """Builds the cell's internal components."""
+        pass
 
-    def call(self, inputs, states):
-        return self.call(inputs, states)
+    @abstractmethod
+    def call(self, inputs, states, **kwargs):
+        """The main computation performed by the cell."""
+        pass
 
     def get_initial_state(self, inputs=None, batch_size=None, dtype=None):
-        return self.get_initial_state(inputs, batch_size, dtype)
+        """Returns the initial state for the cell."""
+        if batch_size is None and inputs is not None:
+            batch_size = inputs.shape[0]
+        return [
+            ncps.mini_keras.ops.zeros((batch_size, self.state_size), dtype=dtype)
+            for _ in range(len(self.state_size) if isinstance(self.state_size, (list, tuple)) else 1)
+        ]
 
     def get_config(self):
-        config = super().get_config()
-        config.update(self.get_config())
-        return config
+        """Returns the configuration of the cell."""
+        return super().get_config()
 
     @classmethod
     def from_config(cls, config):
         return cls(**config)
-
-    def reset_recurrent_dropout_mask(self):
-        self.base_cell.reset_recurrent_dropout_mask()

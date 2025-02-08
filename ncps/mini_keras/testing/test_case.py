@@ -4,7 +4,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import mlx.core as np
+try:
+    import mlx.core as mx
+    BackendArray = mx.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
 from absl.testing import parameterized
 
 from ncps.mini_keras import backend
@@ -40,9 +45,9 @@ class TestCase(parameterized.TestCase, unittest.TestCase):
         return temp_dir
 
     def assertAllClose(self, x1, x2, atol=1e-6, rtol=1e-6, msg=None):
-        if not isinstance(x1, np.ndarray):
+        if not isinstance(x1, BackendArray):
             x1 = backend.convert_to_numpy(x1)
-        if not isinstance(x2, np.ndarray):
+        if not isinstance(x2, BackendArray):
             x2 = backend.convert_to_numpy(x2)
         np.testing.assert_allclose(x1, x2, atol=atol, rtol=rtol, err_msg=msg)
 
@@ -58,9 +63,9 @@ class TestCase(parameterized.TestCase, unittest.TestCase):
 
     def assertAlmostEqual(self, x1, x2, decimal=3, msg=None):
         msg = msg or ""
-        if not isinstance(x1, np.ndarray):
+        if not isinstance(x1, BackendArray):
             x1 = backend.convert_to_numpy(x1)
-        if not isinstance(x2, np.ndarray):
+        if not isinstance(x2, BackendArray):
             x2 = backend.convert_to_numpy(x2)
         np.testing.assert_almost_equal(x1, x2, decimal=decimal, err_msg=msg)
 
@@ -88,7 +93,7 @@ class TestCase(parameterized.TestCase, unittest.TestCase):
             else:
                 self.assertNotIsInstance(x, tf.SparseTensor)
         elif backend.backend() == "jax":
-            import jax.experimental.sparse as jax_sparse
+            import jax.experimental.sparse as jax_sparse # type: ignore
 
             if sparse:
                 self.assertIsInstance(x, jax_sparse.JAXSparse)
@@ -695,7 +700,7 @@ def create_eager_tensors(input_shape, dtype, sparse):
                 return tf.sparse.from_dense(x)
 
         elif backend.backend() == "jax":
-            import jax.experimental.sparse as jax_sparse
+            import jax.experimental.sparse as jax_sparse # type: ignore
 
             def create_fn(shape, dt):
                 rng = np.random.default_rng(0)

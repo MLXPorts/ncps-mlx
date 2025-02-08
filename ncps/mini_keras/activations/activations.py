@@ -1,6 +1,5 @@
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
-
 from ncps.mini_keras.api_export import keras_mini_export
 
 
@@ -18,13 +17,13 @@ def relu(x, negative_slope=0.0, max_value=None, threshold=0.0):
     Examples:
 
     >>> x = [-10, -5, 0.0, 5, 10]
-    >>> keras.activations.relu(x)
+    >>> ncps.mini_keras.activations.relu(x)
     [ 0.,  0.,  0.,  5., 10.]
-    >>> keras.activations.relu(x, negative_slope=0.5)
+    >>> ncps.mini_keras.activations.relu(x, negative_slope=0.5)
     [-5. , -2.5,  0. ,  5. , 10. ]
-    >>> keras.activations.relu(x, max_value=5.)
+    >>> ncps.mini_keras.activations.relu(x, max_value=5.)
     [0., 0., 0., 5., 5.]
-    >>> keras.activations.relu(x, threshold=5.)
+    >>> ncps.mini_keras.activations.relu(x, threshold=5.)
     [-0., -0.,  0.,  0., 10.]
 
     Args:

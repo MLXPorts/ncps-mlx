@@ -48,7 +48,7 @@ class HashedCrossing(Layer):
 
     **Crossing two scalar features.**
 
-    >>> layer = keras.layers.HashedCrossing(
+    >>> layer = ncps.mini_keras.layers.HashedCrossing(
     ...     num_bins=5)
     >>> feat1 = np.array(['A', 'B', 'A', 'B', 'A'])
     >>> feat2 = np.array([101, 101, 101, 102, 102])
@@ -57,7 +57,7 @@ class HashedCrossing(Layer):
 
     **Crossing and one-hotting two scalar features.**
 
-    >>> layer = keras.layers.HashedCrossing(
+    >>> layer = ncps.mini_keras.layers.HashedCrossing(
     ...     num_bins=5, output_mode='one_hot')
     >>> feat1 = np.array(['A', 'B', 'A', 'B', 'A'])
     >>> feat2 = np.array([101, 101, 101, 102, 102])

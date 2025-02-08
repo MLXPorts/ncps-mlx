@@ -1,4 +1,7 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 from absl.testing import parameterized
 
@@ -33,7 +36,7 @@ class PermuteTest(testing.TestCase):
                 inputs = tf.sparse.from_dense(inputs)
                 expected_output = tf.sparse.from_dense(expected_output)
             elif backend.backend() == "jax":
-                import jax.experimental.sparse as jax_sparse
+                import jax.experimental.sparse as jax_sparse # type: ignore
 
                 inputs = jax_sparse.BCOO.fromdense(inputs)
                 expected_output = jax_sparse.BCOO.fromdense(expected_output)

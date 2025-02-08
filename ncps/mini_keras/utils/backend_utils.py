@@ -3,6 +3,7 @@ import importlib
 import os
 import sys
 
+import ncps
 from ncps.mini_keras import backend as backend_module
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.backend.common import global_state
@@ -104,7 +105,7 @@ def set_backend(backend):
     Example:
 
     ```python
-    keras.config.set_backend("jax")
+    ncps.mini_keras.config.set_backend("jax")
     ```
 
     ⚠️ WARNING ⚠️: Using this function is dangerous and should be done
@@ -132,7 +133,7 @@ def set_backend(backend):
     # Finally: refresh all imported Keras submodules.
     globs = copy.copy(globals())
     for key, value in globs.items():
-        if value.__class__ == keras.__class__:
+        if value.__class__ == ncps.mini_keras.__class__:
             if str(value).startswith("<module 'keras."):
                 module_name = str(value)
                 module_name = module_name[module_name.find("'") + 1 :]

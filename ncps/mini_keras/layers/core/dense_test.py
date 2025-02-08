@@ -1,6 +1,10 @@
 import os
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
 import pytest
 from absl.testing import parameterized
 
@@ -123,7 +127,7 @@ class DenseTest(testing.TestCase):
 
             inputs = tf.sparse.from_dense(inputs)
         elif backend.backend() == "jax":
-            import jax.experimental.sparse as jax_sparse
+            import jax.experimental.sparse as jax_sparse # type: ignore
 
             inputs = jax_sparse.BCOO.fromdense(inputs)
         else:
@@ -608,7 +612,7 @@ class DenseTest(testing.TestCase):
                 optimizer.apply(grads, layer.trainable_variables)
 
         elif backend.backend() == "jax":
-            import jax
+            import jax # type: ignore
 
             def stateless_loss_fn(trainable_variables, x, dy):
                 y = layer.stateless_call(

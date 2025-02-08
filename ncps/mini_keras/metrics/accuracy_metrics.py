@@ -30,7 +30,7 @@ class Accuracy(reduction_metrics.MeanMetricWrapper):
 
     Examples:
 
-    >>> m = keras.metrics.Accuracy()
+    >>> m = ncps.mini_keras.metrics.Accuracy()
     >>> m.update_state([[1], [2], [3], [4]], [[0], [2], [3], [4]])
     >>> m.result()
     0.75
@@ -89,7 +89,7 @@ class BinaryAccuracy(reduction_metrics.MeanMetricWrapper):
 
     Example:
 
-    >>> m = keras.metrics.BinaryAccuracy()
+    >>> m = ncps.mini_keras.metrics.BinaryAccuracy()
     >>> m.update_state([[1], [1], [0], [0]], [[0.98], [1], [0], [0.6]])
     >>> m.result()
     0.75
@@ -182,7 +182,7 @@ class CategoricalAccuracy(reduction_metrics.MeanMetricWrapper):
 
     Example:
 
-    >>> m = keras.metrics.CategoricalAccuracy()
+    >>> m = ncps.mini_keras.metrics.CategoricalAccuracy()
     >>> m.update_state([[0, 0, 1], [0, 1, 0]], [[0.1, 0.9, 0.8],
     ...                 [0.05, 0.95, 0]])
     >>> m.result()
@@ -271,7 +271,7 @@ class SparseCategoricalAccuracy(reduction_metrics.MeanMetricWrapper):
 
     Example:
 
-    >>> m = keras.metrics.SparseCategoricalAccuracy()
+    >>> m = ncps.mini_keras.metrics.SparseCategoricalAccuracy()
     >>> m.update_state([[2], [1]], [[0.1, 0.6, 0.3], [0.05, 0.95, 0]])
     >>> m.result()
     0.5
@@ -342,7 +342,7 @@ class TopKCategoricalAccuracy(reduction_metrics.MeanMetricWrapper):
 
     Example:
 
-    >>> m = keras.metrics.TopKCategoricalAccuracy(k=1)
+    >>> m = ncps.mini_keras.metrics.TopKCategoricalAccuracy(k=1)
     >>> m.update_state([[0, 0, 1], [0, 1, 0]],
     ...                [[0.1, 0.9, 0.8], [0.05, 0.95, 0]])
     >>> m.result()
@@ -470,7 +470,7 @@ class SparseTopKCategoricalAccuracy(reduction_metrics.MeanMetricWrapper):
 
     Example:
 
-    >>> m = keras.metrics.SparseTopKCategoricalAccuracy(k=1)
+    >>> m = ncps.mini_keras.metrics.SparseTopKCategoricalAccuracy(k=1)
     >>> m.update_state([2, 1], [[0.1, 0.9, 0.8], [0.05, 0.95, 0]])
     >>> m.result()
     0.5
@@ -481,7 +481,7 @@ class SparseTopKCategoricalAccuracy(reduction_metrics.MeanMetricWrapper):
     >>> m.result()
     0.3
 
-    >>> m = keras.metrics.SparseTopKCategoricalAccuracy(k=1,
+    >>> m = ncps.mini_keras.metrics.SparseTopKCategoricalAccuracy(k=1,
     ...                                                from_sorted_ids=True)
     >>> m.update_state([2, 1], [[1, 0, 3], [1, 2, 3]])
     >>> m.result()

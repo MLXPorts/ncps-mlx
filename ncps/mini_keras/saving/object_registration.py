@@ -189,7 +189,7 @@ def get_registered_name(obj):
     ]
 )
 def get_registered_object(name, custom_objects=None, module_objects=None):
-    """Returns the class associated with `name` if it is registered with Keras.
+    """Returns the class associated with `name` if it is registered with ncps.mini_keras.
 
     This function is part of the Keras serialization and deserialization
     framework. It maps strings to the objects associated with them for

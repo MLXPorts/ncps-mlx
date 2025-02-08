@@ -33,9 +33,9 @@ class RandomHue(BaseImagePreprocessingLayer):
     Example:
 
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
-    random_hue = keras.layers.RandomHue(factor=0.5, value_range=[0, 1])
-    images = keras.ops.cast(images, "float32")
+    (images, labels), _ = ncps.mini_keras.datasets.cifar10.load_data()
+    random_hue = ncps.mini_keras.layers.RandomHue(factor=0.5, value_range=[0, 1])
+    images = ncps.mini_keras.ops.cast(images, "float32")
     augmented_images_batch = random_hue(images[:8])
     ```
     """

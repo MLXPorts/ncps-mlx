@@ -1,5 +1,8 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.backend.config import standardize_data_format
 from ncps.mini_keras.utils import dataset_utils
@@ -123,7 +126,7 @@ def image_dataset_from_directory(
             (of size `image_size`) that matches the target aspect ratio. By
             default (`pad_to_aspect_ratio=False`), aspect ratio may not be
             preserved.
-        data_format: If None uses keras.config.image_data_format()
+        data_format: If None uses ncps.mini_keras.config.image_data_format()
             otherwise either 'channel_last' or 'channel_first'.
         verbose: Whether to display number information on classes and
             number of files found. Defaults to `True`.

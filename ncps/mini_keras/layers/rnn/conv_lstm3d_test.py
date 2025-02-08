@@ -1,4 +1,8 @@
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 import pytest
 
 from ncps.mini_keras import backend
@@ -7,7 +11,7 @@ from ncps.mini_keras import layers
 from ncps.mini_keras import testing
 
 
-class ConvLSTM3DTest(testing.TestCase):
+class ConvLSTM1DTest(testing.TestCase):
     @pytest.mark.requires_trainable_backend
     def test_basics(self):
         channels_last = backend.config.image_data_format() == "channels_last"

@@ -1,6 +1,9 @@
 import ml_dtypes
-import mlx.core as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import tree
 from ncps.mini_keras.api_export import keras_mini_export
@@ -604,7 +607,7 @@ def stop_gradient(variable):
 
     Examples:
 
-    >>> var = keras.backend.convert_to_tensor(
+    >>> var = ncps.mini_keras.backend.convert_to_tensor(
     ...     [1., 2., 3.],
     ...     dtype="float32"
     ... )

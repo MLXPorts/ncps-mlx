@@ -1,4 +1,15 @@
-import mlx.core as np
+try:
+    import jax.numpy as jnp # type: ignore
+    BackendArray = jnp.ndarray
+except ImportError:
+    try:
+        import mlx.core as mx
+        BackendArray = mx.array
+        def to_array(x): return mx.array(x)
+    except ImportError:
+        import numpy as np
+        BackendArray = np.ndarray
+        def to_array(x): return np.array(x)
 import pytest
 from absl.testing import parameterized
 
@@ -81,7 +92,7 @@ class RandomCorrectnessTest(testing.TestCase):
         self.assertLessEqual(ops.max(res), max)
         self.assertGreaterEqual(ops.max(res), min)
         # Torch has incomplete dtype support for uints; will remap some dtypes.
-        if keras.backend.backend() != "torch":
+        if ncps.mini_keras.backend.backend() != "torch":
             self.assertEqual(backend.standardize_dtype(res.dtype), dtype)
 
     @parameterized.parameters(
@@ -376,45 +387,42 @@ class RandomBehaviorTest(testing.TestCase):
             random.uniform((3, 4), minval=0, maxval=10, dtype="int64")
 
     @pytest.mark.skipif(
-        keras.backend.backend() != "jax",
+        ncps.mini_keras.backend.backend() != "jax",
         reason="This test requires `jax` as the backend.",
     )
     def test_dropout_jax_jit_stateless(self):
-        import jax
-        import mlx as jnp
-
+        import jax # type: ignore
         x = ops.ones(3)
 
         @jax.jit
         def train_step(x):
-            with keras.backend.StatelessScope():
-                x = keras.layers.Dropout(rate=0.1)(x, training=True)
+            with ncps.mini_keras.backend.StatelessScope():
+                x = ncps.mini_keras.layers.Dropout(rate=0.1)(x, training=True)
             return x
 
         x = train_step(x)
-        self.assertIsInstance(x, jnp.ndarray)
+        self.assertIsInstance(x, BackendArray)
 
     @pytest.mark.skipif(
-        keras.backend.backend() != "jax",
+        ncps.mini_keras.backend.backend() != "jax",
         reason="This test requires `jax` as the backend.",
     )
     def test_jax_rngkey_seed(self):
-        import jax
-        import mlx as jnp
+        import jax # type: ignore
 
         seed = 1234
         rng = jax.random.PRNGKey(seed)
         self.assertEqual(rng.shape, (2,))
         self.assertEqual(rng.dtype, jnp.uint32)
         x = random.randint((3, 5), 0, 10, seed=rng)
-        self.assertIsInstance(x, jnp.ndarray)
+        self.assertIsInstance(x, BackendArray)
 
     @pytest.mark.skipif(
-        keras.backend.backend() != "jax",
+        ncps.mini_keras.backend.backend() != "jax",
         reason="This test requires `jax` as the backend.",
     )
     def test_jax_unseed_disallowed_during_tracing(self):
-        import jax
+        import jax # type: ignore
 
         @jax.jit
         def jit_fn():
@@ -450,7 +458,7 @@ class RandomDTypeTest(testing.TestCase):
 
     def setUp(self):
         if backend.backend() == "jax":
-            from jax.experimental import enable_x64
+            from jax.experimental import enable_x64 # type: ignore
 
             self.jax_enable_x64 = enable_x64()
             self.jax_enable_x64.__enter__()

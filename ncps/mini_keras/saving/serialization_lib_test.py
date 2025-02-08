@@ -33,7 +33,7 @@ class NestedCustomLayer(keras.layers.Layer):
         self.factor = factor
 
         if dense is None:
-            self.dense = keras.layers.Dense(1, activation=custom_fn)
+            self.dense = ncps.mini_keras.layers.Dense(1, activation=custom_fn)
         else:
             self.dense = serialization_lib.deserialize_keras_object(dense)
         self.activation = serialization_lib.deserialize_keras_object(activation)
@@ -82,7 +82,7 @@ class SerializationLibTest(testing.TestCase):
             self.assertEqual(serialized, reserialized)
 
     def test_builtin_layers(self):
-        layer = keras.layers.Dense(
+        layer = ncps.mini_keras.layers.Dense(
             3,
             name="foo",
             trainable=False,
@@ -98,9 +98,9 @@ class SerializationLibTest(testing.TestCase):
         def tuples_to_lists_str(x):
             return str(x).replace("(", "[").replace(")", "]")
 
-        input = keras.layers.Input(shape=(2,))
+        input = ncps.mini_keras.layers.Input(shape=(2,))
         layer = input[:, 1]
-        model = keras.Model(input, layer)
+        model = ncps.mini_keras.Model(input, layer)
         serialized, _, reserialized = self.roundtrip(model)
         # Anticipate JSON roundtrip mapping tuples to lists:
         serialized_str = tuples_to_lists_str(serialized)
@@ -129,7 +129,7 @@ class SerializationLibTest(testing.TestCase):
         self.assertEqual(serialized, reserialized)
 
         # Test inside layer
-        dense = keras.layers.Dense(1, activation=custom_fn)
+        dense = ncps.mini_keras.layers.Dense(1, activation=custom_fn)
         dense.build((None, 2))
         _, new_dense, _ = self.roundtrip(
             dense, custom_objects={"custom_fn": custom_fn}
@@ -176,7 +176,7 @@ class SerializationLibTest(testing.TestCase):
 
     # TODO
     # def test_lambda_layer(self):
-    #     lmbda = keras.layers.Lambda(lambda x: x**2)
+    #     lmbda = ncps.mini_keras.layers.Lambda(lambda x: x**2)
     #     with self.assertRaisesRegex(ValueError, "arbitrary code execution"):
     #         self.roundtrip(lmbda, safe_mode=True)
 
@@ -187,7 +187,7 @@ class SerializationLibTest(testing.TestCase):
     #     self.assertAllClose(y1, y2, atol=1e-5)
 
     # def test_safe_mode_scope(self):
-    #     lmbda = keras.layers.Lambda(lambda x: x**2)
+    #     lmbda = ncps.mini_keras.layers.Lambda(lambda x: x**2)
     #     with serialization_lib.SafeModeScope(safe_mode=True):
     #         with self.assertRaisesRegex(
     #             ValueError, "arbitrary code execution"
@@ -202,12 +202,12 @@ class SerializationLibTest(testing.TestCase):
 
     @pytest.mark.requires_trainable_backend
     def test_dict_inputs_outputs(self):
-        input_foo = keras.Input((2,), name="foo")
-        input_bar = keras.Input((2,), name="bar")
-        dense = keras.layers.Dense(1)
+        input_foo = ncps.mini_keras.Input((2,), name="foo")
+        input_bar = ncps.mini_keras.Input((2,), name="bar")
+        dense = ncps.mini_keras.layers.Dense(1)
         output_foo = dense(input_foo)
         output_bar = dense(input_bar)
-        model = keras.Model(
+        model = ncps.mini_keras.Model(
             {"foo": input_foo, "bar": input_bar},
             {"foo": output_foo, "bar": output_bar},
         )
@@ -224,13 +224,13 @@ class SerializationLibTest(testing.TestCase):
     @pytest.mark.requires_trainable_backend
     def test_shared_inner_layer(self):
         with serialization_lib.ObjectSharingScope():
-            input_1 = keras.Input((2,))
-            input_2 = keras.Input((2,))
-            shared_layer = keras.layers.Dense(1)
+            input_1 = ncps.mini_keras.Input((2,))
+            input_2 = ncps.mini_keras.Input((2,))
+            shared_layer = ncps.mini_keras.layers.Dense(1)
             output_1 = shared_layer(input_1)
             wrapper_layer = WrapperLayer(shared_layer)
             output_2 = wrapper_layer(input_2)
-            model = keras.Model([input_1, input_2], [output_1, output_2])
+            model = ncps.mini_keras.Model([input_1, input_2], [output_1, output_2])
             _, new_model, _ = self.roundtrip(
                 model, custom_objects={"WrapperLayer": WrapperLayer}
             )
@@ -243,8 +243,8 @@ class SerializationLibTest(testing.TestCase):
         class PlainFunctionalSubclass(keras.Model):
             pass
 
-        inputs = keras.Input((2,), batch_size=3)
-        outputs = keras.layers.Dense(1)(inputs)
+        inputs = ncps.mini_keras.Input((2,), batch_size=3)
+        outputs = ncps.mini_keras.layers.Dense(1)(inputs)
         model = PlainFunctionalSubclass(inputs, outputs)
         x = ops.random.normal((2, 2))
         y1 = model(x)
@@ -259,8 +259,8 @@ class SerializationLibTest(testing.TestCase):
 
         class FunctionalSubclassWCustomInit(keras.Model):
             def __init__(self, num_units=2):
-                inputs = keras.Input((2,), batch_size=3)
-                outputs = keras.layers.Dense(num_units)(inputs)
+                inputs = ncps.mini_keras.Input((2,), batch_size=3)
+                outputs = ncps.mini_keras.layers.Dense(num_units)(inputs)
                 super().__init__(inputs, outputs)
                 self.num_units = num_units
 
@@ -332,14 +332,14 @@ class SerializationLibTest(testing.TestCase):
         self.assertIs(new_layers[0].activation, new_layers[1].activation)
 
     def test_layer_sharing(self):
-        seq = keras.Sequential(
+        seq = ncps.mini_keras.Sequential(
             [
-                keras.Input(shape=(3,)),
-                keras.layers.Dense(5),
-                keras.layers.Softmax(),
+                ncps.mini_keras.Input(shape=(3,)),
+                ncps.mini_keras.layers.Dense(5),
+                ncps.mini_keras.layers.Softmax(),
             ],
         )
-        func = keras.Model(inputs=seq.inputs, outputs=seq.outputs)
+        func = ncps.mini_keras.Model(inputs=seq.inputs, outputs=seq.outputs)
         serialized, deserialized, reserialized = self.roundtrip(func)
         self.assertLen(deserialized.layers, 3)
 
@@ -392,7 +392,7 @@ class MyWrapper(keras.layers.Layer):
 
     @classmethod
     def from_config(cls, config):
-        config["wrapped"] = keras.saving.deserialize_keras_object(
+        config["wrapped"] = ncps.mini_keras.saving.deserialize_keras_object(
             config["wrapped"]
         )
         return cls(**config)

@@ -145,7 +145,7 @@ def flatten_with_path(structure):
 
     Examples:
 
-    >>> keras.flatten_with_path([{"foo": 42}])
+    >>> ncps.mini_keras.flatten_with_path([{"foo": 42}])
     [((0, 'foo'), 42)]
 
 

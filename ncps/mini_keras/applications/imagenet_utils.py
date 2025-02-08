@@ -1,7 +1,11 @@
 try:
     import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
 except ImportError:
     import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
 import json
 import warnings
 
@@ -25,12 +29,12 @@ PREPROCESS_INPUT_DOC = """
   Usage example with `applications.MobileNet`:
 
   ```python
-  i = keras.layers.Input([None, None, 3], dtype="uint8")
+  i = ncps.mini_keras.layers.Input([None, None, 3], dtype="uint8")
   x = ops.cast(i, "float32")
-  x = keras.applications.mobilenet.preprocess_input(x)
-  core = keras.applications.MobileNet()
+  x = ncps.mini_keras.applications.mobilenet.preprocess_input(x)
+  core = ncps.mini_keras.applications.MobileNet()
   x = core(x)
-  model = keras.Model(inputs=[i], outputs=[x])
+  model = ncps.mini_keras.Model(inputs=[i], outputs=[x])
   result = model(image)
   ```
 
@@ -102,11 +106,11 @@ def preprocess_input(x, data_format=None, mode="caffe"):
             "Expected data_format to be one of `channels_first` or "
             f"`channels_last`. Received: data_format={data_format}"
         )
-
-    if isinstance(x, np.ndarray):
-        return _preprocess_numpy_input(x, data_format=data_format, mode=mode)
-    else:
+    x = to_array(x)  # Convert x into the appropriate backend
+    if isinstance(x, BackendArray):
         return _preprocess_tensor_input(x, data_format=data_format, mode=mode)
+    else:
+        raise TypeError(f"Unsupported input type: {type(x)}")
 
 
 preprocess_input.__doc__ = PREPROCESS_INPUT_DOC.format(

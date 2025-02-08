@@ -49,7 +49,7 @@ class DTypePolicyMap(DTypePolicy, MutableMapping):
     policy_2 = dtype_policy_map["layer/dense_2"]  # No hit
     assert policy_0 == DTypePolicy("bfloat16")
     assert policy_1 == QuantizedDTypePolicy("int8", "bfloat16")
-    assert policy_2 == keras.config.dtype_policy()
+    assert policy_2 == ncps.mini_keras.config.dtype_policy()
     ```
 
     Args:

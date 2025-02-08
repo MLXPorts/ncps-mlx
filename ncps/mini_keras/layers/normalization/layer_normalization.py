@@ -54,7 +54,7 @@ class LayerNormalization(Layer):
 
     For example:
 
-    >>> layer = keras.layers.LayerNormalization(axis=[1, 2, 3])
+    >>> layer = ncps.mini_keras.layers.LayerNormalization(axis=[1, 2, 3])
     >>> layer.build([5, 20, 30, 40])
     >>> print(layer.beta.shape)
     (20, 30, 40)

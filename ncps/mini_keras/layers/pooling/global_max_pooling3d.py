@@ -50,7 +50,7 @@ class GlobalMaxPooling3D(BaseGlobalPooling):
     Example:
 
     >>> x = np.random.rand(2, 4, 5, 4, 3)
-    >>> y = keras.layers.GlobalMaxPooling3D()(x)
+    >>> y = ncps.mini_keras.layers.GlobalMaxPooling3D()(x)
     >>> y.shape
     (2, 3)
     """

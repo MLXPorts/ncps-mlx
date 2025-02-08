@@ -70,12 +70,12 @@ class LSTMCell(Layer, DropoutRNNCell):
     Example:
 
     >>> inputs = np.random.random((32, 10, 8))
-    >>> rnn = keras.layers.RNN(keras.layers.LSTMCell(4))
+    >>> rnn = ncps.mini_keras.layers.RNN(keras.layers.LSTMCell(4))
     >>> output = rnn(inputs)
     >>> output.shape
     (32, 4)
-    >>> rnn = keras.layers.RNN(
-    ...    keras.layers.LSTMCell(4),
+    >>> rnn = ncps.mini_keras.layers.RNN(
+    ...    ncps.mini_keras.layers.LSTMCell(4),
     ...    return_sequences=True,
     ...    return_state=True)
     >>> whole_sequence_output, final_state = rnn(inputs)
@@ -352,11 +352,11 @@ class LSTM(RNN):
     For example:
 
     >>> inputs = np.random.random((32, 10, 8))
-    >>> lstm = keras.layers.LSTM(4)
+    >>> lstm = ncps.mini_keras.layers.LSTM(4)
     >>> output = lstm(inputs)
     >>> output.shape
     (32, 4)
-    >>> lstm = keras.layers.LSTM(
+    >>> lstm = ncps.mini_keras.layers.LSTM(
     ...     4, return_sequences=True, return_state=True)
     >>> whole_seq_output, final_memory_state, final_carry_state = lstm(inputs)
     >>> whole_seq_output.shape

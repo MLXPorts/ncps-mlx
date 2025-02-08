@@ -1,6 +1,9 @@
 """Boston housing price regression dataset."""
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.utils.file_utils import get_file

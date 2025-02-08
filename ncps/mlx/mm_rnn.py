@@ -16,7 +16,7 @@
 
 import ncps
 import mlx.core as mx
-from ncps.mini_keras.layers.rnn import AbstractRNNCell
+from ncps.mini_keras.layers import AbstractRNNCell
 from ncps.mini_keras.utils import register_mini_keras_serializable
 
 @register_mini_keras_serializable(package="ncps", name="MixedMemoryRNN")

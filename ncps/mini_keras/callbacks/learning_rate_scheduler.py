@@ -1,4 +1,7 @@
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
@@ -31,12 +34,12 @@ class LearningRateScheduler(Callback):
     ...     else:
     ...         return lr * ops.exp(-0.1)
     >>>
-    >>> model = keras.models.Sequential([keras.layers.Dense(10)])
+    >>> model = ncps.mini_keras.models.Sequential([keras.layers.Dense(10)])
     >>> model.compile(keras.optimizers.SGD(), loss='mse')
     >>> round(model.optimizer.learning_rate, 5)
     0.01
 
-    >>> callback = keras.callbacks.LearningRateScheduler(scheduler)
+    >>> callback = ncps.mini_keras.callbacks.LearningRateScheduler(scheduler)
     >>> history = model.fit(np.arange(100).reshape(5, 20), np.zeros(5),
     ...                     epochs=15, callbacks=[callback], verbose=0)
     >>> round(model.optimizer.learning_rate, 5)

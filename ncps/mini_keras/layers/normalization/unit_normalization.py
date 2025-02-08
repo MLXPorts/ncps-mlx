@@ -13,7 +13,7 @@ class UnitNormalization(Layer):
     Example:
 
     >>> data = np.arange(6).reshape(2, 3)
-    >>> normalized_data = keras.layers.UnitNormalization()(data)
+    >>> normalized_data = ncps.mini_keras.layers.UnitNormalization()(data)
     >>> np.sum(normalized_data[0, :] ** 2)
     1.0
 

@@ -5,7 +5,7 @@ except ImportError:
 import pytest
 from absl.testing import parameterized
 
-import ncps.mini_keras as keras
+import ncps
 from ncps.mini_keras import backend
 from ncps.mini_keras import testing
 from ncps.mini_keras.applications import imagenet_utils as utils
@@ -87,29 +87,29 @@ class TestImageNetUtils(testing.TestCase):
             x = np.random.uniform(0, 255, (2, 10, 10, 3))
         elif backend_data_format == "channels_first":
             x = np.random.uniform(0, 255, (2, 3, 10, 10))
-        inputs = keras.layers.Input(shape=x.shape[1:])
-        outputs = keras.layers.Lambda(
+        inputs = ncps.mini_keras.layers.Input(shape=x.shape[1:])
+        outputs = ncps.mini_keras.layers.Lambda(
             lambda x: utils.preprocess_input(x, mode=mode),
             output_shape=x.shape[1:],
         )(inputs)
-        model = keras.Model(inputs, outputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
         self.assertEqual(model.predict(x).shape, x.shape)
 
         x = np.random.uniform(0, 255, (2, 10, 10, 3))
-        inputs = keras.layers.Input(shape=x.shape[1:])
-        outputs1 = keras.layers.Lambda(
+        inputs = ncps.mini_keras.layers.Input(shape=x.shape[1:])
+        outputs1 = ncps.mini_keras.layers.Lambda(
             lambda x: utils.preprocess_input(x, "channels_last", mode=mode),
             output_shape=x.shape[1:],
         )(inputs)
-        model1 = keras.Model(inputs, outputs1)
+        model1 = ncps.mini_keras.Model(inputs, outputs1)
         out1 = model1.predict(x)
         x2 = np.transpose(x, (0, 3, 1, 2))
-        inputs2 = keras.layers.Input(shape=x2.shape[1:])
-        outputs2 = keras.layers.Lambda(
+        inputs2 = ncps.mini_keras.layers.Input(shape=x2.shape[1:])
+        outputs2 = ncps.mini_keras.layers.Lambda(
             lambda x: utils.preprocess_input(x, "channels_first", mode=mode),
             output_shape=x2.shape[1:],
         )(inputs2)
-        model2 = keras.Model(inputs2, outputs2)
+        model2 = ncps.mini_keras.Model(inputs2, outputs2)
         out2 = model2.predict(x2)
         self.assertAllClose(out1, out2.transpose(0, 2, 3, 1))
 
@@ -118,28 +118,28 @@ class TestImageNetUtils(testing.TestCase):
             x = np.random.uniform(0, 255, (10, 10, 3))
         elif backend_data_format == "channels_first":
             x = np.random.uniform(0, 255, (3, 10, 10))
-        inputs = keras.layers.Input(shape=x.shape)
-        outputs = keras.layers.Lambda(
+        inputs = ncps.mini_keras.layers.Input(shape=x.shape)
+        outputs = ncps.mini_keras.layers.Lambda(
             lambda x: utils.preprocess_input(x, mode=mode), output_shape=x.shape
         )(inputs)
-        model = keras.Model(inputs, outputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
         self.assertEqual(model.predict(x[np.newaxis])[0].shape, x.shape)
 
         x = np.random.uniform(0, 255, (10, 10, 3))
-        inputs = keras.layers.Input(shape=x.shape)
-        outputs1 = keras.layers.Lambda(
+        inputs = ncps.mini_keras.layers.Input(shape=x.shape)
+        outputs1 = ncps.mini_keras.layers.Lambda(
             lambda x: utils.preprocess_input(x, "channels_last", mode=mode),
             output_shape=x.shape,
         )(inputs)
-        model1 = keras.Model(inputs, outputs1)
+        model1 = ncps.mini_keras.Model(inputs, outputs1)
         out1 = model1.predict(x[np.newaxis])[0]
         x2 = np.transpose(x, (2, 0, 1))
-        inputs2 = keras.layers.Input(shape=x2.shape)
-        outputs2 = keras.layers.Lambda(
+        inputs2 = ncps.mini_keras.layers.Input(shape=x2.shape)
+        outputs2 = ncps.mini_keras.layers.Lambda(
             lambda x: utils.preprocess_input(x, "channels_first", mode=mode),
             output_shape=x2.shape,
         )(inputs2)
-        model2 = keras.Model(inputs2, outputs2)
+        model2 = ncps.mini_keras.Model(inputs2, outputs2)
         out2 = model2.predict(x2[np.newaxis])[0]
         self.assertAllClose(out1, out2.transpose(1, 2, 0))
 
@@ -153,9 +153,9 @@ class TestImageNetUtils(testing.TestCase):
     def test_preprocess_input_symbolic_mixed_precision(self, mode):
         set_dtype_policy("mixed_float16")
         shape = (20, 20, 3)
-        inputs = keras.layers.Input(shape=shape)
+        inputs = ncps.mini_keras.layers.Input(shape=shape)
         try:
-            keras.layers.Lambda(
+            ncps.mini_keras.layers.Lambda(
                 lambda x: utils.preprocess_input(x, mode=mode),
                 output_shape=shape,
             )(inputs)

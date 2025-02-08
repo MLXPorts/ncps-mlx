@@ -27,8 +27,8 @@ class Flatten(Layer):
 
     Example:
 
-    >>> x = keras.Input(shape=(10, 64))
-    >>> y = keras.layers.Flatten()(x)
+    >>> x = ncps.mini_keras.Input(shape=(10, 64))
+    >>> y = ncps.mini_keras.layers.Flatten()(x)
     >>> y.shape
     (None, 640)
     """

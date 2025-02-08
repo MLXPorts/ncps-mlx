@@ -1,5 +1,5 @@
 
 from ncps.mini_keras.layers.rnn import RNN, AbstractRNNCell
-from ncps.mini_keras.layers.rnn.simple_rnn_cell import SimpleRNNCell
+from ncps.mini_keras.layers.rnn.simple_rnn_cell import SimpleRNNCell # type: ignore
 # ...existing imports...
 # ...existing code...

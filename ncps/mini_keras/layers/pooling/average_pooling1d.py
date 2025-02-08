@@ -50,7 +50,7 @@ class AveragePooling1D(BasePooling):
 
     >>> x = np.array([1., 2., 3., 4., 5.])
     >>> x = np.reshape(x, [1, 5, 1])
-    >>> avg_pool_1d = keras.layers.AveragePooling1D(pool_size=2,
+    >>> avg_pool_1d = ncps.mini_keras.layers.AveragePooling1D(pool_size=2,
     ...    strides=1, padding="valid")
     >>> avg_pool_1d(x)
 
@@ -58,7 +58,7 @@ class AveragePooling1D(BasePooling):
 
     >>> x = np.array([1., 2., 3., 4., 5.])
     >>> x = np.reshape(x, [1, 5, 1])
-    >>> avg_pool_1d = keras.layers.AveragePooling1D(pool_size=2,
+    >>> avg_pool_1d = ncps.mini_keras.layers.AveragePooling1D(pool_size=2,
     ...    strides=2, padding="valid")
     >>> avg_pool_1d(x)
 
@@ -66,7 +66,7 @@ class AveragePooling1D(BasePooling):
 
     >>> x = np.array([1., 2., 3., 4., 5.])
     >>> x = np.reshape(x, [1, 5, 1])
-    >>> avg_pool_1d = keras.layers.AveragePooling1D(pool_size=2,
+    >>> avg_pool_1d = ncps.mini_keras.layers.AveragePooling1D(pool_size=2,
     ...    strides=1, padding="same")
     >>> avg_pool_1d(x)
     """

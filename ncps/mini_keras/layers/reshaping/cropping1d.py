@@ -21,7 +21,7 @@ class Cropping1D(Layer):
      [[ 6  7]
       [ 8  9]
       [10 11]]]
-    >>> y = keras.layers.Cropping1D(cropping=1)(x)
+    >>> y = ncps.mini_keras.layers.Cropping1D(cropping=1)(x)
     >>> y
     [[[2 3]]
      [[8 9]]]

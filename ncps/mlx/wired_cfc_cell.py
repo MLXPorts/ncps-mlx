@@ -16,17 +16,9 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
         activation="lecun_tanh",
         **kwargs,
     ):
-        """
-        A Wired CfC Cell that uses a specified wiring configuration.
-
-        :param wiring: Wiring configuration for the CfC layers.
-        :param fully_recurrent: Whether to fully connect neurons in the same layer (default True).
-        :param mode: Operating mode for the CfC layers. Options are "default", "pure", or "no_gate".
-        :param activation: Activation function used in the CfC layers (default "lecun_tanh").
-        :param kwargs: Additional arguments.
-        """
+        self._wiring = wiring  # Set wiring before super().__init__
         super().__init__(**kwargs)
-        self._wiring = wiring
+        self.mode = mode
         allowed_modes = ["default", "pure", "no_gate"]
         if mode not in allowed_modes:
             raise ValueError(
@@ -34,7 +26,6 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
                     mode, str(allowed_modes)
                 )
             )
-        self.mode = mode
         self.fully_recurrent = fully_recurrent
         if activation == "lecun_tanh":
             activation = lecun_tanh
@@ -44,10 +35,10 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
     @property
     def state_size(self):
         return self._wiring.units
-        # return [
-        #     len(self._wiring.get_neurons_of_layer(i))
-        #     for i in range(self._wiring.num_layers)
-        # ]
+
+    @property
+    def output_size(self):
+        return self._wiring.output_dim
 
     @property
     def input_size(self):

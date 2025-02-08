@@ -1,6 +1,10 @@
 import pickle
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
 import pytest
 from absl.testing import parameterized
 

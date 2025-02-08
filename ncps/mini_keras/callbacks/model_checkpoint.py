@@ -2,7 +2,12 @@ import os
 import re
 import warnings
 
-import mlx.core as np
+try:
+    import mlx.core as mx
+    BackendArray = mx.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
 
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
@@ -39,7 +44,7 @@ class ModelCheckpoint(Callback):
 
     EPOCHS = 10
     checkpoint_filepath = '/tmp/ckpt/checkpoint.model.keras'
-    model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
+    model_checkpoint_callback = ncps.mini_keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,
         monitor='val_accuracy',
         mode='max',
@@ -49,11 +54,11 @@ class ModelCheckpoint(Callback):
     model.fit(epochs=EPOCHS, callbacks=[model_checkpoint_callback])
 
     # The model (that are considered the best) can be loaded as -
-    keras.models.load_model(checkpoint_filepath)
+    ncps.mini_keras.models.load_model(checkpoint_filepath)
 
     # Alternatively, one could checkpoint just the model weights as -
     checkpoint_filepath = '/tmp/ckpt/checkpoint.weights.h5'
-    model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
+    model_checkpoint_callback = ncps.mini_keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,
         save_weights_only=True,
         monitor='val_accuracy',
@@ -251,7 +256,7 @@ class ModelCheckpoint(Callback):
                         stacklevel=2,
                     )
                 elif (
-                    isinstance(current, np.ndarray)
+                    isinstance(current, BackendArray)
                     or backend.is_tensor(current)
                 ) and len(current.shape) > 0:
                     warnings.warn(

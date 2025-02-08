@@ -34,8 +34,8 @@ class BackupAndRestore(Callback):
     ...   def on_epoch_begin(self, epoch, logs=None):
     ...     if epoch == 4:
     ...       raise RuntimeError('Interrupting!')
-    >>> callback = keras.callbacks.BackupAndRestore(backup_dir="/tmp/backup")
-    >>> model = keras.models.Sequential([keras.layers.Dense(10)])
+    >>> callback = ncps.mini_keras.callbacks.BackupAndRestore(backup_dir="/tmp/backup")
+    >>> model = ncps.mini_keras.models.Sequential([keras.layers.Dense(10)])
     >>> model.compile(keras.optimizers.SGD(), loss='mse')
     >>> model.build(input_shape=(None, 20))
     >>> try:

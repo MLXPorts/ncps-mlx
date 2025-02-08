@@ -27,7 +27,7 @@ def pearson_correlation(y_true, y_pred, axis=-1):
 
     >>> y_true = [[0, 1, 0.5], [1, 1, 0.2]]
     >>> y_pred = [[0.1, 0.9, 0.5], [1, 0.9, 0.2]]
-    >>> loss = keras.losses.concordance_correlation(
+    >>> loss = ncps.mini_keras.losses.concordance_correlation(
     ...     y_true, y_pred, axis=-1
     ... ).numpy()
     [1.         0.99339927]
@@ -71,7 +71,7 @@ def concordance_correlation(y_true, y_pred, axis=-1):
 
     >>> y_true = [[0, 1, 0.5], [1, 1, 0.2]]
     >>> y_pred = [[0.1, 0.9, 0.5], [1, 0.9, 0.2]]
-    >>> loss = keras.losses.concordance_correlation(
+    >>> loss = ncps.mini_keras.losses.concordance_correlation(
     ...     y_true, y_pred, axis=-1
     ... ).numpy()
     [0.97560976 0.98765432]
@@ -113,7 +113,7 @@ class PearsonCorrelation(reduction_metrics.MeanMetricWrapper):
 
     Example:
 
-    >>> pcc = keras.metrics.PearsonCorrelation(axis=-1)
+    >>> pcc = ncps.mini_keras.metrics.PearsonCorrelation(axis=-1)
     >>> y_true = [[0, 1, 0.5], [1, 1, 0.2]]
     >>> y_pred = [[0.1, 0.9, 0.5], [1, 0.9, 0.2]]
     >>> pcc.update_state(y_true, y_pred)
@@ -175,7 +175,7 @@ class ConcordanceCorrelation(reduction_metrics.MeanMetricWrapper):
 
     Example:
 
-    >>> ccc = keras.metrics.ConcordanceCorrelation(axis=-1)
+    >>> ccc = ncps.mini_keras.metrics.ConcordanceCorrelation(axis=-1)
     >>> y_true = [[0, 1, 0.5], [1, 1, 0.2]]
     >>> y_pred = [[0.1, 0.9, 0.5], [1, 0.9, 0.2]]
     >>> ccc.update_state(y_true, y_pred)

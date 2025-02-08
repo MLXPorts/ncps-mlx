@@ -3,7 +3,15 @@ import contextlib
 import functools
 
 import ml_dtypes
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+
 import torch
 
 from ncps.mini_keras import tree
@@ -215,18 +223,56 @@ def convert_to_tensor(x, dtype=None, sparse=None, ragged=None):
 
     # Convert to np in case of any array-like that is not list or tuple.
     if not isinstance(x, (list, tuple)):
-        x = np.array(x)
+        x = to_array(x)
     elif len(x) > 0 and any(isinstance(x1, torch.Tensor) for x1 in x):
         # Handle list or tuple of torch tensors
         return torch.stack([convert_to_tensor(x1) for x1 in x])
-    if isinstance(x, np.ndarray):
+    if isinstance(x, BackendArray):
         if x.dtype == np.uint32:
             # Torch backend does not support uint32.
             x = x.astype(np.int64)
         if standardize_dtype(x.dtype) == "bfloat16":
-            # Torch backend does not support converting bfloat16 ndarray.
+            # Torch and MLX backends do not support converting bfloat16 ndarray.
             x = x.astype(np.float32)
             dtype = "bfloat16"
+        # NumPy dtypes NOT supported by MLX (but supported by NumPy):
+        # float64, complex64, complex128, int8, int16, uint8, uint16, uint32, uint64, 
+        # datetime64, timedelta64, object, str_, unicode_ 
+        # NumPy dtypes supported by MLX:
+        # float32, float16, bfloat16, int32, int64, bool_
+        if standardize_dtype(x.dtype) == "float64":
+            x = x.astype(np.float32)
+            dtype = "float64"
+        if standardize_dtype(x.dtype) == "complex64":
+            x = x.astype(np.complex64)
+            dtype = "complex64"
+        if standardize_dtype(x.dtype) == "complex128":
+            x = x.astype(np.complex128)
+            dtype = "complex128"
+        if standardize_dtype(x.dtype) == "int8":
+            x = x.astype(np.int32)
+            dtype = "int8"
+        if standardize_dtype(x.dtype) == "int16":
+            x = x.astype(np.int32)
+            dtype = "int16"
+        if standardize_dtype(x.dtype) == "uint8":
+            x = x.astype(np.int32)
+            dtype = "uint8"
+        if standardize_dtype(x.dtype) == "uint16":
+            x = x.astype(np.int32)
+            dtype = "uint16"
+        if standardize_dtype(x.dtype) == "uint32":
+            x = x.astype(np.int64)
+            dtype = "uint32"
+        if standardize_dtype(x.dtype) == "uint64":
+            x = x.astype(np.int64)
+            dtype = "uint64"
+        if standardize_dtype(x.dtype) == "datetime64":
+            x = x.astype(np.int64)
+            dtype = "datetime64"
+        if standardize_dtype(x.dtype) == "timedelta64":
+            x = x.astype(np.int64)
+            dtype = "timedelta64"
         dtype = dtype or x.dtype
     if dtype is None:
         dtype = result_type(

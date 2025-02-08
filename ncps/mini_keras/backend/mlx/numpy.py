@@ -809,6 +809,9 @@ def pad(x, pad_width, mode="constant", constant_values=None):
         kwargs["constant_values"] = constant_values
     return mx.pad(x, pad_width, mode=mode, **kwargs)
 
+def pi():
+    return mx.pi
+
 
 def prod(x, axis=None, keepdims=False, dtype=None):
     axis = standardize_axis_for_numpy(axis)

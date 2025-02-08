@@ -128,7 +128,7 @@ def rearrange(tensor, pattern, **axes_lengths):
 
     ```
     >>> import numpy as np
-    >>> from keras.ops import rearrange
+    >>> from ncps.mini_keras.ops import rearrange
     >>> images = np.random.rand(32, 30, 40, 3) # BHWC format
 
     # Reordering to BCHW

@@ -1,8 +1,11 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 from tensorflow import data as tf_data
 
-import keras
+import ncps.mini_keras
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
 from ncps.mini_keras import testing
@@ -47,25 +50,25 @@ class RandomPosterizationTest(testing.TestCase):
         self.assertAllClose(expected_output, output)
 
     def test_random_posterization_value_range_0_to_1(self):
-        image = keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)
+        image = ncps.mini_keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)
 
         layer = layers.RandomPosterization(1, [0, 1.0])
         adjusted_image = layer(image)
 
-        self.assertTrue(keras.ops.numpy.all(adjusted_image >= 0))
-        self.assertTrue(keras.ops.numpy.all(adjusted_image <= 1))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image >= 0))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image <= 1))
 
     def test_random_posterization_value_range_0_to_255(self):
-        image = keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=255)
+        image = ncps.mini_keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=255)
 
         layer = layers.RandomPosterization(1, [0, 255])
         adjusted_image = layer(image)
 
-        self.assertTrue(keras.ops.numpy.all(adjusted_image >= 0))
-        self.assertTrue(keras.ops.numpy.all(adjusted_image <= 255))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image >= 0))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image <= 255))
 
     def test_random_posterization_randomness(self):
-        image = keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)
+        image = ncps.mini_keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)
 
         layer = layers.RandomPosterization(1, [0, 255])
         adjusted_images = layer(image)

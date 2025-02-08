@@ -1,13 +1,19 @@
 import os
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 import pytest
 
-import keras
 from ncps.mini_keras import layers
 from ncps.mini_keras import models
 from ncps.mini_keras import ops
 from ncps.mini_keras import testing
+import ncps.mini_keras as keras
 from ncps.mini_keras.legacy.saving import legacy_h5_format
 from ncps.mini_keras.saving import object_registration
 from ncps.mini_keras.saving import serialization_lib
@@ -17,7 +23,7 @@ from ncps.mini_keras.saving import serialization_lib
 # to test across all types of layers.
 
 try:
-    import tf_keras
+    import tf_keras # type: ignore
 except:
     tf_keras = None
 
@@ -251,7 +257,7 @@ class LegacyH5WholeModelTest(testing.TestCase):
         )
         model = models.Sequential([layer])
         with self.subTest("test_JSON"):
-            from ncps.mini_keras.models.model import model_from_json
+            from keras.models.model import model_from_json
 
             model_json = model.to_json()
             self.assertIn("Foo>RegisteredSubLayer", model_json)

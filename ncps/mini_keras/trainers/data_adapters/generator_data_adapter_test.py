@@ -1,14 +1,23 @@
 import math
 
-import jax
-import jax.experimental.sparse as jax_sparse
-import numpy as np
+import jax # type: ignore
+import jax.experimental.sparse as jax_sparse # type: ignore
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+
+
 import pytest
 import scipy
 import tensorflow as tf
 import torch
 from absl.testing import parameterized
-from jax import numpy as jnp
+from jax import numpy as jnp # type: ignore
 
 from ncps.mini_keras import backend
 from ncps.mini_keras import testing
@@ -65,16 +74,16 @@ class GeneratorDataAdapterTest(testing.TestCase):
         )
 
         adapter = generator_data_adapter.GeneratorDataAdapter(make_generator())
-        if backend.backend() == "numpy":
+        if backend.backend() == "numpy" or backend.backend() == "mlx":
             it = adapter.get_numpy_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "tensorflow":
             it = adapter.get_tf_dataset()
             expected_class = tf.Tensor
         elif backend.backend() == "jax":
             it = adapter.get_jax_iterator()
             expected_class = (
-                jax.Array if generator_type == "jax" else np.ndarray
+                jax.Array if generator_type == "jax" else BackendArray
             )
         elif backend.backend() == "torch":
             it = adapter.get_torch_dataloader()
@@ -112,7 +121,7 @@ class GeneratorDataAdapterTest(testing.TestCase):
 
         adapter = generator_data_adapter.GeneratorDataAdapter(generator())
 
-        if backend.backend() == "numpy":
+        if backend.backend() == "numpy" or backend.backend() == "mlx":
             it = adapter.get_numpy_iterator()
         elif backend.backend() == "tensorflow":
             it = adapter.get_tf_dataset()

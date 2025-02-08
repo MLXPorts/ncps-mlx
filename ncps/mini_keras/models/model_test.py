@@ -2,7 +2,13 @@ import os
 import pickle
 from collections import namedtuple
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 import pytest
 from absl.testing import parameterized
 
@@ -923,7 +929,7 @@ class ModelTest(testing.TestCase):
         # Test with numpy
         state_tree = model.get_state_tree(value_format="numpy_array")
         self.assertIsInstance(
-            state_tree["trainable_variables"]["output_a"]["kernel"], np.ndarray
+            state_tree["trainable_variables"]["output_a"]["kernel"], BackendArray
         )
 
     def test_set_state_tree(self):

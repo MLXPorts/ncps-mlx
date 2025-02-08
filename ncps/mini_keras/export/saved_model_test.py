@@ -2,7 +2,10 @@
 
 import os
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -212,7 +215,7 @@ class ExportSavedModelTest(testing.TestCase):
         revived_model = tf.saved_model.load(temp_filepath)
         self.assertAllClose(ref_output, revived_model.serve(ref_input))
 
-        # Test with keras.saving_lib
+        # Test with ncps.mini_keras.saving_lib
         temp_filepath = os.path.join(
             self.get_temp_dir(), "exported_model.keras"
         )

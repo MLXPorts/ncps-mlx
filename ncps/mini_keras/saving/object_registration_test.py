@@ -2,7 +2,7 @@ import keras
 from ncps.mini_keras import testing
 from ncps.mini_keras.saving import object_registration
 from ncps.mini_keras.saving import serialization_lib
-
+import ncps
 
 class TestObjectRegistration(testing.TestCase):
     def test_custom_object_scope(self):
@@ -16,17 +16,17 @@ class TestObjectRegistration(testing.TestCase):
             with object_registration.custom_object_scope(
                 {"CustomClass": CustomClass, "custom_fn": custom_fn}
             ):
-                actual_custom_fn = keras.activations.get("custom_fn")
+                actual_custom_fn = ncps.mini_keras.activations.get("custom_fn")
                 self.assertEqual(actual_custom_fn, custom_fn)
-                actual_custom_class = keras.regularizers.get("CustomClass")
+                actual_custom_class = ncps.mini_keras.regularizers.get("CustomClass")
                 self.assertEqual(actual_custom_class.__class__, CustomClass)
 
             with object_registration.custom_object_scope(
                 {"CustomClass": CustomClass, "custom_fn": custom_fn}
             ):
-                actual_custom_fn = keras.activations.get("custom_fn")
+                actual_custom_fn = ncps.mini_keras.activations.get("custom_fn")
                 self.assertEqual(actual_custom_fn, custom_fn)
-                actual_custom_class = keras.regularizers.get("CustomClass")
+                actual_custom_class = ncps.mini_keras.regularizers.get("CustomClass")
                 self.assertEqual(actual_custom_class.__class__, CustomClass)
                 checked_thread = self.checkedThread(check_get_in_thread)
                 checked_thread.start()
@@ -82,9 +82,9 @@ class TestObjectRegistration(testing.TestCase):
         cls = object_registration.get_registered_object(fn_class_name)
         self.assertEqual(OtherTestClass, cls)
 
-        config = keras.saving.serialize_keras_object(inst)
+        config = ncps.mini_keras.saving.serialize_keras_object(inst)
         self.assertEqual("OtherTestClass", config["class_name"])
-        new_inst = keras.saving.deserialize_keras_object(config)
+        new_inst = ncps.mini_keras.saving.deserialize_keras_object(config)
         self.assertIsNot(inst, new_inst)
         self.assertIsInstance(new_inst, OtherTestClass)
         self.assertEqual(5, new_inst._val)
@@ -100,8 +100,8 @@ class TestObjectRegistration(testing.TestCase):
         fn_class_name = object_registration.get_registered_name(my_fn)
         self.assertEqual(fn_class_name, class_name)
 
-        config = keras.saving.serialize_keras_object(my_fn)
-        fn = keras.saving.deserialize_keras_object(config)
+        config = ncps.mini_keras.saving.serialize_keras_object(my_fn)
+        fn = ncps.mini_keras.saving.deserialize_keras_object(config)
         self.assertEqual(42, fn())
 
         fn_2 = object_registration.get_registered_object(fn_class_name)

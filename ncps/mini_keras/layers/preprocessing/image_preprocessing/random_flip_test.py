@@ -1,6 +1,9 @@
 import unittest.mock
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 from absl.testing import parameterized
 from tensorflow import data as tf_data
 

@@ -24,7 +24,7 @@ class MyDense(keras.layers.Layer):
     def __init__(self, units, **kwargs):
         super().__init__(**kwargs)
         self.units = units
-        self.nested_layer = keras.layers.Dense(self.units, name="dense")
+        self.nested_layer = ncps.mini_keras.layers.Dense(self.units, name="dense")
 
     def build(self, input_shape):
         self.additional_weights = [
@@ -134,10 +134,10 @@ class SubclassFunctional(keras.Model):
     """Subclassed functional identical to `_get_basic_functional_model`."""
 
     def __init__(self, **kwargs):
-        inputs = keras.Input(shape=(4,), batch_size=2)
-        dense = keras.layers.Dense(1, name="first_dense")
+        inputs = ncps.mini_keras.Input(shape=(4,), batch_size=2)
+        dense = ncps.mini_keras.layers.Dense(1, name="first_dense")
         x = dense(inputs)
-        outputs = keras.layers.Dense(1, name="second_dense")(x)
+        outputs = ncps.mini_keras.layers.Dense(1, name="second_dense")(x)
         super().__init__(inputs=inputs, outputs=outputs, **kwargs)
         # Attrs for layers in the functional graph should not affect saving
         self.layer_attr = dense
@@ -173,7 +173,7 @@ def _get_subclassed_model(compile=True):
 
 
 def _get_custom_sequential_model(compile=True):
-    sequential_model = keras.Sequential(
+    sequential_model = ncps.mini_keras.Sequential(
         [MyDense(1), MyDense(1)], name="sequential"
     )
     if compile:
@@ -186,10 +186,10 @@ def _get_custom_sequential_model(compile=True):
 
 
 def _get_basic_sequential_model(compile=True):
-    sequential_model = keras.Sequential(
+    sequential_model = ncps.mini_keras.Sequential(
         [
-            keras.layers.Dense(1, name="dense_1"),
-            keras.layers.Dense(1, name="dense_2"),
+            ncps.mini_keras.layers.Dense(1, name="dense_1"),
+            ncps.mini_keras.layers.Dense(1, name="dense_2"),
         ],
         name="sequential",
     )
@@ -203,10 +203,10 @@ def _get_basic_sequential_model(compile=True):
 
 
 def _get_custom_functional_model(compile=True):
-    inputs = keras.Input(shape=(4,), batch_size=2)
+    inputs = ncps.mini_keras.Input(shape=(4,), batch_size=2)
     x = MyDense(1, name="first_dense")(inputs)
     outputs = MyDense(1, name="second_dense")(x)
-    functional_model = keras.Model(inputs, outputs)
+    functional_model = ncps.mini_keras.Model(inputs, outputs)
     if compile:
         functional_model.compile(
             optimizer="adam",
@@ -217,10 +217,10 @@ def _get_custom_functional_model(compile=True):
 
 
 def _get_basic_functional_model(compile=True):
-    inputs = keras.Input(shape=(4,), batch_size=2)
-    x = keras.layers.Dense(1, name="first_dense")(inputs)
-    outputs = keras.layers.Dense(1, name="second_dense")(x)
-    functional_model = keras.Model(inputs, outputs)
+    inputs = ncps.mini_keras.Input(shape=(4,), batch_size=2)
+    x = ncps.mini_keras.layers.Dense(1, name="first_dense")(inputs)
+    outputs = ncps.mini_keras.layers.Dense(1, name="second_dense")(x)
+    functional_model = ncps.mini_keras.Model(inputs, outputs)
     if compile:
         functional_model.compile(
             optimizer="adam",
@@ -563,21 +563,21 @@ class SavingTest(testing.TestCase):
 
     def test_partial_load(self):
         temp_filepath = os.path.join(self.get_temp_dir(), "mymodel.keras")
-        original_model = keras.Sequential(
+        original_model = ncps.mini_keras.Sequential(
             [
-                keras.Input(shape=(3,), batch_size=2),
-                keras.layers.Dense(4),
-                keras.layers.Dense(5),
+                ncps.mini_keras.Input(shape=(3,), batch_size=2),
+                ncps.mini_keras.layers.Dense(4),
+                ncps.mini_keras.layers.Dense(5),
             ]
         )
         original_model.save(temp_filepath)
 
         # Test with a model that has a differently shaped layer
-        new_model = keras.Sequential(
+        new_model = ncps.mini_keras.Sequential(
             [
-                keras.Input(shape=(3,), batch_size=2),
-                keras.layers.Dense(4),
-                keras.layers.Dense(6),
+                ncps.mini_keras.Input(shape=(3,), batch_size=2),
+                ncps.mini_keras.layers.Dense(4),
+                ncps.mini_keras.layers.Dense(6),
             ]
         )
         new_layer_kernel_value = np.array(new_model.layers[1].kernel)
@@ -596,12 +596,12 @@ class SavingTest(testing.TestCase):
         )
 
         # Test with a model that has a new layer at the end
-        new_model = keras.Sequential(
+        new_model = ncps.mini_keras.Sequential(
             [
-                keras.Input(shape=(3,), batch_size=2),
-                keras.layers.Dense(4),
-                keras.layers.Dense(5),
-                keras.layers.Dense(5),
+                ncps.mini_keras.Input(shape=(3,), batch_size=2),
+                ncps.mini_keras.layers.Dense(4),
+                ncps.mini_keras.layers.Dense(5),
+                ncps.mini_keras.layers.Dense(5),
             ]
         )
         new_layer_kernel_value = np.array(new_model.layers[2].kernel)
@@ -622,8 +622,8 @@ class SavingTest(testing.TestCase):
 
     @pytest.mark.requires_trainable_backend
     def test_save_to_fileobj(self):
-        model = keras.Sequential(
-            [keras.layers.Dense(1, input_shape=(1,)), keras.layers.Dense(1)]
+        model = ncps.mini_keras.Sequential(
+            [keras.layers.Dense(1, input_shape=(1,)), ncps.mini_keras.layers.Dense(1)]
         )
         model.compile(optimizer="adam", loss="mse")
 
@@ -656,7 +656,7 @@ class SavingTest(testing.TestCase):
         class RaiseErrorLayer(keras.layers.Layer):
             def __init__(self, units, **kwargs):
                 super().__init__(**kwargs)
-                self.dense = keras.layers.Dense(units)
+                self.dense = ncps.mini_keras.layers.Dense(units)
 
             def call(self, inputs):
                 return self.dense(inputs)
@@ -664,7 +664,7 @@ class SavingTest(testing.TestCase):
             def save_own_variables(self, store):
                 raise ValueError
 
-        model = keras.Sequential([keras.Input([1]), RaiseErrorLayer(1)])
+        model = ncps.mini_keras.Sequential([keras.Input([1]), RaiseErrorLayer(1)])
         filepath = f"{self.get_temp_dir()}/model.keras"
         with self.assertRaises(ValueError):
             saving_lib.save_model(model, filepath)
@@ -691,7 +691,7 @@ class SavingTest(testing.TestCase):
         class RaiseErrorLayer(keras.layers.Layer):
             def __init__(self, units, **kwargs):
                 super().__init__(**kwargs)
-                self.dense = keras.layers.Dense(units)
+                self.dense = ncps.mini_keras.layers.Dense(units)
 
             def call(self, inputs):
                 return self.dense(inputs)
@@ -699,7 +699,7 @@ class SavingTest(testing.TestCase):
             def load_own_variables(self, store):
                 raise ValueError
 
-        model = keras.Sequential([keras.Input([1]), RaiseErrorLayer(1)])
+        model = ncps.mini_keras.Sequential([keras.Input([1]), RaiseErrorLayer(1)])
         filepath = f"{self.get_temp_dir()}/model.keras"
         saving_lib.save_model(model, filepath)
         with self.assertRaises(ValueError):
@@ -712,7 +712,7 @@ class SavingTest(testing.TestCase):
         self.assertIn("model.keras", os.listdir(Path(filepath).parent))
 
     def test_load_model_read_only_system(self):
-        model = keras.Sequential([keras.Input([1]), keras.layers.Dense(32)])
+        model = ncps.mini_keras.Sequential([keras.Input([1]), ncps.mini_keras.layers.Dense(32)])
         filepath = f"{self.get_temp_dir()}/model.keras"
         saving_lib.save_model(model, filepath)
 
@@ -737,7 +737,7 @@ class SavingTest(testing.TestCase):
     def test_load_model_concurrently(self):
         import multiprocessing as mp
 
-        model = keras.Sequential([keras.Input([1]), keras.layers.Dense(2)])
+        model = ncps.mini_keras.Sequential([keras.Input([1]), ncps.mini_keras.layers.Dense(2)])
         filepath = f"{self.get_temp_dir()}/model.keras"
         saving_lib.save_model(model, filepath)
 
@@ -752,12 +752,12 @@ class SavingTest(testing.TestCase):
 
     def test_load_model_containing_reused_layer(self):
         # https://github.com/keras-team/keras/issues/20307
-        inputs = keras.Input((4,))
-        reused_layer = keras.layers.Dense(4)
+        inputs = ncps.mini_keras.Input((4,))
+        reused_layer = ncps.mini_keras.layers.Dense(4)
         x = reused_layer(inputs)
-        x = keras.layers.Dense(4)(x)
+        x = ncps.mini_keras.layers.Dense(4)(x)
         outputs = reused_layer(x)
-        model = keras.Model(inputs, outputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
 
         self.assertLen(model.layers, 3)  # Input + 2 Dense layers
         self._test_inference_after_instantiation(model)
@@ -800,7 +800,7 @@ class SavingAPITest(testing.TestCase):
         ref_input = np.random.random((2, 4))
         ref_output = model.predict(ref_input)
         model.save(temp_filepath)
-        model = keras.saving.load_model(temp_filepath)
+        model = ncps.mini_keras.saving.load_model(temp_filepath)
         self.assertAllClose(model.predict(ref_input), ref_output, atol=1e-6)
 
     def test_model_api_endpoint_h5(self):
@@ -809,7 +809,7 @@ class SavingAPITest(testing.TestCase):
         ref_input = np.random.random((2, 4))
         ref_output = model.predict(ref_input)
         model.save(temp_filepath)
-        model = keras.saving.load_model(temp_filepath)
+        model = ncps.mini_keras.saving.load_model(temp_filepath)
         self.assertAllClose(model.predict(ref_input), ref_output, atol=1e-6)
 
     def test_model_api_errors(self):
@@ -830,10 +830,10 @@ class SavingAPITest(testing.TestCase):
 
     def test_safe_mode(self):
         temp_filepath = os.path.join(self.get_temp_dir(), "unsafe_model.keras")
-        model = keras.Sequential(
+        model = ncps.mini_keras.Sequential(
             [
-                keras.Input(shape=(3,)),
-                keras.layers.Lambda(lambda x: x * 2),
+                ncps.mini_keras.Input(shape=(3,)),
+                ncps.mini_keras.layers.Lambda(lambda x: x * 2),
             ]
         )
         model.save(temp_filepath)
@@ -844,10 +844,10 @@ class SavingAPITest(testing.TestCase):
     def test_normalization_kpl(self):
         # With adapt
         temp_filepath = os.path.join(self.get_temp_dir(), "norm_model.keras")
-        model = keras.Sequential(
+        model = ncps.mini_keras.Sequential(
             [
-                keras.Input(shape=(3,)),
-                keras.layers.Normalization(),
+                ncps.mini_keras.Input(shape=(3,)),
+                ncps.mini_keras.layers.Normalization(),
             ]
         )
         data = np.random.random((3, 3))
@@ -859,10 +859,10 @@ class SavingAPITest(testing.TestCase):
         self.assertAllClose(ref_out, out, atol=1e-6)
 
         # Without adapt
-        model = keras.Sequential(
+        model = ncps.mini_keras.Sequential(
             [
-                keras.Input(shape=(3,)),
-                keras.layers.Normalization(
+                ncps.mini_keras.Input(shape=(3,)),
+                ncps.mini_keras.layers.Normalization(
                     mean=np.random.random((3,)),
                     variance=np.random.random((3,)),
                 ),
@@ -876,7 +876,7 @@ class SavingAPITest(testing.TestCase):
 
 
 # This class is properly registered with a `get_config()` method.
-# However, since it does not subclass keras.layers.Layer, it lacks
+# However, since it does not subclass ncps.mini_keras.layers.Layer, it lacks
 # `from_config()` for deserialization.
 @keras.saving.register_keras_serializable()
 class GrowthFactor:
@@ -914,7 +914,7 @@ class ComplexModel(keras.layers.Layer):
         if second_layer is not None:
             self.second_layer = second_layer
         else:
-            self.second_layer = keras.layers.Dense(8)
+            self.second_layer = ncps.mini_keras.layers.Dense(8)
 
     def get_config(self):
         config = super().get_config()
@@ -936,9 +936,9 @@ class SavingBattleTest(testing.TestCase):
             self.get_temp_dir(), "custom_fn_model.keras"
         )
 
-        inputs = keras.Input(shape=(4, 4))
-        outputs = keras.layers.Dense(1, activation=GrowthFactor(0.5))(inputs)
-        model = keras.Model(inputs, outputs)
+        inputs = ncps.mini_keras.Input(shape=(4, 4))
+        outputs = ncps.mini_keras.layers.Dense(1, activation=GrowthFactor(0.5))(inputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
 
         model.save(temp_filepath)
 
@@ -950,9 +950,9 @@ class SavingBattleTest(testing.TestCase):
     def test_complex_model_without_explicit_deserialization(self):
         temp_filepath = os.path.join(self.get_temp_dir(), "complex_model.keras")
 
-        inputs = keras.Input((32,))
+        inputs = ncps.mini_keras.Input((32,))
         outputs = ComplexModel(first_layer=FactorLayer(0.5))(inputs)
-        model = keras.Model(inputs, outputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
 
         model.save(temp_filepath)
 
@@ -965,7 +965,7 @@ class SavingBattleTest(testing.TestCase):
         class NormalModel(keras.Model):
             def __init__(self):
                 super().__init__()
-                self.dense = keras.layers.Dense(3)
+                self.dense = ncps.mini_keras.layers.Dense(3)
 
             def call(self, x):
                 return self.dense(x)
@@ -976,7 +976,7 @@ class SavingBattleTest(testing.TestCase):
                 # This property will be traversed first,
                 # but "_dense" isn't in the saved file
                 # generated by NormalModel.
-                self.a_dense = keras.layers.Dense(3)
+                self.a_dense = ncps.mini_keras.layers.Dense(3)
 
             @property
             def dense(self):
@@ -1001,51 +1001,51 @@ class SavingBattleTest(testing.TestCase):
     def test_normalization_legacy_h5_format(self):
         temp_filepath = os.path.join(self.get_temp_dir(), "custom_model.h5")
 
-        inputs = keras.Input((32,))
-        normalization = keras.layers.Normalization()
+        inputs = ncps.mini_keras.Input((32,))
+        normalization = ncps.mini_keras.layers.Normalization()
         outputs = normalization(inputs)
 
-        model = keras.Model(inputs, outputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
 
         x = np.random.random((1, 32))
         normalization.adapt(x)
         ref_out = model(x)
 
         model.save(temp_filepath)
-        new_model = keras.saving.load_model(temp_filepath)
+        new_model = ncps.mini_keras.saving.load_model(temp_filepath)
         out = new_model(x)
         self.assertAllClose(ref_out, out, atol=1e-6)
 
     def test_legacy_h5_format(self):
         temp_filepath = os.path.join(self.get_temp_dir(), "custom_model.h5")
 
-        inputs = keras.Input((32,))
+        inputs = ncps.mini_keras.Input((32,))
         x = MyDense(2)(inputs)
         outputs = CustomModelX()(x)
-        model = keras.Model(inputs, outputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
 
         x = np.random.random((1, 32))
         ref_out = model(x)
 
         model.save(temp_filepath)
-        new_model = keras.saving.load_model(temp_filepath)
+        new_model = ncps.mini_keras.saving.load_model(temp_filepath)
         out = new_model(x)
         self.assertAllClose(ref_out, out, atol=1e-6)
 
     def test_nested_functional_model_saving(self):
         def func(in_size=4, out_size=2, name=None):
-            inputs = keras.layers.Input(shape=(in_size,))
-            outputs = keras.layers.Dense(out_size)((inputs))
-            return keras.Model(inputs, outputs=outputs, name=name)
+            inputs = ncps.mini_keras.layers.Input(shape=(in_size,))
+            outputs = ncps.mini_keras.layers.Dense(out_size)((inputs))
+            return ncps.mini_keras.Model(inputs, outputs=outputs, name=name)
 
-        input_a, input_b = keras.Input((4,)), keras.Input((4,))
+        input_a, input_b = ncps.mini_keras.Input((4,)), ncps.mini_keras.Input((4,))
         out_a = func(out_size=2, name="func_a")(input_a)
         out_b = func(out_size=3, name="func_b")(input_b)
-        model = keras.Model([input_a, input_b], outputs=[out_a, out_b])
+        model = ncps.mini_keras.Model([input_a, input_b], outputs=[out_a, out_b])
 
         temp_filepath = os.path.join(self.get_temp_dir(), "nested_func.keras")
         model.save(temp_filepath)
-        new_model = keras.saving.load_model(temp_filepath)
+        new_model = ncps.mini_keras.saving.load_model(temp_filepath)
         x = [np.random.random((2, 4))], np.random.random((2, 4))
         ref_out = model(x)
         out = new_model(x)
@@ -1054,23 +1054,23 @@ class SavingBattleTest(testing.TestCase):
 
     def test_nested_shared_functional_model_saving(self):
         def func(in_size=4, out_size=2, name=None):
-            inputs = keras.layers.Input(shape=(in_size,))
-            outputs = keras.layers.Dense(out_size)((inputs))
-            return keras.Model(inputs, outputs=outputs, name=name)
+            inputs = ncps.mini_keras.layers.Input(shape=(in_size,))
+            outputs = ncps.mini_keras.layers.Dense(out_size)((inputs))
+            return ncps.mini_keras.Model(inputs, outputs=outputs, name=name)
 
-        inputs = [keras.Input((4,)), keras.Input((4,))]
+        inputs = [keras.Input((4,)), ncps.mini_keras.Input((4,))]
         func_shared = func(out_size=4, name="func_shared")
         shared_a = func_shared(inputs[0])
         shared_b = func_shared(inputs[1])
-        out_a = keras.layers.Dense(2)(shared_a)
-        out_b = keras.layers.Dense(2)(shared_b)
-        model = keras.Model(inputs, outputs=[out_a, out_b])
+        out_a = ncps.mini_keras.layers.Dense(2)(shared_a)
+        out_b = ncps.mini_keras.layers.Dense(2)(shared_b)
+        model = ncps.mini_keras.Model(inputs, outputs=[out_a, out_b])
 
         temp_filepath = os.path.join(
             self.get_temp_dir(), "nested_shared_func.keras"
         )
         model.save(temp_filepath)
-        new_model = keras.saving.load_model(temp_filepath)
+        new_model = ncps.mini_keras.saving.load_model(temp_filepath)
         x = [np.random.random((2, 4))], np.random.random((2, 4))
         ref_out = model(x)
         out = new_model(x)
@@ -1078,12 +1078,12 @@ class SavingBattleTest(testing.TestCase):
         self.assertAllClose(ref_out[1], out[1])
 
     def test_bidirectional_lstm_saving(self):
-        inputs = keras.Input((3, 2))
-        outputs = keras.layers.Bidirectional(keras.layers.LSTM(64))(inputs)
-        model = keras.Model(inputs, outputs)
+        inputs = ncps.mini_keras.Input((3, 2))
+        outputs = ncps.mini_keras.layers.Bidirectional(keras.layers.LSTM(64))(inputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
         temp_filepath = os.path.join(self.get_temp_dir(), "bidir_lstm.keras")
         model.save(temp_filepath)
-        new_model = keras.saving.load_model(temp_filepath)
+        new_model = ncps.mini_keras.saving.load_model(temp_filepath)
         x = np.random.random((1, 3, 2))
         ref_out = model(x)
         out = new_model(x)

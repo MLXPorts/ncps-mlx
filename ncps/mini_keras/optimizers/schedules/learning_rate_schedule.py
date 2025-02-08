@@ -19,11 +19,11 @@ class LearningRateSchedule:
     `keras.optimizers.schedules.PiecewiseConstantDecay`:
 
     ```python
-    lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+    lr_schedule = ncps.mini_keras.optimizers.schedules.ExponentialDecay(
         initial_learning_rate=1e-2,
         decay_steps=10000,
         decay_rate=0.9)
-    optimizer = keras.optimizers.SGD(learning_rate=lr_schedule)
+    optimizer = ncps.mini_keras.optimizers.SGD(learning_rate=lr_schedule)
     ```
 
     A `LearningRateSchedule` instance can be passed in as the `learning_rate`
@@ -47,7 +47,7 @@ class LearningRateSchedule:
         def __call__(self, step):
             return self.initial_learning_rate / (step + 1)
 
-    optimizer = keras.optimizers.SGD(learning_rate=MyLRSchedule(0.1))
+    optimizer = ncps.mini_keras.optimizers.SGD(learning_rate=MyLRSchedule(0.1))
     ```
     """
 
@@ -105,7 +105,7 @@ class ExponentialDecay(LearningRateSchedule):
 
     ```python
     initial_learning_rate = 0.1
-    lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+    lr_schedule = ncps.mini_keras.optimizers.schedules.ExponentialDecay(
         initial_learning_rate,
         decay_steps=100000,
         decay_rate=0.96,
@@ -199,7 +199,7 @@ class PiecewiseConstantDecay(LearningRateSchedule):
     step = ops.array(0)
     boundaries = [100000, 110000]
     values = [1.0, 0.5, 0.1]
-    learning_rate_fn = keras.optimizers.schedules.PiecewiseConstantDecay(
+    learning_rate_fn = ncps.mini_keras.optimizers.schedules.PiecewiseConstantDecay(
         boundaries, values)
 
     # Later, whenever we perform an optimization step, we pass in the step.
@@ -349,7 +349,7 @@ class PolynomialDecay(LearningRateSchedule):
     starter_learning_rate = 0.1
     end_learning_rate = 0.01
     decay_steps = 10000
-    learning_rate_fn = keras.optimizers.schedules.PolynomialDecay(
+    learning_rate_fn = ncps.mini_keras.optimizers.schedules.PolynomialDecay(
         starter_learning_rate,
         decay_steps,
         end_learning_rate,
@@ -494,7 +494,7 @@ class InverseTimeDecay(LearningRateSchedule):
     initial_learning_rate = 0.1
     decay_steps = 1.0
     decay_rate = 0.5
-    learning_rate_fn = keras.optimizers.schedules.InverseTimeDecay(
+    learning_rate_fn = ncps.mini_keras.optimizers.schedules.InverseTimeDecay(
         initial_learning_rate, decay_steps, decay_rate)
 
     model.compile(optimizer=keras.optimizers.SGD(
@@ -624,7 +624,7 @@ class CosineDecay(LearningRateSchedule):
     ```python
     decay_steps = 1000
     initial_learning_rate = 0.1
-    lr_decayed_fn = keras.optimizers.schedules.CosineDecay(
+    lr_decayed_fn = ncps.mini_keras.optimizers.schedules.CosineDecay(
         initial_learning_rate, decay_steps)
     ```
 
@@ -635,7 +635,7 @@ class CosineDecay(LearningRateSchedule):
     initial_learning_rate = 0
     warmup_steps = 1000
     target_learning_rate = 0.1
-    lr_warmup_decayed_fn = keras.optimizers.schedules.CosineDecay(
+    lr_warmup_decayed_fn = ncps.mini_keras.optimizers.schedules.CosineDecay(
         initial_learning_rate, decay_steps, warmup_target=target_learning_rate,
         warmup_steps=warmup_steps
     )
@@ -786,7 +786,7 @@ class CosineDecayRestarts(LearningRateSchedule):
     ```python
     first_decay_steps = 1000
     lr_decayed_fn = (
-        keras.optimizers.schedules.CosineDecayRestarts(
+        ncps.mini_keras.optimizers.schedules.CosineDecayRestarts(
             initial_learning_rate,
             first_decay_steps))
     ```
@@ -921,9 +921,9 @@ def serialize(learning_rate_schedule):
 
     Example:
 
-    >>> lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+    >>> lr_schedule = ncps.mini_keras.optimizers.schedules.ExponentialDecay(
     ...     0.1, decay_steps=100000, decay_rate=0.96, staircase=True)
-    >>> keras.optimizers.schedules.serialize(lr_schedule)
+    >>> ncps.mini_keras.optimizers.schedules.serialize(lr_schedule)
     {'module': 'keras.optimizers.schedules',
     'class_name': 'ExponentialDecay', 'config': {...},
     'registered_name': None}
@@ -958,7 +958,7 @@ def deserialize(config, custom_objects=None):
             'power': 0.5
         }
     }
-    lr_schedule = keras.optimizers.schedules.deserialize(config)
+    lr_schedule = ncps.mini_keras.optimizers.schedules.deserialize(config)
     ```
     """
     return serialization_lib.deserialize_keras_object(

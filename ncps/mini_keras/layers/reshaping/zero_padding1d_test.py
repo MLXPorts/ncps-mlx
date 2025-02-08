@@ -1,4 +1,7 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 from absl.testing import parameterized
 
 from ncps.mini_keras import dtype_policies

@@ -7,7 +7,14 @@ import warnings
 import weakref
 from contextlib import closing
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
 
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.trainers.data_adapters import data_adapter_utils
@@ -209,7 +216,7 @@ class PyDatasetAdapter(DataAdapter):
     def _standardize_batch(self, batch):
         if isinstance(batch, dict):
             return batch
-        if isinstance(batch, np.ndarray):
+        if isinstance(batch, BackendArray):
             batch = (batch,)
         if isinstance(batch, list):
             batch = tuple(batch)
@@ -673,7 +680,7 @@ def init_pool_generator(gens, random_seed=None, id_queue=None):
         random_seed: An optional value with which to seed child processes.
         id_queue: A multiprocessing Queue of worker ids.
             This is used to indicate that a worker process
-            was created by Keras.
+            was created by ncps.mini_keras.
     """
     global _SHARED_SEQUENCES
     _SHARED_SEQUENCES = gens

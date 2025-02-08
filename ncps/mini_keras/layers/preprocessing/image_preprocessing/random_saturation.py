@@ -31,9 +31,9 @@ class RandomSaturation(BaseImagePreprocessingLayer):
 
     Example:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = ncps.mini_keras.datasets.cifar10.load_data()
     images = images.astype("float32")
-    random_saturation = keras.layers.RandomSaturation(factor=0.2)
+    random_saturation = ncps.mini_keras.layers.RandomSaturation(factor=0.2)
     augmented_images = random_saturation(images)
     ```
     """

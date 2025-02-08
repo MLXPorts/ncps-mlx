@@ -26,8 +26,8 @@ class Permute(Layer):
 
     Example:
 
-    >>> x = keras.Input(shape=(10, 64))
-    >>> y = keras.layers.Permute((2, 1))(x)
+    >>> x = ncps.mini_keras.Input(shape=(10, 64))
+    >>> y = ncps.mini_keras.layers.Permute((2, 1))(x)
     >>> y.shape
     (None, 64, 10)
     """

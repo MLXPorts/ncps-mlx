@@ -1,7 +1,11 @@
 import collections
 import itertools
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
 from absl.testing import parameterized
 from torch.utils.data import Dataset as TorchDataset
 

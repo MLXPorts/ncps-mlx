@@ -3,8 +3,11 @@
 import json
 import random
 
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.trainers.data_adapters.py_dataset_adapter import PyDataset
 

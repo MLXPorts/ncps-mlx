@@ -1,6 +1,9 @@
 import os
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 from absl.testing import parameterized
 
@@ -744,7 +747,7 @@ class EinsumDenseTest(testing.TestCase):
                 optimizer.apply(grads, layer.trainable_variables)
 
         elif backend.backend() == "jax":
-            import jax
+            import jax # type: ignore
 
             def stateless_loss_fn(trainable_variables, x, dy):
                 y = layer.stateless_call(

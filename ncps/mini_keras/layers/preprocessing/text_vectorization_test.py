@@ -1,6 +1,12 @@
 import os
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+
 import pytest
 import tensorflow as tf
 from tensorflow import data as tf_data

@@ -40,7 +40,7 @@ class Solarization(BaseImagePreprocessingLayer):
     Example:
 
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = ncps.mini_keras.datasets.cifar10.load_data()
     print(images[0, 0, 0])
     # [59 62 63]
     # Note that images are Tensor with values in the range [0, 255]

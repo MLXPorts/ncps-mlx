@@ -52,11 +52,11 @@ class EarlyStopping(Callback):
 
     Example:
 
-    >>> callback = keras.callbacks.EarlyStopping(monitor='loss',
+    >>> callback = ncps.mini_keras.callbacks.EarlyStopping(monitor='loss',
     ...                                               patience=3)
     >>> # This callback will stop the training when there is no improvement in
     >>> # the loss for three consecutive epochs.
-    >>> model = keras.models.Sequential([keras.layers.Dense(10)])
+    >>> model = ncps.mini_keras.models.Sequential([keras.layers.Dense(10)])
     >>> model.compile(keras.optimizers.SGD(), loss='mse')
     >>> history = model.fit(np.arange(100).reshape(5, 20), np.zeros(5),
     ...                     epochs=10, batch_size=1, callbacks=[callback],

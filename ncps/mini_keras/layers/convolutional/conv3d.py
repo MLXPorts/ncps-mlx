@@ -87,7 +87,7 @@ class Conv3D(BaseConv):
     Example:
 
     >>> x = np.random.rand(4, 10, 10, 10, 128)
-    >>> y = keras.layers.Conv3D(32, 3, activation='relu')(x)
+    >>> y = ncps.mini_keras.layers.Conv3D(32, 3, activation='relu')(x)
     >>> print(y.shape)
     (4, 8, 8, 8, 32)
     """

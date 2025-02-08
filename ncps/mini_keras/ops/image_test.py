@@ -1,9 +1,13 @@
 import math
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
 import pytest
 import scipy.ndimage
-import ncps.mini_keras as tf
+import tensorflow as tf
 from absl.testing import parameterized
 
 from ncps.mini_keras import backend

@@ -1,7 +1,12 @@
 import math
 
-import numpy as np
-
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
 from ncps.mini_keras.api_export import keras_mini_export
@@ -126,7 +131,7 @@ def plot_image_gallery(
     )
     fig.subplots_adjust(wspace=0, hspace=0)
 
-    if isinstance(axes, np.ndarray) and len(axes.shape) == 1:
+    if isinstance(axes, BackendArray) and len(axes.shape) == 1:
         expand_axis = 0 if rows == 1 else -1
         axes = np.expand_dims(axes, expand_axis)
 
@@ -145,7 +150,7 @@ def plot_image_gallery(
         for col in range(cols):
             index = row * cols + col
             current_axis = (
-                axes[row, col] if isinstance(axes, np.ndarray) else axes
+                axes[row, col] if isinstance(axes, BackendArray) else axes
             )
             current_axis.imshow(images[index].astype("uint8"))
             current_axis.margins(x=0, y=0)

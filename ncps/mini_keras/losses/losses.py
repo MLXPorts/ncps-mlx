@@ -631,7 +631,7 @@ class BinaryCrossentropy(LossFunctionWrapper):
     >>> # Example 1: (batch_size = 1, number of samples = 4)
     >>> y_true = np.array([0, 1, 0, 0])
     >>> y_pred = np.array([-18.6, 0.51, 2.94, -12.8])
-    >>> bce = keras.losses.BinaryCrossentropy(from_logits=True)
+    >>> bce = ncps.mini_keras.losses.BinaryCrossentropy(from_logits=True)
     >>> bce(y_true, y_pred)
     0.8654
 
@@ -639,19 +639,19 @@ class BinaryCrossentropy(LossFunctionWrapper):
     >>> y_true = np.array([[0, 1], [0, 0]])
     >>> y_pred = np.array([[-18.6, 0.51], [2.94, -12.8]])
     >>> # Using default 'auto'/'sum_over_batch_size' reduction type.
-    >>> bce = keras.losses.BinaryCrossentropy(from_logits=True)
+    >>> bce = ncps.mini_keras.losses.BinaryCrossentropy(from_logits=True)
     >>> bce(y_true, y_pred)
     0.8654
     >>> # Using 'sample_weight' attribute
     >>> bce(y_true, y_pred, sample_weight=[0.8, 0.2])
     0.243
     >>> # Using 'sum' reduction` type.
-    >>> bce = keras.losses.BinaryCrossentropy(from_logits=True,
+    >>> bce = ncps.mini_keras.losses.BinaryCrossentropy(from_logits=True,
     ...     reduction="sum")
     >>> bce(y_true, y_pred)
     1.730
     >>> # Using 'none' reduction type.
-    >>> bce = keras.losses.BinaryCrossentropy(from_logits=True,
+    >>> bce = ncps.mini_keras.losses.BinaryCrossentropy(from_logits=True,
     ...     reduction=None)
     >>> bce(y_true, y_pred)
     array([0.235, 1.496], dtype=float32)
@@ -660,7 +660,7 @@ class BinaryCrossentropy(LossFunctionWrapper):
 
     >>> # Make the following updates to the above "Recommended Usage" section
     >>> # 1. Set `from_logits=False`
-    >>> keras.losses.BinaryCrossentropy() # OR ...('from_logits=False')
+    >>> ncps.mini_keras.losses.BinaryCrossentropy() # OR ...('from_logits=False')
     >>> # 2. Update `y_pred` to use probabilities instead of logits
     >>> y_pred = [0.6, 0.3, 0.2, 0.8] # OR [[0.6, 0.3], [0.2, 0.8]]
     """
@@ -774,13 +774,13 @@ class BinaryFocalCrossentropy(LossFunctionWrapper):
     >>> # Example 1: (batch_size = 1, number of samples = 4)
     >>> y_true = np.array([0, 1, 0, 0])
     >>> y_pred = np.array([-18.6, 0.51, 2.94, -12.8])
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...    gamma=2, from_logits=True)
     >>> loss(y_true, y_pred)
     0.691
 
     >>> # Apply class weight
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...     apply_class_balancing=True, gamma=2, from_logits=True)
     >>> loss(y_true, y_pred)
     0.51
@@ -789,52 +789,52 @@ class BinaryFocalCrossentropy(LossFunctionWrapper):
     >>> y_true = np.array([[0, 1], [0, 0]])
     >>> y_pred = np.array([[-18.6, 0.51], [2.94, -12.8]])
     >>> # Using default 'auto'/'sum_over_batch_size' reduction type.
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...     gamma=3, from_logits=True)
     >>> loss(y_true, y_pred)
     0.647
 
     >>> # Apply class weight
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...      apply_class_balancing=True, gamma=3, from_logits=True)
     >>> loss(y_true, y_pred)
     0.482
 
     >>> # Using 'sample_weight' attribute with focal effect
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...     gamma=3, from_logits=True)
     >>> loss(y_true, y_pred, sample_weight=[0.8, 0.2])
     0.133
 
     >>> # Apply class weight
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...      apply_class_balancing=True, gamma=3, from_logits=True)
     >>> loss(y_true, y_pred, sample_weight=[0.8, 0.2])
     0.097
 
     >>> # Using 'sum' reduction` type.
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...     gamma=4, from_logits=True,
     ...     reduction="sum")
     >>> loss(y_true, y_pred)
     1.222
 
     >>> # Apply class weight
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...     apply_class_balancing=True, gamma=4, from_logits=True,
     ...     reduction="sum")
     >>> loss(y_true, y_pred)
     0.914
 
     >>> # Using 'none' reduction type.
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...     gamma=5, from_logits=True,
     ...     reduction=None)
     >>> loss(y_true, y_pred)
     array([0.0017 1.1561], dtype=float32)
 
     >>> # Apply class weight
-    >>> loss = keras.losses.BinaryFocalCrossentropy(
+    >>> loss = ncps.mini_keras.losses.BinaryFocalCrossentropy(
     ...     apply_class_balancing=True, gamma=5, from_logits=True,
     ...     reduction=None)
     >>> loss(y_true, y_pred)
@@ -929,7 +929,7 @@ class CategoricalCrossentropy(LossFunctionWrapper):
     >>> y_true = np.array([[0, 1, 0], [0, 0, 1]])
     >>> y_pred = np.array([[0.05, 0.95, 0], [0.1, 0.8, 0.1]])
     >>> # Using 'auto'/'sum_over_batch_size' reduction type.
-    >>> cce = keras.losses.CategoricalCrossentropy()
+    >>> cce = ncps.mini_keras.losses.CategoricalCrossentropy()
     >>> cce(y_true, y_pred)
     1.177
 
@@ -938,13 +938,13 @@ class CategoricalCrossentropy(LossFunctionWrapper):
     0.814
 
     >>> # Using 'sum' reduction type.
-    >>> cce = keras.losses.CategoricalCrossentropy(
+    >>> cce = ncps.mini_keras.losses.CategoricalCrossentropy(
     ...     reduction="sum")
     >>> cce(y_true, y_pred)
     2.354
 
     >>> # Using 'none' reduction type.
-    >>> cce = keras.losses.CategoricalCrossentropy(
+    >>> cce = ncps.mini_keras.losses.CategoricalCrossentropy(
     ...     reduction=None)
     >>> cce(y_true, y_pred)
     array([0.0513, 2.303], dtype=float32)
@@ -1074,7 +1074,7 @@ class CategoricalFocalCrossentropy(LossFunctionWrapper):
     >>> y_true = [[0., 1., 0.], [0., 0., 1.]]
     >>> y_pred = [[0.05, 0.95, 0], [0.1, 0.8, 0.1]]
     >>> # Using 'auto'/'sum_over_batch_size' reduction type.
-    >>> cce = keras.losses.CategoricalFocalCrossentropy()
+    >>> cce = ncps.mini_keras.losses.CategoricalFocalCrossentropy()
     >>> cce(y_true, y_pred)
     0.23315276
 
@@ -1083,13 +1083,13 @@ class CategoricalFocalCrossentropy(LossFunctionWrapper):
     0.1632
 
     >>> # Using 'sum' reduction type.
-    >>> cce = keras.losses.CategoricalFocalCrossentropy(
+    >>> cce = ncps.mini_keras.losses.CategoricalFocalCrossentropy(
     ...     reduction="sum")
     >>> cce(y_true, y_pred)
     0.46631
 
     >>> # Using 'none' reduction type.
-    >>> cce = keras.losses.CategoricalFocalCrossentropy(
+    >>> cce = ncps.mini_keras.losses.CategoricalFocalCrossentropy(
     ...     reduction=None)
     >>> cce(y_true, y_pred)
     array([3.2058331e-05, 4.6627346e-01], dtype=float32)
@@ -1184,7 +1184,7 @@ class SparseCategoricalCrossentropy(LossFunctionWrapper):
     >>> y_true = [1, 2]
     >>> y_pred = [[0.05, 0.95, 0], [0.1, 0.8, 0.1]]
     >>> # Using 'auto'/'sum_over_batch_size' reduction type.
-    >>> scce = keras.losses.SparseCategoricalCrossentropy()
+    >>> scce = ncps.mini_keras.losses.SparseCategoricalCrossentropy()
     >>> scce(y_true, y_pred)
     1.177
 
@@ -1193,13 +1193,13 @@ class SparseCategoricalCrossentropy(LossFunctionWrapper):
     0.814
 
     >>> # Using 'sum' reduction type.
-    >>> scce = keras.losses.SparseCategoricalCrossentropy(
+    >>> scce = ncps.mini_keras.losses.SparseCategoricalCrossentropy(
     ...     reduction="sum")
     >>> scce(y_true, y_pred)
     2.354
 
     >>> # Using 'none' reduction type.
-    >>> scce = keras.losses.SparseCategoricalCrossentropy(
+    >>> scce = ncps.mini_keras.losses.SparseCategoricalCrossentropy(
     ...     reduction=None)
     >>> scce(y_true, y_pred)
     array([0.0513, 2.303], dtype=float32)
@@ -1307,19 +1307,19 @@ class Dice(LossFunctionWrapper):
     >>> y_pred = [[[[0.0], [1.0]], [[0.0], [1.0]]],
     ...           [[[0.4], [0.0]], [[0.0], [0.9]]]]
     >>> axis = (1, 2, 3)
-    >>> loss = keras.losses.dice(y_true, y_pred, axis=axis)
+    >>> loss = ncps.mini_keras.losses.dice(y_true, y_pred, axis=axis)
     >>> assert loss.shape == (2,)
     >>> loss
     array([0.5, 0.75757575], shape=(2,), dtype=float32)
 
-    >>> loss = keras.losses.dice(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.dice(y_true, y_pred)
     >>> assert loss.shape == ()
     >>> loss
     array(0.6164384, shape=(), dtype=float32)
 
     >>> y_true = np.array(y_true)
     >>> y_pred = np.array(y_pred)
-    >>> loss = keras.losses.Dice(axis=axis, reduction=None)(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.Dice(axis=axis, reduction=None)(y_true, y_pred)
     >>> assert loss.shape == (2,)
     >>> loss
     array([0.5, 0.75757575], shape=(2,), dtype=float32)
@@ -1455,11 +1455,11 @@ class Circle(LossFunctionWrapper):
 
     ```python
     model = models.Sequential([
-        keras.layers.Input(shape=(224, 224, 3)),
-        keras.layers.Conv2D(16, (3, 3), activation='relu'),
-        keras.layers.Flatten(),
-        keras.layers.Dense(64, activation=None),  # No activation
-        keras.layers.UnitNormalization()  # L2 normalization
+        ncps.mini_keras.layers.Input(shape=(224, 224, 3)),
+        ncps.mini_keras.layers.Conv2D(16, (3, 3), activation='relu'),
+        ncps.mini_keras.layers.Flatten(),
+        ncps.mini_keras.layers.Dense(64, activation=None),  # No activation
+        ncps.mini_keras.layers.UnitNormalization()  # L2 normalization
     ])
 
     model.compile(optimizer="adam", loss=keras.losses.Circle())
@@ -1552,7 +1552,7 @@ def hinge(y_true, y_pred):
 
     >>> y_true = np.random.choice([-1, 1], size=(2, 3))
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.hinge(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.hinge(y_true, y_pred)
     """
     y_pred = ops.convert_to_tensor(y_pred)
     y_true = ops.cast(y_true, dtype=y_pred.dtype)
@@ -1589,7 +1589,7 @@ def squared_hinge(y_true, y_pred):
 
     >>> y_true = np.random.choice([-1, 1], size=(2, 3))
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.squared_hinge(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.squared_hinge(y_true, y_pred)
     """
     y_pred = ops.convert_to_tensor(y_pred)
     y_true = ops.cast(y_true, y_pred.dtype)
@@ -1630,7 +1630,7 @@ def categorical_hinge(y_true, y_pred):
     >>> y_true = np.random.randint(0, 3, size=(2,))
     >>> y_true = np.eye(np.max(y_true) + 1)[y_true]
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.categorical_hinge(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.categorical_hinge(y_true, y_pred)
     """
     y_pred = ops.convert_to_tensor(y_pred)
     y_true = ops.cast(y_true, y_pred.dtype)
@@ -1664,7 +1664,7 @@ def mean_squared_error(y_true, y_pred):
 
     >>> y_true = np.random.randint(0, 2, size=(2, 3))
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.mean_squared_error(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.mean_squared_error(y_true, y_pred)
 
     Args:
         y_true: Ground truth values with shape = `[batch_size, d0, .. dN]`.
@@ -1708,7 +1708,7 @@ def mean_absolute_error(y_true, y_pred):
 
     >>> y_true = np.random.randint(0, 2, size=(2, 3))
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.mean_absolute_error(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.mean_absolute_error(y_true, y_pred)
     """
     y_pred = ops.convert_to_tensor(y_pred)
     y_true = ops.convert_to_tensor(y_true, dtype=y_pred.dtype)
@@ -1737,7 +1737,7 @@ def mean_absolute_percentage_error(y_true, y_pred):
     ```
 
     Division by zero is prevented by dividing by `maximum(y_true, epsilon)`
-    where `epsilon = keras.backend.epsilon()`
+    where `epsilon = ncps.mini_keras.backend.epsilon()`
     (default to `1e-7`).
 
     Args:
@@ -1752,7 +1752,7 @@ def mean_absolute_percentage_error(y_true, y_pred):
 
     >>> y_true = np.random.random(size=(2, 3))
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.mean_absolute_percentage_error(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.mean_absolute_percentage_error(y_true, y_pred)
     """
     y_pred = ops.convert_to_tensor(y_pred)
     y_true = ops.convert_to_tensor(y_true, dtype=y_pred.dtype)
@@ -1798,7 +1798,7 @@ def mean_squared_logarithmic_error(y_true, y_pred):
 
     >>> y_true = np.random.randint(0, 2, size=(2, 3))
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.mean_squared_logarithmic_error(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.mean_squared_logarithmic_error(y_true, y_pred)
     """
     epsilon = ops.convert_to_tensor(backend.epsilon())
     y_pred = ops.convert_to_tensor(y_pred)
@@ -1838,7 +1838,7 @@ def cosine_similarity(y_true, y_pred, axis=-1):
 
     >>> y_true = [[0., 1.], [1., 1.], [1., 1.]]
     >>> y_pred = [[1., 0.], [1., 1.], [-1., -1.]]
-    >>> loss = keras.losses.cosine_similarity(y_true, y_pred, axis=-1)
+    >>> loss = ncps.mini_keras.losses.cosine_similarity(y_true, y_pred, axis=-1)
     [-0., -0.99999994, 0.99999994]
     """
     y_pred = ops.convert_to_tensor(y_pred)
@@ -1869,7 +1869,7 @@ def huber(y_true, y_pred, delta=1.0):
 
     >>> y_true = [[0, 1], [0, 0]]
     >>> y_pred = [[0.6, 0.4], [0.4, 0.6]]
-    >>> loss = keras.losses.huber(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.huber(y_true, y_pred)
     0.155
 
 
@@ -1925,7 +1925,7 @@ def log_cosh(y_true, y_pred):
 
     >>> y_true = [[0., 1.], [0., 0.]]
     >>> y_pred = [[1., 1.], [0., 0.]]
-    >>> loss = keras.losses.log_cosh(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.log_cosh(y_true, y_pred)
     0.108
 
     Args:
@@ -1983,7 +1983,7 @@ def kl_divergence(y_true, y_pred):
 
     >>> y_true = np.random.randint(0, 2, size=(2, 3)).astype(np.float32)
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.kl_divergence(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.kl_divergence(y_true, y_pred)
     >>> assert loss.shape == (2,)
     >>> y_true = ops.clip(y_true, 1e-7, 1)
     >>> y_pred = ops.clip(y_pred, 1e-7, 1)
@@ -2023,7 +2023,7 @@ def poisson(y_true, y_pred):
 
     >>> y_true = np.random.randint(0, 2, size=(2, 3))
     >>> y_pred = np.random.random(size=(2, 3))
-    >>> loss = keras.losses.poisson(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.poisson(y_true, y_pred)
     >>> assert loss.shape == (2,)
     >>> y_pred = y_pred + 1e-7
     >>> assert np.allclose(
@@ -2065,7 +2065,7 @@ def categorical_crossentropy(
 
     >>> y_true = [[0, 1, 0], [0, 0, 1]]
     >>> y_pred = [[0.05, 0.95, 0], [0.1, 0.8, 0.1]]
-    >>> loss = keras.losses.categorical_crossentropy(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.categorical_crossentropy(y_true, y_pred)
     >>> assert loss.shape == (2,)
     >>> loss
     array([0.0513, 2.303], dtype=float32)
@@ -2143,7 +2143,7 @@ def categorical_focal_crossentropy(
 
     >>> y_true = [[0, 1, 0], [0, 0, 1]]
     >>> y_pred = [[0.05, 0.9, 0.05], [0.1, 0.85, 0.05]]
-    >>> loss = keras.losses.categorical_focal_crossentropy(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.categorical_focal_crossentropy(y_true, y_pred)
     >>> assert loss.shape == (2,)
     >>> loss
     array([2.63401289e-04, 6.75912094e-01], dtype=float32)
@@ -2226,7 +2226,7 @@ def sparse_categorical_crossentropy(
 
     >>> y_true = [1, 2]
     >>> y_pred = [[0.05, 0.95, 0], [0.1, 0.8, 0.1]]
-    >>> loss = keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
     >>> assert loss.shape == (2,)
     >>> loss
     array([0.0513, 2.303], dtype=float32)
@@ -2287,7 +2287,7 @@ def binary_crossentropy(
 
     >>> y_true = [[0, 1], [0, 0]]
     >>> y_pred = [[0.6, 0.4], [0.4, 0.6]]
-    >>> loss = keras.losses.binary_crossentropy(y_true, y_pred)
+    >>> loss = ncps.mini_keras.losses.binary_crossentropy(y_true, y_pred)
     >>> assert loss.shape == (2,)
     >>> loss
     array([0.916 , 0.714], dtype=float32)
@@ -2363,7 +2363,7 @@ def binary_focal_crossentropy(
 
     >>> y_true = [[0, 1], [0, 0]]
     >>> y_pred = [[0.6, 0.4], [0.4, 0.6]]
-    >>> loss = keras.losses.binary_focal_crossentropy(
+    >>> loss = ncps.mini_keras.losses.binary_focal_crossentropy(
     ...        y_true, y_pred, gamma=2)
     >>> assert loss.shape == (2,)
     >>> loss

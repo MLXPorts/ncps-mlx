@@ -1,6 +1,14 @@
-import jax
+try:
+    import jax
+except ImportError:
+    raise ImportError(
+        "JAX is not installed. Please install JAX to use the numpy backend."
+    )
 import ml_dtypes
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras import backend
 from ncps.mini_keras.backend.numpy.core import convert_to_tensor

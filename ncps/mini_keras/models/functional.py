@@ -40,11 +40,11 @@ class Functional(Function, Model):
     Example:
 
     ```
-    inputs = {'x1': keras.Input(shape=(10,), name='x1'),
-              'x2': keras.Input(shape=(1,), name='x2')}
-    t = keras.layers.Dense(1, activation='relu')(inputs['x1'])
-    outputs = keras.layers.Add()([t, inputs['x2']])
-    model = keras.Model(inputs, outputs)
+    inputs = {'x1': ncps.mini_keras.Input(shape=(10,), name='x1'),
+              'x2': ncps.mini_keras.Input(shape=(1,), name='x2')}
+    t = ncps.mini_keras.layers.Dense(1, activation='relu')(inputs['x1'])
+    outputs = ncps.mini_keras.layers.Add()([t, inputs['x2']])
+    model = ncps.mini_keras.Model(inputs, outputs)
     ```
 
     A `Functional` model constructed using the Functional API can also
@@ -53,10 +53,10 @@ class Functional(Function, Model):
     Example:
 
     ```python
-    inputs = keras.Input(shape=(10,))
-    x = keras.layers.Dense(1)(inputs)
+    inputs = ncps.mini_keras.Input(shape=(10,))
+    x = ncps.mini_keras.layers.Dense(1)(inputs)
     outputs = ops.nn.relu(x)
-    model = keras.Model(inputs, outputs)
+    model = ncps.mini_keras.Model(inputs, outputs)
     ```
 
     A new `Functional` model can also be created by using the
@@ -66,15 +66,15 @@ class Functional(Function, Model):
     Example:
 
     ```python
-    inputs = keras.Input(shape=(None, None, 3))
-    processed = keras.layers.RandomCrop(width=32, height=32)(inputs)
-    conv = keras.layers.Conv2D(filters=2, kernel_size=3)(processed)
-    pooling = keras.layers.GlobalAveragePooling2D()(conv)
-    feature = keras.layers.Dense(10)(pooling)
+    inputs = ncps.mini_keras.Input(shape=(None, None, 3))
+    processed = ncps.mini_keras.layers.RandomCrop(width=32, height=32)(inputs)
+    conv = ncps.mini_keras.layers.Conv2D(filters=2, kernel_size=3)(processed)
+    pooling = ncps.mini_keras.layers.GlobalAveragePooling2D()(conv)
+    feature = ncps.mini_keras.layers.Dense(10)(pooling)
 
-    full_model = keras.Model(inputs, feature)
-    backbone = keras.Model(processed, conv)
-    activations = keras.Model(conv, feature)
+    full_model = ncps.mini_keras.Model(inputs, feature)
+    backbone = ncps.mini_keras.Model(processed, conv)
+    activations = ncps.mini_keras.Model(conv, feature)
     ```
 
     Note that the `backbone` and `activations` models are not
@@ -826,7 +826,7 @@ def clone_graph_nodes(inputs, outputs):
 
     for kt_input in tree.flatten(inputs):
         if is_input_keras_tensor(kt_input):
-            # For any existing Keras tensor from keras.Input, leave them as is.
+            # For any existing Keras tensor from ncps.mini_keras.Input, leave them as is.
             cloned_inputs.append(kt_input)
             kt_id_mapping[id(kt_input)] = kt_input
         else:

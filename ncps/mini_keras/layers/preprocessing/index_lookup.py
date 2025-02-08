@@ -1,7 +1,14 @@
 import collections
 
-import numpy as np
-
+try:
+    import mlx.core as mx
+    BackendArray = mx.array
+    def to_array(x): return mx.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras.layers.layer import Layer
 from ncps.mini_keras.utils import argument_validation
@@ -757,7 +764,7 @@ class IndexLookup(Layer):
 
     def _lookup_dense(self, inputs):
         """Lookup table values for a dense Tensor, handling masking and OOV."""
-        # When executing eagerly and tracing keras.Input objects,
+        # When executing eagerly and tracing ncps.mini_keras.Input objects,
         # do not call lookup.
         # This is critical for restoring SavedModel, which will first trace
         # layer.call and then attempt to restore the table. We need the table to
@@ -882,7 +889,13 @@ class IndexLookup(Layer):
             return tf.lookup.StaticHashTable(initializer, self._default_value)
 
     def _convert_to_ndarray(self, x):
-        return np.array(x) if isinstance(x, (list, tuple)) else x
+        """Converts lists/tuples to the correct backend array, leaving existing arrays unchanged."""
+        
+        # Convert lists/tuples to backend-specific arrays
+        if isinstance(x, (list, tuple)):
+            return to_array(x)  # Use the backend’s array conversion function
+
+        return x  # Leave existing arrays untouched
 
     def _expand_dims(self, inputs, axis):
         if isinstance(inputs, tf.SparseTensor):

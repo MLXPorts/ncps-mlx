@@ -1,6 +1,8 @@
-import numpy as np
-
-from conftest import skip_if_backend
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+from conftest import skip_if_backend # type: ignore
 from ncps.mini_keras import backend
 from ncps.mini_keras import initializers
 from ncps.mini_keras import random

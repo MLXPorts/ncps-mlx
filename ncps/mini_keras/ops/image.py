@@ -1111,7 +1111,7 @@ def crop_images(
     array([[ 1.,  4.,  7.],
            [10., 13., 16.],
            [19., 22., 25.]], dtype=float32)
-    >>> cropped_images = keras.image.crop_images(images, 0, 0, 2, 2)
+    >>> cropped_images = ncps.mini_keras.image.crop_images(images, 0, 0, 2, 2)
     >>> cropped_images[:,:,0] # print the first channel of the cropped images
     array([[ 1.,  4.],
            [10., 13.]], dtype=float32)"""

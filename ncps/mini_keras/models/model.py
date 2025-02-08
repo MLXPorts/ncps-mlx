@@ -46,10 +46,10 @@ class Model(Trainer, base_trainer.Trainer, Layer):
     and finally, you create your model from inputs and outputs:
 
     ```python
-    inputs = keras.Input(shape=(37,))
-    x = keras.layers.Dense(32, activation="relu")(inputs)
-    outputs = keras.layers.Dense(5, activation="softmax")(x)
-    model = keras.Model(inputs=inputs, outputs=outputs)
+    inputs = ncps.mini_keras.Input(shape=(37,))
+    x = ncps.mini_keras.layers.Dense(32, activation="relu")(inputs)
+    outputs = ncps.mini_keras.layers.Dense(5, activation="softmax")(x)
+    model = ncps.mini_keras.Model(inputs=inputs, outputs=outputs)
     ```
 
     Note: Only dicts, lists, and tuples of input tensors are supported. Nested
@@ -62,15 +62,15 @@ class Model(Trainer, base_trainer.Trainer, Layer):
     Example:
 
     ```python
-    inputs = keras.Input(shape=(None, None, 3))
-    processed = keras.layers.RandomCrop(width=128, height=128)(inputs)
-    conv = keras.layers.Conv2D(filters=32, kernel_size=3)(processed)
-    pooling = keras.layers.GlobalAveragePooling2D()(conv)
-    feature = keras.layers.Dense(10)(pooling)
+    inputs = ncps.mini_keras.Input(shape=(None, None, 3))
+    processed = ncps.mini_keras.layers.RandomCrop(width=128, height=128)(inputs)
+    conv = ncps.mini_keras.layers.Conv2D(filters=32, kernel_size=3)(processed)
+    pooling = ncps.mini_keras.layers.GlobalAveragePooling2D()(conv)
+    feature = ncps.mini_keras.layers.Dense(10)(pooling)
 
-    full_model = keras.Model(inputs, feature)
-    backbone = keras.Model(processed, conv)
-    activations = keras.Model(conv, feature)
+    full_model = ncps.mini_keras.Model(inputs, feature)
+    backbone = ncps.mini_keras.Model(processed, conv)
+    activations = ncps.mini_keras.Model(conv, feature)
     ```
 
     Note that the `backbone` and `activations` models are not
@@ -92,8 +92,8 @@ class Model(Trainer, base_trainer.Trainer, Layer):
     class MyModel(keras.Model):
         def __init__(self):
             super().__init__()
-            self.dense1 = keras.layers.Dense(32, activation="relu")
-            self.dense2 = keras.layers.Dense(5, activation="softmax")
+            self.dense1 = ncps.mini_keras.layers.Dense(32, activation="relu")
+            self.dense2 = ncps.mini_keras.layers.Dense(5, activation="softmax")
 
         def call(self, inputs):
             x = self.dense1(inputs)
@@ -110,9 +110,9 @@ class Model(Trainer, base_trainer.Trainer, Layer):
     class MyModel(keras.Model):
         def __init__(self):
             super().__init__()
-            self.dense1 = keras.layers.Dense(32, activation="relu")
-            self.dense2 = keras.layers.Dense(5, activation="softmax")
-            self.dropout = keras.layers.Dropout(0.5)
+            self.dense1 = ncps.mini_keras.layers.Dense(32, activation="relu")
+            self.dense2 = ncps.mini_keras.layers.Dense(5, activation="softmax")
+            self.dropout = ncps.mini_keras.layers.Dropout(0.5)
 
         def call(self, inputs, training=False):
             x = self.dense1(inputs)
@@ -132,9 +132,9 @@ class Model(Trainer, base_trainer.Trainer, Layer):
     the model is purely a stack of single-input, single-output layers.
 
     ```python
-    model = keras.Sequential([
-        keras.Input(shape=(None, None, 3)),
-        keras.layers.Conv2D(filters=32, kernel_size=3),
+    model = ncps.mini_keras.Sequential([
+        ncps.mini_keras.Input(shape=(None, None, 3)),
+        ncps.mini_keras.layers.Conv2D(filters=32, kernel_size=3),
     ])
     ```
     """
@@ -288,15 +288,15 @@ class Model(Trainer, base_trainer.Trainer, Layer):
         Example:
 
         ```python
-        model = keras.Sequential(
+        model = ncps.mini_keras.Sequential(
             [
-                keras.layers.Dense(5, input_shape=(3,)),
-                keras.layers.Softmax(),
+                ncps.mini_keras.layers.Dense(5, input_shape=(3,)),
+                ncps.mini_keras.layers.Softmax(),
             ],
         )
         model.save("model.keras")
-        loaded_model = keras.saving.load_model("model.keras")
-        x = keras.random.uniform((10, 3))
+        loaded_model = ncps.mini_keras.saving.load_model("model.keras")
+        x = ncps.mini_keras.random.uniform((10, 3))
         assert np.allclose(model.predict(x), loaded_model.predict(x))
         ```
 
@@ -633,9 +633,9 @@ class Model(Trainer, base_trainer.Trainer, Layer):
         Example:
 
         ```python
-        model = keras.Sequential([
-            keras.Input(shape=(1,), name="my_input"),
-            keras.layers.Dense(1, activation="sigmoid", name="my_dense"),
+        model = ncps.mini_keras.Sequential([
+            ncps.mini_keras.Input(shape=(1,), name="my_input"),
+            ncps.mini_keras.layers.Dense(1, activation="sigmoid", name="my_dense"),
         ], name="my_sequential")
         model.compile(optimizer="adam", loss="mse", metrics=["mae"])
         model.fit(np.array([[1.0]]), np.array([[1.0]]))
@@ -789,11 +789,11 @@ def model_from_json(json_string, custom_objects=None):
 
     Example:
 
-    >>> model = keras.Sequential([
-    ...     keras.layers.Dense(5, input_shape=(3,)),
-    ...     keras.layers.Softmax()])
+    >>> model = ncps.mini_keras.Sequential([
+    ...     ncps.mini_keras.layers.Dense(5, input_shape=(3,)),
+    ...     ncps.mini_keras.layers.Softmax()])
     >>> config = model.to_json()
-    >>> loaded_model = keras.models.model_from_json(config)
+    >>> loaded_model = ncps.mini_keras.models.model_from_json(config)
 
     Args:
         json_string: JSON string encoding a model configuration.

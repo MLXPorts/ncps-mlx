@@ -21,7 +21,6 @@ import inspect
 import warnings
 from functools import wraps
 
-from ncps.mini_keras import activations
 from ncps.mini_keras import backend
 from ncps.mini_keras import constraints
 from ncps.mini_keras import dtype_policies
@@ -40,12 +39,10 @@ from ncps.mini_keras.layers import input_spec
 from ncps.mini_keras.metrics.metric import Metric
 from ncps.mini_keras.ops.operation import Operation
 from ncps.mini_keras.saving.keras_saveable import KerasSaveable
-from ncps.mini_keras.testing.test_case import is_shape_tuple
 from ncps.mini_keras.utils import python_utils
 from ncps.mini_keras.utils import summary_utils
 from ncps.mini_keras.utils import traceback_utils
 from ncps.mini_keras.utils import tracking
-import mlx.core as mx
 
 if backend.backend() == "tensorflow":
     from ncps.mini_keras.backend.tensorflow.layer import TFLayer as BackendLayer
@@ -1565,33 +1562,6 @@ class Layer(BackendLayer, Operation, KerasSaveable):
             self._parent_path = current_path()
         return backend.name_scope(self.name, caller=self)
 
-    def _handle_input(self, input_tensor):
-        """Internal method to handle input tensor and its type."""
-        if backend.backend() == "mlx":
-            # Handle both KerasTensor and MLX array cases
-            if isinstance(input_tensor, KerasTensor):
-                dtype = input_tensor.dtype
-            elif hasattr(input_tensor, "Dtype"):
-                dtype = input_tensor.Dtype
-            elif hasattr(type(input_tensor), "Dtype"):
-                dtype = type(input_tensor).Dtype
-            else:
-                dtype = mx.float32
-                
-            if not isinstance(input_tensor, (mx.array, KerasTensor)):
-                input_tensor = mx.array(input_tensor, dtype=dtype)
-        return input_tensor
-
-    def build_wrapper(self, *args, **kwargs):
-        """Wrapper around the Layer's build method to handle MLX types."""
-        try:
-            return self.build(*args, **kwargs)
-        except AttributeError as e:
-            if ("dtype" in str(e) or "Dtype" in str(e)) and backend.backend() == "mlx":
-                # Convert args to use MLX's type system
-                new_args = [self._handle_input(arg) for arg in args]
-                return self.build(*new_args, **kwargs)
-            raise e
 
 def is_backend_tensor_or_symbolic(x, allow_none=False):
     if allow_none and x is None:

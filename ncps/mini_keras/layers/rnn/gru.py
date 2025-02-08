@@ -68,12 +68,12 @@ class GRUCell(Layer, DropoutRNNCell):
     Example:
 
     >>> inputs = np.random.random((32, 10, 8))
-    >>> rnn = keras.layers.RNN(keras.layers.GRUCell(4))
+    >>> rnn = ncps.mini_keras.layers.RNN(keras.layers.GRUCell(4))
     >>> output = rnn(inputs)
     >>> output.shape
     (32, 4)
-    >>> rnn = keras.layers.RNN(
-    ...    keras.layers.GRUCell(4),
+    >>> rnn = ncps.mini_keras.layers.RNN(
+    ...    ncps.mini_keras.layers.GRUCell(4),
     ...    return_sequences=True,
     ...    return_state=True)
     >>> whole_sequence_output, final_state = rnn(inputs)
@@ -374,11 +374,11 @@ class GRU(RNN):
     For example:
 
     >>> inputs = np.random.random((32, 10, 8))
-    >>> gru = keras.layers.GRU(4)
+    >>> gru = ncps.mini_keras.layers.GRU(4)
     >>> output = gru(inputs)
     >>> output.shape
     (32, 4)
-    >>> gru = keras.layers.GRU(4, return_sequences=True, return_state=True)
+    >>> gru = ncps.mini_keras.layers.GRU(4, return_sequences=True, return_state=True)
     >>> whole_sequence_output, final_state = gru(inputs)
     >>> whole_sequence_output.shape
     (32, 10, 4)

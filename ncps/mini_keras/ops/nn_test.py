@@ -1,7 +1,12 @@
 import math
 from itertools import combinations
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
+import ncps
 import pytest
 from absl.testing import parameterized
 
@@ -189,7 +194,7 @@ class NNOpsDynamicShapeTest(testing.TestCase):
 
         class Model(keras.Model):
             def __init__(self):
-                x = keras.Input(shape=(None,))
+                x = ncps.mini_keras.Input(shape=(None,))
                 y = SoftmaxLayer()(x)
                 super().__init__(inputs=x, outputs=y)
 
@@ -1463,7 +1468,7 @@ class NNOpsCorrectnessTest(testing.TestCase):
         input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
         combination = combinations(range(3), 2)
         for axis in list(combination):
-            result = keras.ops.nn.softmax(input, axis=axis)
+            result = ncps.mini_keras.ops.nn.softmax(input, axis=axis)
             normalized_sum_by_axis = np.sum(
                 ops.convert_to_numpy(result), axis=axis
             )
@@ -1504,7 +1509,7 @@ class NNOpsCorrectnessTest(testing.TestCase):
         input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
         combination = combinations(range(3), 2)
         for axis in list(combination):
-            result = keras.ops.nn.log_softmax(input, axis=axis)
+            result = ncps.mini_keras.ops.nn.log_softmax(input, axis=axis)
             normalized_sum_by_axis = np.sum(
                 np.exp(ops.convert_to_numpy(result)), axis=axis
             )

@@ -15,7 +15,7 @@ class Cropping2D(Layer):
 
     >>> input_shape = (2, 28, 28, 3)
     >>> x = np.arange(np.prod(input_shape)).reshape(input_shape)
-    >>> y = keras.layers.Cropping2D(cropping=((2, 2), (4, 4)))(x)
+    >>> y = ncps.mini_keras.layers.Cropping2D(cropping=((2, 2), (4, 4)))(x)
     >>> y.shape
     (2, 24, 20, 3)
 

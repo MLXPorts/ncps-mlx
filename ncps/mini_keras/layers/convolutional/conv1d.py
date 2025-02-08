@@ -87,7 +87,7 @@ class Conv1D(BaseConv):
     >>> # The inputs are 128-length vectors with 10 timesteps, and the
     >>> # batch size is 4.
     >>> x = np.random.rand(4, 10, 128)
-    >>> y = keras.layers.Conv1D(32, 3, activation='relu')(x)
+    >>> y = ncps.mini_keras.layers.Conv1D(32, 3, activation='relu')(x)
     >>> print(y.shape)
     (4, 8, 32)
     """

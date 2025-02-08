@@ -32,7 +32,7 @@ class MelSpectrogram(TFDataLayer):
 
     **Unbatched audio signal**
 
-    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=64,
+    >>> layer = ncps.mini_keras.layers.MelSpectrogram(num_mel_bins=64,
     ...                                     sampling_rate=8000,
     ...                                     sequence_stride=256,
     ...                                     fft_length=2048)
@@ -41,7 +41,7 @@ class MelSpectrogram(TFDataLayer):
 
     **Batched audio signal**
 
-    >>> layer = keras.layers.MelSpectrogram(num_mel_bins=80,
+    >>> layer = ncps.mini_keras.layers.MelSpectrogram(num_mel_bins=80,
     ...                                     sampling_rate=8000,
     ...                                     sequence_stride=128,
     ...                                     fft_length=2048)
@@ -222,7 +222,7 @@ class MelSpectrogram(TFDataLayer):
         ```
         # `S` has shape [frames, num_spectrogram_bins]
         # `M` has shape [frames, num_mel_bins]
-        M = keras.ops.matmul(S, A)
+        M = ncps.mini_keras.ops.matmul(S, A)
         ```
 
         The matrix can be used with `keras.ops.tensordot` to convert an
@@ -232,7 +232,7 @@ class MelSpectrogram(TFDataLayer):
         ```
         # S has shape [..., num_spectrogram_bins].
         # M has shape [..., num_mel_bins].
-        M = keras.ops.tensordot(S, A, 1)
+        M = ncps.mini_keras.ops.tensordot(S, A, 1)
         ```
 
         References:

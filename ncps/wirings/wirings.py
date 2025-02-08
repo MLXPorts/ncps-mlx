@@ -13,13 +13,39 @@
 # limitations under the License.
 
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    
+    # MLX random generator wrapper to match numpy's default_rng interface
+    class MLXRandomGenerator:
+        def __init__(self, seed=None):
+            np.random.seed(seed)
+            
+        def choice(self, a, size=None, replace=True):
+            if isinstance(a, (list, tuple)):
+                a = np.array(a)
+            if size is None:
+                size = 1
+            # MLX uses shape parameter instead of size
+            indices = np.random.randint(0, len(a), [size]) 
+            return a[indices]
 
+    def get_random_generator(seed=None):
+        return MLXRandomGenerator(seed)
+
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
+    def get_random_generator(seed=None):
+        return np.random.default_rng(seed)
 
 class Wiring:
     def __init__(self, units):
         self.units = units
-        self.adjacency_matrix = np.zeros([units, units], dtype=np.int32)
+        # Initialize with zeros
+        self.adjacency_matrix = np.zeros((units, units), dtype=np.int32)
         self.sensory_adjacency_matrix = None
         self.input_dim = None
         self.output_dim = None
@@ -45,15 +71,16 @@ class Wiring:
             self.set_input_dim(input_dim)
 
     def erev_initializer(self, shape=None, dtype=None):
-        return np.copy(self.adjacency_matrix)
+        return np.array(self.adjacency_matrix)
 
     def sensory_erev_initializer(self, shape=None, dtype=None):
-        return np.copy(self.sensory_adjacency_matrix)
+        return np.array(self.sensory_adjacency_matrix)
 
     def set_input_dim(self, input_dim):
         self.input_dim = input_dim
+        # Change zeros creation to be compatible with MLX
         self.sensory_adjacency_matrix = np.zeros(
-            [input_dim, self.units], dtype=np.int32
+            (input_dim, self.units), dtype=np.int32
         )
 
     def set_output_dim(self, output_dim):
@@ -82,7 +109,9 @@ class Wiring:
                     polarity
                 )
             )
-        self.adjacency_matrix[src, dest] = polarity
+        # Update array using direct indexing and add()
+        mat = self.adjacency_matrix.at[(src, dest)].add(polarity)
+        self.adjacency_matrix = mat
 
     def add_sensory_synapse(self, src, dest, polarity):
         if self.input_dim is None:
@@ -107,7 +136,9 @@ class Wiring:
                     polarity
                 )
             )
-        self.sensory_adjacency_matrix[src, dest] = polarity
+        # Update array using direct indexing and add()
+        mat = self.sensory_adjacency_matrix.at[(src, dest)].add(polarity)
+        self.sensory_adjacency_matrix = mat
 
     def get_config(self):
         return {
@@ -301,7 +332,7 @@ class FullyConnected(Wiring):
             output_dim = units
         self.self_connections = self_connections
         self.set_output_dim(output_dim)
-        self._rng = np.random.default_rng(erev_init_seed)
+        self._rng = get_random_generator(erev_init_seed)  # Changed this line
         self._erev_init_seed = erev_init_seed
         for src in range(self.units):
             for dest in range(self.units):
@@ -344,7 +375,7 @@ class Random(Wiring):
                     sparsity_level
                 )
             )
-        self._rng = np.random.default_rng(random_seed)
+        self._rng = get_random_generator(random_seed)  # Changed this line
         self._random_seed = random_seed
 
         number_of_synapses = int(np.round(units * units * (1 - sparsity_level)))
@@ -421,7 +452,8 @@ class NCP(Wiring):
 
         super(NCP, self).__init__(inter_neurons + command_neurons + motor_neurons)
         self.set_output_dim(motor_neurons)
-        self._rng = np.random.RandomState(seed)
+        # Replace RandomState with MLXRandomGenerator
+        self._rng = get_random_generator(seed)
         self._num_inter_neurons = inter_neurons
         self._num_command_neurons = command_neurons
         self._num_motor_neurons = motor_neurons
@@ -429,23 +461,6 @@ class NCP(Wiring):
         self._inter_fanout = inter_fanout
         self._recurrent_command_synapses = recurrent_command_synapses
         self._motor_fanin = motor_fanin
-
-        # Neuron IDs: [0..motor ... command ... inter]
-        self._motor_neurons = list(range(0, self._num_motor_neurons))
-        self._command_neurons = list(
-            range(
-                self._num_motor_neurons,
-                self._num_motor_neurons + self._num_command_neurons,
-            )
-        )
-        self._inter_neurons = list(
-            range(
-                self._num_motor_neurons + self._num_command_neurons,
-                self._num_motor_neurons
-                + self._num_command_neurons
-                + self._num_inter_neurons,
-            )
-        )
 
         if self._motor_fanin > self._num_command_neurons:
             raise ValueError(
@@ -495,7 +510,7 @@ class NCP(Wiring):
             ):
                 if dest in unreachable_inter_neurons:
                     unreachable_inter_neurons.remove(dest)
-                polarity = self._rng.choice([-1, 1])
+                polarity = self._rng.choice([-1, 1])  # Simplified choice for polarity
                 self.add_sensory_synapse(src, dest, polarity)
 
         # If it happens that some interneurons are not connected, connect them now
@@ -522,7 +537,7 @@ class NCP(Wiring):
             ):
                 if dest in unreachable_command_neurons:
                     unreachable_command_neurons.remove(dest)
-                polarity = self._rng.choice([-1, 1])
+                polarity = self._rng.choice([-1, 1])  # Simplified choice for polarity
                 self.add_synapse(src, dest, polarity)
 
         # If it happens that some command neurons are not connected, connect them now
@@ -545,7 +560,7 @@ class NCP(Wiring):
         for i in range(self._recurrent_command_synapses):
             src = self._rng.choice(self._command_neurons)
             dest = self._rng.choice(self._command_neurons)
-            polarity = self._rng.choice([-1, 1])
+            polarity = self._rng.choice([-1, 1])  # Simplified choice for polarity
             self.add_synapse(src, dest, polarity)
 
     def _build_command__to_motor_layer(self):
@@ -557,7 +572,7 @@ class NCP(Wiring):
             ):
                 if src in unreachable_command_neurons:
                     unreachable_command_neurons.remove(src)
-                polarity = self._rng.choice([-1, 1])
+                polarity = self._rng.choice([-1, 1])  # Simplified choice for polarity
                 self.add_synapse(src, dest, polarity)
 
         # If it happens that some command neurons are not connected, connect them now

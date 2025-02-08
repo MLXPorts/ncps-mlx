@@ -19,7 +19,7 @@ class ZeroPadding1D(Layer):
       [ 3  4  5]]
      [[ 6  7  8]
       [ 9 10 11]]]
-    >>> y = keras.layers.ZeroPadding1D(padding=2)(x)
+    >>> y = ncps.mini_keras.layers.ZeroPadding1D(padding=2)(x)
     >>> y
     [[[ 0  0  0]
       [ 0  0  0]

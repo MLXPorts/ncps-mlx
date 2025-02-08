@@ -1,5 +1,8 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import activations
 from ncps.mini_keras import backend
 from ncps.mini_keras import initializers
@@ -99,7 +102,7 @@ class FalsePositives(_ConfusionMatrixConditionCount):
 
     Examples:
 
-    >>> m = keras.metrics.FalsePositives()
+    >>> m = ncps.mini_keras.metrics.FalsePositives()
     >>> m.update_state([0, 1, 0, 0], [0, 0, 1, 1])
     >>> m.result()
     2.0
@@ -143,7 +146,7 @@ class FalseNegatives(_ConfusionMatrixConditionCount):
 
     Example:
 
-    >>> m = keras.metrics.FalseNegatives()
+    >>> m = ncps.mini_keras.metrics.FalseNegatives()
     >>> m.update_state([0, 1, 1, 1], [0, 1, 0, 0])
     >>> m.result()
     2.0
@@ -187,7 +190,7 @@ class TrueNegatives(_ConfusionMatrixConditionCount):
 
     Example:
 
-    >>> m = keras.metrics.TrueNegatives()
+    >>> m = ncps.mini_keras.metrics.TrueNegatives()
     >>> m.update_state([0, 1, 0, 0], [1, 1, 0, 0])
     >>> m.result()
     2.0
@@ -231,7 +234,7 @@ class TruePositives(_ConfusionMatrixConditionCount):
 
     Example:
 
-    >>> m = keras.metrics.TruePositives()
+    >>> m = ncps.mini_keras.metrics.TruePositives()
     >>> m.update_state([0, 1, 1, 1], [1, 0, 1, 1])
     >>> m.result()
     2.0
@@ -293,7 +296,7 @@ class Precision(Metric):
 
     Example:
 
-    >>> m = keras.metrics.Precision()
+    >>> m = ncps.mini_keras.metrics.Precision()
     >>> m.update_state([0, 1, 1, 1], [1, 0, 1, 1])
     >>> m.result()
     0.6666667
@@ -305,14 +308,14 @@ class Precision(Metric):
 
     >>> # With top_k=2, it will calculate precision over y_true[:2]
     >>> # and y_pred[:2]
-    >>> m = keras.metrics.Precision(top_k=2)
+    >>> m = ncps.mini_keras.metrics.Precision(top_k=2)
     >>> m.update_state([0, 0, 1, 1], [1, 1, 1, 1])
     >>> m.result()
     0.0
 
     >>> # With top_k=4, it will calculate precision over y_true[:4]
     >>> # and y_pred[:4]
-    >>> m = keras.metrics.Precision(top_k=4)
+    >>> m = ncps.mini_keras.metrics.Precision(top_k=4)
     >>> m.update_state([0, 0, 1, 1], [1, 1, 1, 1])
     >>> m.result()
     0.5
@@ -451,7 +454,7 @@ class Recall(Metric):
 
     Example:
 
-    >>> m = keras.metrics.Recall()
+    >>> m = ncps.mini_keras.metrics.Recall()
     >>> m.update_state([0, 1, 1, 1], [1, 0, 1, 1])
     >>> m.result()
     0.6666667
@@ -709,7 +712,7 @@ class SensitivityAtSpecificity(SensitivitySpecificityBase):
 
     Example:
 
-    >>> m = keras.metrics.SensitivityAtSpecificity(0.5)
+    >>> m = ncps.mini_keras.metrics.SensitivityAtSpecificity(0.5)
     >>> m.update_state([0, 0, 0, 1, 1], [0, 0.3, 0.8, 0.3, 0.8])
     >>> m.result()
     0.5
@@ -813,7 +816,7 @@ class SpecificityAtSensitivity(SensitivitySpecificityBase):
 
     Example:
 
-    >>> m = keras.metrics.SpecificityAtSensitivity(0.5)
+    >>> m = ncps.mini_keras.metrics.SpecificityAtSensitivity(0.5)
     >>> m.update_state([0, 0, 0, 1, 1], [0, 0.3, 0.8, 0.3, 0.8])
     >>> m.result()
     0.66666667
@@ -908,7 +911,7 @@ class PrecisionAtRecall(SensitivitySpecificityBase):
 
     Example:
 
-    >>> m = keras.metrics.PrecisionAtRecall(0.5)
+    >>> m = ncps.mini_keras.metrics.PrecisionAtRecall(0.5)
     >>> m.update_state([0, 0, 0, 1, 1], [0, 0.3, 0.8, 0.3, 0.8])
     >>> m.result()
     0.5
@@ -998,7 +1001,7 @@ class RecallAtPrecision(SensitivitySpecificityBase):
 
     Example:
 
-    >>> m = keras.metrics.RecallAtPrecision(0.8)
+    >>> m = ncps.mini_keras.metrics.RecallAtPrecision(0.8)
     >>> m.update_state([0, 0, 1, 1], [0, 0.5, 0.3, 0.9])
     >>> m.result()
     0.5
@@ -1154,7 +1157,7 @@ class AUC(Metric):
 
     Example:
 
-    >>> m = keras.metrics.AUC(num_thresholds=3)
+    >>> m = ncps.mini_keras.metrics.AUC(num_thresholds=3)
     >>> m.update_state([0, 0, 1, 1], [0, 0.5, 0.3, 0.9])
     >>> # threshold values are [0 - 1e-7, 0.5, 1 + 1e-7]
     >>> # tp = [2, 1, 0], fp = [2, 0, 0], fn = [0, 1, 2], tn = [0, 2, 2]

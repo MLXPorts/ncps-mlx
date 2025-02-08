@@ -14,24 +14,8 @@ class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
         sparsity_mask=None,
         **kwargs,
     ):
-        """A `Closed-form Continuous-time <https://arxiv.org/abs/2106.13898>`_ cell.
-
-        .. Note::
-            This is an RNNCell that processes single time-steps.
-            To get a full RNN that can process sequences,
-            see `ncps.mlx.CfC` or wrap the cell with a `ncps.mini_keras.layers.RNN`.
-
-        :param units: Number of hidden units
-        :param mode: Either "default", "pure" (direct solution approximation), or "no_gate" (without second gate).
-        :param activation: Activation function used in the backbone layers
-        :param backbone_units: Number of hidden units in the backbone layer (default 128)
-        :param backbone_layers: Number of backbone layers (default 1)
-        :param backbone_dropout: Dropout rate in the backbone layers (default 0.1)
-        :param sparsity_mask: Optional sparsity mask for the weights
-        :param kwargs: Additional keyword arguments
-        """
+        self._units = units  # Set units before super().__init__
         super().__init__(**kwargs)
-        self.units = units
         self.sparsity_mask = sparsity_mask
         if sparsity_mask is not None:
             # No backbone is allowed
@@ -51,7 +35,11 @@ class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
 
     @property
     def state_size(self):
-        return self.units
+        return self._units
+
+    @property
+    def output_size(self):
+        return self._units
 
     def build(self, input_shape):
         if isinstance(input_shape[0], tuple) or isinstance(input_shape[0], ncps.mini_keras.KerasTensor):

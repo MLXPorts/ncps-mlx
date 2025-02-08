@@ -1,5 +1,8 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import ops
 from ncps.mini_keras import testing
 from ncps.mini_keras.backend.common.symbolic_scope import SymbolicScope

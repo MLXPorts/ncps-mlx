@@ -2,12 +2,17 @@ import itertools
 
 try:
     import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
 except ImportError:
     import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+    
 import pytest
 from absl.testing import parameterized
 
-from conftest import skip_if_backend
+from conftest import skip_if_backend # type: ignore
 from ncps.mini_keras import backend
 from ncps.mini_keras import initializers
 from ncps.mini_keras import ops
@@ -350,7 +355,7 @@ class VariableNumpyValueAndAssignmentTest(test_case.TestCase):
     def test_variable_numpy(self):
         """Test retrieving the value of a variable as a numpy array."""
         v = backend.Variable(initializer=np.array([1.0, 2.0, 3.0]))
-        self.assertIsInstance(v.numpy(), np.ndarray)
+        self.assertIsInstance(v.numpy(), BackendArray)
         self.assertAllClose(v.numpy(), np.array([1.0, 2.0, 3.0]))
 
     @pytest.mark.skipif(
@@ -365,7 +370,7 @@ class VariableNumpyValueAndAssignmentTest(test_case.TestCase):
             v = backend.Variable(initializer=0.0)
 
         np_value = backend.convert_to_numpy(v)
-        self.assertIsInstance(np_value, np.ndarray)
+        self.assertIsInstance(np_value, BackendArray)
         self.assertAllClose(np_value, 0.0)
 
     def test_variable_value(self):
@@ -786,7 +791,7 @@ class VariableOpsBehaviorTest(test_case.TestCase):
 
 
 # TODO: Using uint64 will lead to weak type promotion (`float`),
-# resulting in different behavior between JAX and Keras. Currently, we
+# resulting in different behavior between JAX and ncps.mini_keras. Currently, we
 # are skipping the test for uint64
 ALL_DTYPES = [
     x for x in dtypes.ALLOWED_DTYPES if x not in ["string", "uint64"]
@@ -817,7 +822,7 @@ class VariableOpsDTypeTest(test_case.TestCase):
     """Test the dtype to verify that the behavior matches JAX."""
 
     def setUp(self):
-        from jax.experimental import enable_x64
+        from jax.experimental import enable_x64 # type: ignore
 
         self.jax_enable_x64 = enable_x64()
         self.jax_enable_x64.__enter__()
@@ -971,7 +976,7 @@ class VariableOpsDTypeTest(test_case.TestCase):
         named_product(dtypes=itertools.combinations(NON_COMPLEX_DTYPES, 2))
     )
     def test_truediv(self, dtypes):
-        import jax.experimental
+        import jax.experimental # type: ignore
         import jax.numpy as jnp
 
         # We have to disable x64 for jax since jnp.true_divide doesn't respect

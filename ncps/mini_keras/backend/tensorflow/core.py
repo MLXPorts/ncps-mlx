@@ -1,6 +1,14 @@
 import builtins
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+    
 import tensorflow as tf
 from tensorflow.compiler.tf2xla.python.xla import dynamic_update_slice
 
@@ -155,7 +163,7 @@ def convert_to_numpy(x):
         x = tf.convert_to_tensor(x)
     elif isinstance(x, tf.RaggedTensor):
         x = x.to_tensor()
-    return np.array(x)
+    return to_array(x)
 
 
 def is_tensor(x):

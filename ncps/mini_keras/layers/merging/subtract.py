@@ -16,18 +16,18 @@ class Subtract(Merge):
     >>> input_shape = (2, 3, 4)
     >>> x1 = np.random.rand(*input_shape)
     >>> x2 = np.random.rand(*input_shape)
-    >>> y = keras.layers.Subtract()([x1, x2])
+    >>> y = ncps.mini_keras.layers.Subtract()([x1, x2])
 
     Usage in a Keras model:
 
-    >>> input1 = keras.layers.Input(shape=(16,))
-    >>> x1 = keras.layers.Dense(8, activation='relu')(input1)
-    >>> input2 = keras.layers.Input(shape=(32,))
-    >>> x2 = keras.layers.Dense(8, activation='relu')(input2)
-    >>> # equivalent to `subtracted = keras.layers.subtract([x1, x2])`
-    >>> subtracted = keras.layers.Subtract()([x1, x2])
-    >>> out = keras.layers.Dense(4)(subtracted)
-    >>> model = keras.models.Model(inputs=[input1, input2], outputs=out)
+    >>> input1 = ncps.mini_keras.layers.Input(shape=(16,))
+    >>> x1 = ncps.mini_keras.layers.Dense(8, activation='relu')(input1)
+    >>> input2 = ncps.mini_keras.layers.Input(shape=(32,))
+    >>> x2 = ncps.mini_keras.layers.Dense(8, activation='relu')(input2)
+    >>> # equivalent to `subtracted = ncps.mini_keras.layers.subtract([x1, x2])`
+    >>> subtracted = ncps.mini_keras.layers.Subtract()([x1, x2])
+    >>> out = ncps.mini_keras.layers.Dense(4)(subtracted)
+    >>> model = ncps.mini_keras.models.Model(inputs=[input1, input2], outputs=out)
 
     """
 
@@ -66,17 +66,17 @@ def subtract(inputs, **kwargs):
     >>> input_shape = (2, 3, 4)
     >>> x1 = np.random.rand(*input_shape)
     >>> x2 = np.random.rand(*input_shape)
-    >>> y = keras.layers.subtract([x1, x2])
+    >>> y = ncps.mini_keras.layers.subtract([x1, x2])
 
     Usage in a Keras model:
 
-    >>> input1 = keras.layers.Input(shape=(16,))
-    >>> x1 = keras.layers.Dense(8, activation='relu')(input1)
-    >>> input2 = keras.layers.Input(shape=(32,))
-    >>> x2 = keras.layers.Dense(8, activation='relu')(input2)
-    >>> subtracted = keras.layers.subtract([x1, x2])
-    >>> out = keras.layers.Dense(4)(subtracted)
-    >>> model = keras.models.Model(inputs=[input1, input2], outputs=out)
+    >>> input1 = ncps.mini_keras.layers.Input(shape=(16,))
+    >>> x1 = ncps.mini_keras.layers.Dense(8, activation='relu')(input1)
+    >>> input2 = ncps.mini_keras.layers.Input(shape=(32,))
+    >>> x2 = ncps.mini_keras.layers.Dense(8, activation='relu')(input2)
+    >>> subtracted = ncps.mini_keras.layers.subtract([x1, x2])
+    >>> out = ncps.mini_keras.layers.Dense(4)(subtracted)
+    >>> model = ncps.mini_keras.models.Model(inputs=[input1, input2], outputs=out)
 
     """
     return Subtract(**kwargs)(inputs)

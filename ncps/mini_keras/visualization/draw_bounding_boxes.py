@@ -1,5 +1,8 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
 from ncps.mini_keras.api_export import keras_mini_export
@@ -8,7 +11,7 @@ from ncps.mini_keras.layers.preprocessing.image_preprocessing.bounding_boxes.con
 )
 
 try:
-    import cv2
+    import cv2 # type: ignore
 except ImportError:
     cv2 = None
 

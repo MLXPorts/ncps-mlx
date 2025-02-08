@@ -2,7 +2,10 @@
 
 import os
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import onnxruntime
 import pytest
 from absl.testing import parameterized
@@ -137,7 +140,7 @@ class ExportONNXTest(testing.TestCase):
             }
         self.assertAllClose(ref_output, ort_session.run(None, ort_inputs)[0])
 
-        # Test with keras.saving_lib
+        # Test with ncps.mini_keras.saving_lib
         temp_filepath = os.path.join(
             self.get_temp_dir(), "exported_model.keras"
         )

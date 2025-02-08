@@ -44,12 +44,12 @@ class LTCCell(keras.layers.Layer):
              >>>
              >>> wiring = ncps.wirings.Random(16, output_dim=2, sparsity_level=0.5)
              >>> cell = LTCCell(wiring)
-             >>> rnn = keras.layers.RNN(cell)
-             >>> x = keras.random.uniform((1,4)) # (batch, features)
-             >>> h0 = keras.ops.zeros((1, 16))
-             >>> y = keras.layers.SimpleRNNCell(x,h0)
+             >>> rnn = ncps.mini_keras.layers.RNN(cell)
+             >>> x = ncps.mini_keras.random.uniform((1,4)) # (batch, features)
+             >>> h0 = ncps.mini_keras.ops.zeros((1, 16))
+             >>> y = ncps.mini_keras.layers.SimpleRNNCell(x,h0)
              >>>
-             >>> x_seq = keras.random.uniform((1,20,4)) # (batch, time, features)
+             >>> x_seq = ncps.mini_keras.random.uniform((1,20,4)) # (batch, time, features)
              >>> y_seq = rnn(x_seq)
 
         :param wiring:
@@ -120,14 +120,14 @@ class LTCCell(keras.layers.Layer):
     def _get_initializer(self, param_name):
         minval, maxval = self._init_ranges[param_name]
         if minval == maxval:
-            return keras.initializers.Constant(minval)
+            return ncps.mini_keras.initializers.Constant(minval)
         else:
-            return keras.initializers.RandomUniform(minval, maxval)
+            return ncps.mini_keras.initializers.RandomUniform(minval, maxval)
 
     def build(self, input_shape):
 
         # Check if input_shape is nested tuple/list
-        if isinstance(input_shape[0], tuple) or isinstance(input_shape[0], keras.KerasTensor):
+        if isinstance(input_shape[0], tuple) or isinstance(input_shape[0], ncps.mini_keras.KerasTensor):
             # Nested tuple -> First item represent feature dimension
             input_dim = input_shape[0][-1]
         else:
@@ -208,10 +208,10 @@ class LTCCell(keras.layers.Layer):
             initializer=self.wiring.sensory_erev_initializer,
         )
 
-        self._params["sparsity_mask"] = keras.ops.convert_to_tensor(
+        self._params["sparsity_mask"] = ncps.mini_keras.ops.convert_to_tensor(
             np.abs(self.wiring.adjacency_matrix), dtype="float32"
         )
-        self._params["sensory_sparsity_mask"] = keras.ops.convert_to_tensor(
+        self._params["sensory_sparsity_mask"] = ncps.mini_keras.ops.convert_to_tensor(
             np.abs(self.wiring.sensory_adjacency_matrix), dtype="float32"
         )
 
@@ -247,10 +247,10 @@ class LTCCell(keras.layers.Layer):
         self.built = True
 
     def _sigmoid(self, v_pre, mu, sigma):
-        v_pre = keras.ops.expand_dims(v_pre, axis=-1)  # For broadcasting
+        v_pre = ncps.mini_keras.ops.expand_dims(v_pre, axis=-1)  # For broadcasting
         mues = v_pre - mu
         x = sigma * mues
-        return keras.activations.sigmoid(x)
+        return ncps.mini_keras.activations.sigmoid(x)
 
     def _ode_solver(self, inputs, state, elapsed_time):
         v_pre = state
@@ -264,11 +264,11 @@ class LTCCell(keras.layers.Layer):
         sensory_rev_activation = sensory_w_activation * self._params["sensory_erev"]
 
         # Reduce over dimension 1 (=source sensory neurons)
-        w_numerator_sensory = keras.ops.sum(sensory_rev_activation, axis=1)
-        w_denominator_sensory = keras.ops.sum(sensory_w_activation, axis=1)
+        w_numerator_sensory = ncps.mini_keras.ops.sum(sensory_rev_activation, axis=1)
+        w_denominator_sensory = ncps.mini_keras.ops.sum(sensory_w_activation, axis=1)
 
         # cm/t is loop invariant
-        cm_t = self._params["cm"] / keras.ops.cast(
+        cm_t = self._params["cm"] / ncps.mini_keras.ops.cast(
             elapsed_time / self._ode_unfolds, dtype="float32"
         )
 
@@ -283,8 +283,8 @@ class LTCCell(keras.layers.Layer):
             rev_activation = w_activation * self._params["erev"]
 
             # Reduce over dimension 1 (=source neurons)
-            w_numerator = keras.ops.sum(rev_activation, axis=1) + w_numerator_sensory
-            w_denominator = keras.ops.sum(w_activation, axis=1) + w_denominator_sensory
+            w_numerator = ncps.mini_keras.ops.sum(rev_activation, axis=1) + w_numerator_sensory
+            w_denominator = ncps.mini_keras.ops.sum(w_activation, axis=1) + w_denominator_sensory
 
             numerator = (
                     cm_t * v_pre

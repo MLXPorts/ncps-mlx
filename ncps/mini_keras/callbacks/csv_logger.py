@@ -1,7 +1,13 @@
 import collections
 import csv
 
-import mlx.core as np
+
+try:
+    import mlx.core as mx
+    BackendArray = mx.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
 
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.callbacks.callback import Callback
@@ -52,7 +58,7 @@ class CSVLogger(Callback):
         logs = logs or {}
 
         def handle_value(k):
-            is_zero_dim_ndarray = isinstance(k, np.ndarray) and k.ndim == 0
+            is_zero_dim_ndarray = isinstance(k, BackendArray) and k.ndim == 0
             if isinstance(k, str):
                 return k
             elif (

@@ -103,7 +103,7 @@ def serialize(activation):
             activation
         )
         return fn_config
-    # Case for keras.activations builtins (simply return name)
+    # Case for ncps.mini_keras.activations builtins (simply return name)
     return fn_config["config"]
 
 

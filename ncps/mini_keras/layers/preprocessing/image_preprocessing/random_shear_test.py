@@ -1,9 +1,12 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 from absl.testing import parameterized
 from tensorflow import data as tf_data
 
-import keras
+import ncps.mini_keras
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
 from ncps.mini_keras import testing
@@ -40,11 +43,11 @@ class RandomShearTest(testing.TestCase):
         image = np.zeros((1, 5, 5, 3))
         image[0, 1:4, 1:4, :] = 1.0
         image[0, 2, 2, :] = [0.0, 1.0, 0.0]
-        image = keras.ops.convert_to_tensor(image, dtype="float32")
+        image = ncps.mini_keras.ops.convert_to_tensor(image, dtype="float32")
 
         data_format = backend.config.image_data_format()
         if data_format == "channels_first":
-            image = keras.ops.transpose(image, (0, 3, 1, 2))
+            image = ncps.mini_keras.ops.transpose(image, (0, 3, 1, 2))
 
         shear_layer = layers.RandomShear(
             x_factor=(0.2, 0.3),
@@ -59,7 +62,7 @@ class RandomShearTest(testing.TestCase):
         sheared_image = shear_layer(image)
 
         if data_format == "channels_first":
-            sheared_image = keras.ops.transpose(sheared_image, (0, 2, 3, 1))
+            sheared_image = ncps.mini_keras.ops.transpose(sheared_image, (0, 2, 3, 1))
 
         original_pixel = image[0, 2, 2, :]
         sheared_pixel = sheared_image[0, 2, 2, :]

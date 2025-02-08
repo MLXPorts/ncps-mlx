@@ -37,8 +37,8 @@ def relu(x):
 
     Example:
 
-    >>> x1 = keras.ops.convert_to_tensor([-1.0, 0.0, 1.0, 0.2])
-    >>> keras.ops.relu(x1)
+    >>> x1 = ncps.mini_keras.ops.convert_to_tensor([-1.0, 0.0, 1.0, 0.2])
+    >>> ncps.mini_keras.ops.relu(x1)
     array([0.0, 0.0, 1.0, 0.2], dtype=float32)
     """
     if any_symbolic_tensors((x,)):
@@ -68,8 +68,8 @@ def relu6(x):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([-3.0, -2.0, 0.1, 0.2, 6.0, 8.0])
-    >>> keras.ops.relu6(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([-3.0, -2.0, 0.1, 0.2, 6.0, 8.0])
+    >>> ncps.mini_keras.ops.relu6(x)
     array([0.0, 0.0, 0.1, 0.2, 6.0, 6.0], dtype=float32)
     """
     if any_symbolic_tensors((x,)):
@@ -99,8 +99,8 @@ def sigmoid(x):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([-6.0, 1.0, 0.0, 1.0, 6.0])
-    >>> keras.ops.sigmoid(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([-6.0, 1.0, 0.0, 1.0, 6.0])
+    >>> ncps.mini_keras.ops.sigmoid(x)
     array([0.00247262, 0.7310586, 0.5, 0.7310586, 0.9975274], dtype=float32)
 
     """
@@ -132,8 +132,8 @@ def softplus(x):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([-0.555, 0.0, 0.555])
-    >>> keras.ops.softplus(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([-0.555, 0.0, 0.555])
+    >>> ncps.mini_keras.ops.softplus(x)
     array([0.45366603, 0.6931472, 1.008666], dtype=float32)
 
     """
@@ -164,8 +164,8 @@ def softsign(x):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([-0.100, -10.0, 1.0, 0.0, 100.0])
-    >>> keras.ops.softsign(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([-0.100, -10.0, 1.0, 0.0, 100.0])
+    >>> ncps.mini_keras.ops.softsign(x)
     Array([-0.09090909, -0.90909094, 0.5, 0.0, 0.990099], dtype=float32)
 
     """
@@ -206,7 +206,7 @@ def soft_shrink(x, threshold=0.5):
     Example:
 
     >>> x = np.array([-1.0, 0.0, 1.0])
-    >>> x_soft_shrink = keras.ops.soft_shrink(x)
+    >>> x_soft_shrink = ncps.mini_keras.ops.soft_shrink(x)
     >>> print(x_soft_shrink)
     array([-0.5  0.   0.5], shape=(3,), dtype=float64)
 
@@ -244,7 +244,7 @@ def sparse_plus(x):
     Example:
 
     >>> x = np.array([-1.0, 0.0, 1.0])
-    >>> x_sparse_plus = keras.ops.sparse_plus(x)
+    >>> x_sparse_plus = ncps.mini_keras.ops.sparse_plus(x)
     >>> print(x_sparse_plus)
     Array([0.   0.25 1.  ], shape=(3,), dtype=float32)
 
@@ -284,10 +284,10 @@ def silu(x):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([-6.0, 1.0, 0.0, 1.0, 6.0])
-    >>> keras.ops.sigmoid(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([-6.0, 1.0, 0.0, 1.0, 6.0])
+    >>> ncps.mini_keras.ops.sigmoid(x)
     array([0.00247262, 0.7310586, 0.5, 0.7310586, 0.9975274], dtype=float32)
-    >>> keras.ops.silu(x)
+    >>> ncps.mini_keras.ops.silu(x)
     array([-0.0148357, 0.7310586, 0.0, 0.7310586, 5.9851646], dtype=float32)
 
     """
@@ -326,7 +326,7 @@ def squareplus(x, b=4):
     Example:
 
     >>> x = np.array([-1.0, 0.0, 1.0])
-    >>> x_squareplus = keras.ops.squareplus(x)
+    >>> x_squareplus = ncps.mini_keras.ops.squareplus(x)
     >>> print(x_squareplus)
     array([0.6180, 1.0000, 1.6180], dtype=float32)
 
@@ -363,8 +363,8 @@ def log_sigmoid(x):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([-0.541391, 0.0, 0.50, 5.0])
-    >>> keras.ops.log_sigmoid(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([-0.541391, 0.0, 0.50, 5.0])
+    >>> ncps.mini_keras.ops.log_sigmoid(x)
     array([-1.0000418, -0.6931472, -0.474077, -0.00671535], dtype=float32)
 
     """
@@ -404,7 +404,7 @@ def leaky_relu(x, negative_slope=0.2):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_leaky_relu = keras.ops.leaky_relu(x)
+    >>> x_leaky_relu = ncps.mini_keras.ops.leaky_relu(x)
     >>> print(x_leaky_relu)
     array([-0.2,  0. ,  1. ], shape=(3,), dtype=float64)
 
@@ -444,7 +444,7 @@ def hard_sigmoid(x):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_hard_sigmoid = keras.ops.hard_sigmoid(x)
+    >>> x_hard_sigmoid = ncps.mini_keras.ops.hard_sigmoid(x)
     >>> print(x_hard_sigmoid)
     array([0.3, 0.5, 0.7], shape=(3,), dtype=float64)
 
@@ -489,8 +489,8 @@ def hard_silu(x):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([-3.0, -1.0, 0.0, 1.0, 3.0])
-    >>> keras.ops.hard_silu(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([-3.0, -1.0, 0.0, 1.0, 3.0])
+    >>> ncps.mini_keras.ops.hard_silu(x)
     array([-0.0, -0.3333333, 0.0, 0.6666667, 3.0], shape=(5,), dtype=float32)
 
     """
@@ -529,7 +529,7 @@ def elu(x, alpha=1.0):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_elu = keras.ops.elu(x)
+    >>> x_elu = ncps.mini_keras.ops.elu(x)
     >>> print(x_elu)
     array([-0.63212055, 0., 1.], shape=(3,), dtype=float64)
 
@@ -565,7 +565,7 @@ def selu(x):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_selu = keras.ops.selu(x)
+    >>> x_selu = ncps.mini_keras.ops.selu(x)
     >>> print(x_selu)
     array([-1.11133055, 0., 1.05070098], shape=(3,), dtype=float64)
 
@@ -608,7 +608,7 @@ def gelu(x, approximate=True):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_gelu = keras.ops.gelu(x)
+    >>> x_gelu = ncps.mini_keras.ops.gelu(x)
     >>> print(x_gelu)
     array([-0.15865525, 0., 0.84134475], shape=(3,), dtype=float64)
 
@@ -648,7 +648,7 @@ def celu(x, alpha=1.0):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_celu = keras.ops.celu(x)
+    >>> x_celu = ncps.mini_keras.ops.celu(x)
     >>> print(x_celu)
     array([-0.63212056, 0. , 1. ], shape=(3,), dtype=float64)
 
@@ -689,7 +689,7 @@ def glu(x, axis=-1):
     Example:
 
     >>> x = np.array([-1., 0., 1. , 1.])
-    >>> x_glu = keras.ops.glu(x)
+    >>> x_glu = ncps.mini_keras.ops.glu(x)
     >>> print(x_glu)
     array([-0.73105858, 0. ], shape=(2,), dtype=float64)
 
@@ -728,7 +728,7 @@ def tanh_shrink(x):
     Example:
 
     >>> x = np.array([ -1., 0., 1.])
-    >>> x_tanh_shrink = keras.ops.tanh_shrink(x)
+    >>> x_tanh_shrink = ncps.mini_keras.ops.tanh_shrink(x)
     >>> print(x_tanh_shrink)
     array([-0.23840584  0.  0.23840584], shape=(3,), dtype=float64)
 
@@ -767,7 +767,7 @@ def hard_tanh(x):
     Example:
 
     >>> x = np.array([-2., -1., 0., 1., 2.])
-    >>> x_hard_tanh = keras.ops.hard_tanh(x)
+    >>> x_hard_tanh = ncps.mini_keras.ops.hard_tanh(x)
     >>> print(x_hard_tanh)
     array([-1. -1.  0.  1.  1.], shape=(5,), dtype=float64)
 
@@ -808,7 +808,7 @@ def hard_shrink(x, threshold=0.5):
     Example:
 
     >>> x = np.array([-0.5, 0., 1.])
-    >>> x_hard_shrink = keras.ops.hard_shrink(x)
+    >>> x_hard_shrink = ncps.mini_keras.ops.hard_shrink(x)
     >>> print(x_hard_shrink)
     array([0. 0. 1.], shape=(3,), dtype=float64)
 
@@ -850,7 +850,7 @@ def threshold(x, threshold, default_value):
     Example:
 
     >>> x = np.array([-1.0, 0.0, 1.0, 2.0])
-    >>> x_threshold = keras.ops.threshold(x, 1, 0)
+    >>> x_threshold = ncps.mini_keras.ops.threshold(x, 1, 0)
     >>> print(x_threshold)
     array([0., 0., 0., 2.], shape=(4,), dtype=float64)
 
@@ -895,7 +895,7 @@ def softmax(x, axis=-1):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_softmax = keras.ops.softmax(x)
+    >>> x_softmax = ncps.mini_keras.ops.softmax(x)
     >>> print(x_softmax)
     array([0.09003057, 0.24472847, 0.66524096], shape=(3,), dtype=float64)
 
@@ -967,7 +967,7 @@ def log_softmax(x, axis=-1):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_log_softmax = keras.ops.log_softmax(x)
+    >>> x_log_softmax = ncps.mini_keras.ops.log_softmax(x)
     >>> print(x_log_softmax)
     array([-2.40760596, -1.40760596, -0.40760596], shape=(3,), dtype=float64)
 
@@ -1025,7 +1025,7 @@ def sparsemax(x, axis=-1):
     Example:
 
     >>> x = np.array([-1., 0., 1.])
-    >>> x_sparsemax = keras.ops.sparsemax(x)
+    >>> x_sparsemax = ncps.mini_keras.ops.sparsemax(x)
     >>> print(x_sparsemax)
     array([0., 0., 1.], shape=(3,), dtype=float64)
 
@@ -1709,7 +1709,7 @@ def one_hot(x, num_classes, axis=-1, dtype=None, sparse=False):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([1, 3, 2, 0])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([1, 3, 2, 0])
     >>> one_hot(x, num_classes=4)
     array([[0. 1. 0. 0.]
            [0. 0. 0. 1.]
@@ -1781,8 +1781,8 @@ def binary_crossentropy(target, output, from_logits=False):
 
     Example:
 
-    >>> target = keras.ops.convert_to_tensor([0, 1, 1, 0])
-    >>> output = keras.ops.convert_to_tensor([0.1, 0.9, 0.8, 0.2])
+    >>> target = ncps.mini_keras.ops.convert_to_tensor([0, 1, 1, 0])
+    >>> output = ncps.mini_keras.ops.convert_to_tensor([0.1, 0.9, 0.8, 0.2])
     >>> binary_crossentropy(target, output)
     array([0.10536054 0.10536054 0.22314355 0.22314355],
           shape=(4,), dtype=float32)
@@ -1860,11 +1860,11 @@ def categorical_crossentropy(target, output, from_logits=False, axis=-1):
 
     Example:
 
-    >>> target = keras.ops.convert_to_tensor(
+    >>> target = ncps.mini_keras.ops.convert_to_tensor(
     ... [[1, 0, 0],
     ...  [0, 1, 0],
     ...  [0, 0, 1]])
-    >>> output = keras.ops.convert_to_tensor(
+    >>> output = ncps.mini_keras.ops.convert_to_tensor(
     ... [[0.9, 0.05, 0.05],
     ...  [0.1, 0.8, 0.1],
     ...  [0.2, 0.3, 0.5]])
@@ -1948,8 +1948,8 @@ def sparse_categorical_crossentropy(target, output, from_logits=False, axis=-1):
 
     Example:
 
-    >>> target = keras.ops.convert_to_tensor([0, 1, 2], dtype=int32)
-    >>> output = keras.ops.convert_to_tensor(
+    >>> target = ncps.mini_keras.ops.convert_to_tensor([0, 1, 2], dtype=int32)
+    >>> output = ncps.mini_keras.ops.convert_to_tensor(
     ... [[0.9, 0.05, 0.05],
     ...  [0.1, 0.8, 0.1],
     ...  [0.2, 0.3, 0.5]])
@@ -2036,8 +2036,8 @@ def multi_hot(
 
     Example:
 
-    >>> data = keras.ops.convert_to_tensor([0, 4])
-    >>> keras.ops.multi_hot(data, num_classes=5)
+    >>> data = ncps.mini_keras.ops.convert_to_tensor([0, 4])
+    >>> ncps.mini_keras.ops.multi_hot(data, num_classes=5)
     array([1.0, 0.0, 0.0, 0.0, 1.0], dtype=float32)
 
     """
@@ -2109,8 +2109,8 @@ def moments(x, axes, keepdims=False, synchronized=False):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([0, 1, 2, 3, 100], dtype="float32")
-    >>> keras.ops.moments(x, axes=[0])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([0, 1, 2, 3, 100], dtype="float32")
+    >>> ncps.mini_keras.ops.moments(x, axes=[0])
     (array(21.2, dtype=float32), array(1553.3601, dtype=float32))
 
     """
@@ -2182,10 +2182,10 @@ def batch_normalization(
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor(
+    >>> x = ncps.mini_keras.ops.convert_to_tensor(
     ...     [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]]
     ... )
-    >>> keras.ops.batch_normalization(
+    >>> ncps.mini_keras.ops.batch_normalization(
     ...     x,
     ...     mean=[0.4, 0.5, 0.6],
     ...     variance=[0.67, 0.67, 0.67],
@@ -2419,8 +2419,8 @@ def normalize(x, axis=-1, order=2, epsilon=None):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([[1, 2, 3], [4, 5, 6]])
-    >>> x_norm = keras.ops.math.normalize(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([[1, 2, 3], [4, 5, 6]])
+    >>> x_norm = ncps.mini_keras.ops.math.normalize(x)
     >>> print(x_norm)
     array([[0.26726124 0.5345225  0.8017837 ]
            [0.45584232 0.5698029  0.68376344]], shape=(2, 3), dtype=float32)
@@ -2508,10 +2508,10 @@ def psnr(
 
     Examples:
 
-    >>> x1 = keras.random.normal((2, 4, 4, 3))
-    >>> x2 = keras.random.normal((2, 4, 4, 3))
+    >>> x1 = ncps.mini_keras.random.normal((2, 4, 4, 3))
+    >>> x2 = ncps.mini_keras.random.normal((2, 4, 4, 3))
     >>> max_val = 1.0
-    >>> keras.ops.nn.psnr(x1, x2, max_val)
+    >>> ncps.mini_keras.ops.nn.psnr(x1, x2, max_val)
     -3.1697404
     """
     if any_symbolic_tensors(
@@ -2625,10 +2625,10 @@ def dot_product_attention(
 
     Example:
 
-    >>> query = keras.random.normal((2, 4, 8, 16))
-    >>> key = keras.random.normal((2, 6, 8, 16))
-    >>> value = keras.random.normal((2, 6, 8, 16))
-    >>> keras.ops.nn.dot_product_attention(query, key, value).shape
+    >>> query = ncps.mini_keras.random.normal((2, 4, 8, 16))
+    >>> key = ncps.mini_keras.random.normal((2, 6, 8, 16))
+    >>> value = ncps.mini_keras.random.normal((2, 6, 8, 16))
+    >>> ncps.mini_keras.ops.nn.dot_product_attention(query, key, value).shape
     (2, 4, 8, 16)
     """
     if any_symbolic_tensors((query, key, value)):

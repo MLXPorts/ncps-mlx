@@ -1,5 +1,8 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras.api_export import keras_mini_export
 
 
@@ -37,22 +40,22 @@ def pad_sequences(
     default.
 
     >>> sequence = [[1], [2, 3], [4, 5, 6]]
-    >>> keras.utils.pad_sequences(sequence)
+    >>> ncps.mini_keras.utils.pad_sequences(sequence)
     array([[0, 0, 1],
            [0, 2, 3],
            [4, 5, 6]], dtype=int32)
 
-    >>> keras.utils.pad_sequences(sequence, value=-1)
+    >>> ncps.mini_keras.utils.pad_sequences(sequence, value=-1)
     array([[-1, -1,  1],
            [-1,  2,  3],
            [ 4,  5,  6]], dtype=int32)
 
-    >>> keras.utils.pad_sequences(sequence, padding='post')
+    >>> ncps.mini_keras.utils.pad_sequences(sequence, padding='post')
     array([[1, 0, 0],
            [2, 3, 0],
            [4, 5, 6]], dtype=int32)
 
-    >>> keras.utils.pad_sequences(sequence, maxlen=2)
+    >>> ncps.mini_keras.utils.pad_sequences(sequence, maxlen=2)
     array([[0, 1],
            [2, 3],
            [5, 6]], dtype=int32)

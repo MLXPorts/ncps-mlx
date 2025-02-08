@@ -389,10 +389,10 @@ def plot_model(
     ```python
     inputs = ...
     outputs = ...
-    model = keras.Model(inputs=inputs, outputs=outputs)
+    model = ncps.mini_keras.Model(inputs=inputs, outputs=outputs)
 
     dot_img_file = '/tmp/model_1.png'
-    keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
+    ncps.mini_keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
     ```
 
     Args:

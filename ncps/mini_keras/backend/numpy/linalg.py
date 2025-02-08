@@ -1,4 +1,7 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import scipy.linalg as sl
 
 from ncps.mini_keras.backend import standardize_dtype

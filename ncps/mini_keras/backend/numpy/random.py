@@ -1,4 +1,7 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras.backend.config import floatx
 from ncps.mini_keras.backend.numpy.nn import softmax

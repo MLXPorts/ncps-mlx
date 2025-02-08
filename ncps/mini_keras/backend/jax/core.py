@@ -1,8 +1,16 @@
 import jax
 import jax.experimental.sparse as jax_sparse # type: ignore
-import jax.numpy as jnp
 import ml_dtypes
-import numpy as np
+try:
+    import jax.numpy as np
+    BackendArray = np.ndarray
+except ImportError:    
+    try:
+        import mlx.core as np
+        BackendArray = np.array
+    except ImportError:
+        import numpy as np
+        BackendArray = np.ndarray
 
 from ncps.mini_keras import tree
 from ncps.mini_keras.backend.common import KerasVariable
@@ -52,7 +60,7 @@ def convert_to_tensor(x, dtype=None, sparse=None, ragged=None):
         raise ValueError("`ragged=True` is not supported with jax backend")
     if dtype is not None:
         dtype = standardize_dtype(dtype)
-    if isinstance(x, (jnp.ndarray, jax.Array)) and (
+    if isinstance(x, (BackendArray, jax.Array)) and (
         dtype is None or x.dtype == dtype
     ):
         # Skip the conversion early if the instance is already a JAX array.
@@ -76,8 +84,8 @@ def convert_to_tensor(x, dtype=None, sparse=None, ragged=None):
     if not is_tensor(x) and standardize_dtype(dtype) == "bfloat16":
         # Can't create bfloat16 arrays on the fly (e.g. from a h5 Dataset).
         # Instead we convert "as is" (to stored dtype) and cast.
-        return jnp.asarray(x).astype(dtype)
-    return jnp.asarray(x, dtype=dtype)
+        return np.asarray(x).astype(dtype)
+    return np.asarray(x, dtype=dtype)
 
 
 def convert_to_numpy(x):
@@ -89,7 +97,7 @@ def convert_to_numpy(x):
 
 
 def is_tensor(x):
-    if isinstance(x, (jnp.ndarray, jax_sparse.JAXSparse)):
+    if isinstance(x, (BackendArray, jax_sparse.JAXSparse)):
         return True
     return False
 
@@ -278,15 +286,15 @@ def associative_scan(f, elems, reverse=False, axis=0):
 
 
 def scatter(indices, values, shape):
-    zeros = jnp.zeros(shape, values.dtype)
-    key = tuple(jnp.moveaxis(indices, -1, 0))
+    zeros = np.zeros(shape, values.dtype)
+    key = tuple(np.moveaxis(indices, -1, 0))
     return zeros.at[key].add(values)
 
 
 def scatter_update(inputs, indices, updates):
     inputs = convert_to_tensor(inputs)
-    indices = jnp.array(indices)
-    indices = jnp.transpose(indices)
+    indices = np.array(indices)
+    indices = np.transpose(indices)
     inputs = inputs.at[tuple(indices)].set(updates)
     return inputs
 

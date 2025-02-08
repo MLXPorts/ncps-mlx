@@ -1765,6 +1765,8 @@ def pad(x, pad_width, mode="constant", constant_values=None):
     pad_width = convert_to_tensor(pad_width, "int32")
     return tf.pad(x, pad_width, mode.upper(), **kwargs)
 
+def pi():
+    return np.pi
 
 def prod(x, axis=None, keepdims=False, dtype=None):
     x = convert_to_tensor(x)

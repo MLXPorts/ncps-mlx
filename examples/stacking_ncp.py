@@ -59,22 +59,22 @@ rnn_cell = LTCCell(wiring)
 
 # We need to use the TimeDistributed layer to independently apply the
 # Conv1D/MaxPool1D/Dense over each time-step of the input time-series.
-model = keras.models.Sequential(
+model = ncps.mini_keras.models.Sequential(
     [
-        keras.layers.InputLayer(input_shape=(None, N, channels)),
-        keras.layers.TimeDistributed(
-            keras.layers.Conv1D(18, 5, strides=3, activation="relu")
+        ncps.mini_keras.layers.InputLayer(input_shape=(None, N, channels)),
+        ncps.mini_keras.layers.TimeDistributed(
+            ncps.mini_keras.layers.Conv1D(18, 5, strides=3, activation="relu")
         ),
-        keras.layers.TimeDistributed(
-            keras.layers.Conv1D(20, 5, strides=2, activation="relu")
+        ncps.mini_keras.layers.TimeDistributed(
+            ncps.mini_keras.layers.Conv1D(20, 5, strides=2, activation="relu")
         ),
-        keras.layers.TimeDistributed(keras.layers.MaxPool1D()),
-        keras.layers.TimeDistributed(keras.layers.Conv1D(22, 5, activation="relu")),
-        keras.layers.TimeDistributed(keras.layers.MaxPool1D()),
-        keras.layers.TimeDistributed(keras.layers.Conv1D(24, 5, activation="relu")),
-        keras.layers.TimeDistributed(keras.layers.Flatten()),
-        keras.layers.TimeDistributed(keras.layers.Dense(32, activation="relu")),
-        keras.layers.RNN(rnn_cell, return_sequences=True),
+        ncps.mini_keras.layers.TimeDistributed(keras.layers.MaxPool1D()),
+        ncps.mini_keras.layers.TimeDistributed(keras.layers.Conv1D(22, 5, activation="relu")),
+        ncps.mini_keras.layers.TimeDistributed(keras.layers.MaxPool1D()),
+        ncps.mini_keras.layers.TimeDistributed(keras.layers.Conv1D(24, 5, activation="relu")),
+        ncps.mini_keras.layers.TimeDistributed(keras.layers.Flatten()),
+        ncps.mini_keras.layers.TimeDistributed(keras.layers.Dense(32, activation="relu")),
+        ncps.mini_keras.layers.RNN(rnn_cell, return_sequences=True),
     ]
 )
 model.compile(

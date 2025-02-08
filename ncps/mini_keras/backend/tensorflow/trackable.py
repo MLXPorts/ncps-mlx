@@ -7,7 +7,7 @@ class KerasAutoTrackable(tf.__internal__.tracking.AutoTrackable):
     """Manages dependencies on other objects with Keras tracking.
 
     Similar to TF AutoTrackable, but disabling tracking is based
-    on tracking within Keras.
+    on tracking within ncps.mini_keras.
 
     This serves as an interface between Keras tracking and TF tracking.
     """

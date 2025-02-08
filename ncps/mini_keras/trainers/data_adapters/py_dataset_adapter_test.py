@@ -1,8 +1,16 @@
 import math
 import time
 
-import jax
-import numpy as np
+import jax # type: ignore
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+
 import pytest
 import tensorflow as tf
 import torch
@@ -153,6 +161,7 @@ class PyDatasetAdapterTest(testing.TestCase):
             "jax": "cpu:0",
             "torch": "cpu",
             "numpy": "cpu",
+            "mlx": "mps",
         }
         with backend.device(CPU_DEVICES[backend.backend()]):
             if dataset_type == "tf":
@@ -161,6 +170,8 @@ class PyDatasetAdapterTest(testing.TestCase):
                 x, y = jax.numpy.array(x), jax.numpy.array(y)
             elif dataset_type == "torch":
                 x, y = torch.as_tensor(x), torch.as_tensor(y)
+            elif dataset_type == "mlx":
+                x, y = np.array(x), np.array(y)
         py_dataset = ExamplePyDataset(
             x,
             y,
@@ -174,15 +185,15 @@ class PyDatasetAdapterTest(testing.TestCase):
             py_dataset, shuffle=shuffle
         )
 
-        if backend.backend() == "numpy":
+        if backend.backend() == "numpy" or backend.backend() == "mlx":
             it = adapter.get_numpy_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "tensorflow":
             it = adapter.get_tf_dataset()
             expected_class = tf.Tensor
         elif backend.backend() == "jax":
             it = adapter.get_jax_iterator()
-            expected_class = jax.Array if dataset_type == "jax" else np.ndarray
+            expected_class = jax.Array if dataset_type == "jax" else BackendArray
         elif backend.backend() == "torch":
             it = adapter.get_torch_dataloader()
             expected_class = torch.Tensor
@@ -303,8 +314,8 @@ class PyDatasetAdapterTest(testing.TestCase):
         for batch in gen:
             self.assertEqual(len(batch), 2)
             bx, by = batch["x"], batch["y"]
-            self.assertIsInstance(bx, np.ndarray)
-            self.assertIsInstance(by, np.ndarray)
+            self.assertIsInstance(bx, BackendArray)
+            self.assertIsInstance(by, BackendArray)
             self.assertEqual(bx.dtype, by.dtype)
             self.assertEqual(bx.shape, (4, 4))
             self.assertEqual(by.shape, (4, 2))

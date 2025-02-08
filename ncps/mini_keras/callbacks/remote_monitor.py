@@ -1,7 +1,12 @@
 import json
 import warnings
 
-import mlx.core as np
+try:
+    import mlx.core as mx
+    BackendArray = mx.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
 
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.callbacks.callback import Callback
@@ -58,13 +63,19 @@ class RemoteMonitor(Callback):
         send = {}
         send["epoch"] = epoch
         for k, v in logs.items():
-            # np.ndarray and np.generic are not scalar types
-            # therefore we must unwrap their scalar values and
-            # pass to the json-serializable dict 'send'
-            if isinstance(v, (np.ndarray, np.generic)):
+            # Handle NumPy scalars
+            if isinstance(v, np.generic):
                 send[k] = v.item()
+            
+            # Handle MLX, JAX, PyTorch arrays and scalars
+            elif isinstance(v, BackendArray):
+                try:
+                    send[k] = v.item()  # If it's a scalar, extract
+                except AttributeError:
+                    send[k] = float(v)  # Fallback for edge cases
+
             else:
-                send[k] = v
+                send[k] = v  # Keep non-array values unchanged
         try:
             if self.send_as_json:
                 requests.post(

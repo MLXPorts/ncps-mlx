@@ -90,7 +90,7 @@ Args:
         E.g. `(160, 160, 3)` would be one valid value.
     alpha: controls the width of the network. This is known as the
         depth multiplier in the MobileNetV3 paper, but the name is kept for
-        consistency with MobileNetV1 in Keras.
+        consistency with MobileNetV1 in ncps.mini_keras.
         - If `alpha < 1.0`, proportionally decreases the number
             of filters in each layer.
         - If `alpha > 1.0`, proportionally increases the number

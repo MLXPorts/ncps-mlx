@@ -17,13 +17,13 @@ class Concatenate(Merge):
 
     >>> x = np.arange(20).reshape(2, 2, 5)
     >>> y = np.arange(20, 30).reshape(2, 1, 5)
-    >>> keras.layers.Concatenate(axis=1)([x, y])
+    >>> ncps.mini_keras.layers.Concatenate(axis=1)([x, y])
 
     Usage in a Keras model:
 
-    >>> x1 = keras.layers.Dense(8)(np.arange(10).reshape(5, 2))
-    >>> x2 = keras.layers.Dense(8)(np.arange(10, 20).reshape(5, 2))
-    >>> y = keras.layers.Concatenate()([x1, x2])
+    >>> x1 = ncps.mini_keras.layers.Dense(8)(np.arange(10).reshape(5, 2))
+    >>> x2 = ncps.mini_keras.layers.Dense(8)(np.arange(10, 20).reshape(5, 2))
+    >>> y = ncps.mini_keras.layers.Concatenate()([x1, x2])
 
     Args:
         axis: Axis along which to concatenate.

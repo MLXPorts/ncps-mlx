@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mlx.core as mx
-import ncps.wirings
-import ncps
-from ncps.mini_keras.layers import RNN
-from ncps.mini_keras import ops
-from ncps.mini_keras.constraints import NonNeg
+import ncps.mini_keras
+from ncps.mini_keras import ops  # ✅ Use Keras-backed operations
 
 @ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="LTCCell")
 class LTCCell(ncps.mini_keras.layers.Layer):
+    name = "LTC-Cell"
     def __init__(
         self,
         wiring,
@@ -78,7 +75,7 @@ class LTCCell(ncps.mini_keras.layers.Layer):
                 if k not in self._init_ranges.keys():
                     raise ValueError(
                         "Unknown parameter '{}' in initialization range dictionary! (Expected only {})".format(
-                            k, str(list(self._init_range.keys()))
+                            k, str(list(self._init_ranges.keys()))
                         )
                     )
                 if k in ["gleak", "cm", "w", "sensory_w"] and v[0] < 0:
@@ -95,7 +92,7 @@ class LTCCell(ncps.mini_keras.layers.Layer):
                     )
                 self._init_ranges[k] = v
 
-        self._wiring = wiring
+        self.wiring = wiring
         self._input_mapping = input_mapping
         self._output_mapping = output_mapping
         self._ode_unfolds = ode_unfolds
@@ -103,26 +100,21 @@ class LTCCell(ncps.mini_keras.layers.Layer):
 
     @property
     def state_size(self):
-        return self._wiring.units
+        return self.wiring.units
 
     @property
     def sensory_size(self):
-        return self._wiring.input_dim
+        return self.wiring.input_dim
 
     @property
     def motor_size(self):
-        return self._wiring.output_dim
+        return self.wiring.output_dim
 
     @property
     def output_size(self):
         return self.motor_size
 
-    def _get_initializer(self, param_name):
-            minval, maxval = self._init_ranges[param_name]
-            if minval == maxval:
-                return self.Constant(minval)
-            else:
-                return self.RandomUniform(minval, maxval)
+            
     def build(self, input_shape):
 
         # Check if input_shape is nested tuple/list
@@ -134,26 +126,27 @@ class LTCCell(ncps.mini_keras.layers.Layer):
         else:
             input_dim = input_shape[-1]
 
-        self._wiring.build(input_dim)
+        self.wiring.build(input_dim)
 
         self._params = {}
         self._params["gleak"] = self.add_weight(
             name="gleak",
-            shape=(self.state_size,),
+            shape=(int(self.state_size),),
             dtype="float32",
-            initializer=self._get_initializer("gleak"),
-            constraint=NonNeg()
+            constraint=ncps.mini_keras.constraints.NonNeg(),
+            initializer=self._get_initializer("gleak")
         )
         self._params["vleak"] = self.add_weight(
             name="vleak",
-            shape=(self.state_size,),
+            shape=(int(self.state_size),),
             dtype="float32",
             initializer=self._get_initializer("vleak"),
         )
         self._params["cm"] = self.add_weight(
             name="cm",
-            shape=(self.state_size,),
+            shape=(int(self.state_size),),
             dtype="float32",
+            constraint=ncps.mini_keras.constraints.NonNeg(),
             initializer=self._get_initializer("cm"),
         )
         self._params["sigma"] = self.add_weight(
@@ -172,13 +165,14 @@ class LTCCell(ncps.mini_keras.layers.Layer):
             name="w",
             shape=(self.state_size, self.state_size),
             dtype="float32",
+            constraint=ncps.mini_keras.constraints.NonNeg(),
             initializer=self._get_initializer("w"),
         )
         self._params["erev"] = self.add_weight(
             name="erev",
             shape=(self.state_size, self.state_size),
             dtype="float32",
-            initializer=self._wiring.erev_initializer,
+            initializer=self.wiring.erev_initializer,
         )
 
         self._params["sensory_sigma"] = self.add_weight(
@@ -197,20 +191,21 @@ class LTCCell(ncps.mini_keras.layers.Layer):
             name="sensory_w",
             shape=(self.sensory_size, self.state_size),
             dtype="float32",
+            constraint=ncps.mini_keras.constraints.NonNeg(),
             initializer=self._get_initializer("sensory_w"),
         )
         self._params["sensory_erev"] = self.add_weight(
             name="sensory_erev",
             shape=(self.sensory_size, self.state_size),
             dtype="float32",
-            initializer=self._wiring.sensory_erev_initializer,
+            initializer=self.wiring.sensory_erev_initializer,
         )
 
-        self._params["sparsity_mask"] = ncps.mini_keras.initializers.Constant(
-            mx.abs(self._wiring.adjacency_matrix), dtype="float32"
+        self._params["sparsity_mask"] = ncps.mini_keras.ops.convert_to_tensor(
+            ops.abs(self._wiring.adjacency_matrix), dtype="float32"
         )
         self._params["sensory_sparsity_mask"] = ncps.mini_keras.initializers.Constant(
-            mx.abs(self._wiring.sensory_adjacency_matrix), dtype="float32"
+            ops.abs(self._wiring.sensory_adjacency_matrix), dtype="float32"
         )
 
         if self._input_mapping in ["affine", "linear"]:
@@ -245,10 +240,10 @@ class LTCCell(ncps.mini_keras.layers.Layer):
         self.built = True
 
     def _sigmoid(self, v_pre, mu, sigma):
-        v_pre = ncps.mini_keras.ops.expand_dims(v_pre, axis=-1)  # For broadcasting
+        v_pre = ops.expand_dims(v_pre, axis=-1)  # ✅ Keras version
         mues = v_pre - mu
         x = sigma * mues
-        return ncps.mini_keras.ops.sigmoid(x)
+        return ops.sigmoid(x)  # ✅ Keras sigmoid
 
     def _ode_solver(self, inputs, state, elapsed_time):
         v_pre = state
@@ -262,18 +257,17 @@ class LTCCell(ncps.mini_keras.layers.Layer):
         sensory_rev_activation = sensory_w_activation * self._params["sensory_erev"]
 
         # Reduce over dimension 1 (=source sensory neurons)
-        w_numerator_sensory = mx.sum(sensory_rev_activation, axis=1,dtype="float32")
-        w_denominator_sensory = mx.sum(sensory_w_activation, axis=1,dtype="float32")
+        w_numerator_sensory = ncps.mini_keras.ops.sum(sensory_rev_activation, axis=1)
+        w_denominator_sensory = ncps.mini_keras.ops.sum(sensory_w_activation, axis=1)
 
         # cm/t is loop invariant
-        cm_t = self._params["cm"] / (elapsed_time / 
-            self._ode_unfolds).astype("float32"
-        )
+        cm_t = self._params["cm"] / ops.cast(elapsed_time / self._ode_unfolds, dtype="float32")
 
         # Unfold the multiply ODE multiple times into one RNN step
         for t in range(self._ode_unfolds):
-            w_activation = self._params["w"] * self._sigmoid(
-                v_pre, self._params["mu"], self._params["sigma"]
+            w_activation = ops.multiply(
+                self._params["w"],
+                ops.clip(self._sigmoid(v_pre, self._params["mu"], self._params["sigma"]), 0.0, 1.0)
             )
 
             w_activation *= self._params["sparsity_mask"]
@@ -281,48 +275,50 @@ class LTCCell(ncps.mini_keras.layers.Layer):
             rev_activation = w_activation * self._params["erev"]
 
             # Reduce over dimension 1 (=source neurons)
-            w_numerator = mx.sum(rev_activation, axis=1) + w_numerator_sensory
-            w_denominator = mx.sum(w_activation, axis=1) + w_denominator_sensory
+            w_numerator = ncps.mini_keras.ops.sum(rev_activation, axis=1) + w_numerator_sensory
+            w_denominator = ncps.mini_keras.ops.sum(w_activation, axis=1) + w_denominator_sensory
 
-            numerator = (
-                cm_t * v_pre
-                + self._params["gleak"] * self._params["vleak"]
-                + w_numerator
+            numerator = ops.add(
+               ops.add(ops.multiply(cm_t, v_pre), ops.multiply(self._params["gleak"], self._params["vleak"])),
+                w_numerator
             )
-            denominator = cm_t + self._params["gleak"] + w_denominator
+            denominator = ops.add(ops.add(cm_t, self._params["gleak"]), w_denominator)
 
             # Avoid dividing by 0
-            v_pre = numerator / (denominator + self._epsilon)
-
+            v_pre = ops.divide(numerator, ops.maximum(denominator, self._epsilon))
         return v_pre
-
+    def _get_initializer(self, param_name):
+        minval, maxval = self._init_ranges[param_name]
+        if minval == maxval:
+            return ncps.mini_keras.initializers.Constant(minval)
+        else:
+            return ncps.mini_keras.initializers.RandomUniform(minval, maxval)  # ✅ Fixed Import
     def _map_inputs(self, inputs):
         if self._input_mapping in ["affine", "linear"]:
-            inputs = inputs * self._params["input_w"]
+            inputs = ops.multiply(inputs, self._params["input_w"])
         if self._input_mapping == "affine":
-            inputs = inputs + self._params["input_b"]
+            inputs = ops.add(inputs, self._params["input_b"])
         return inputs
 
     def _map_outputs(self, state):
         output = state
         if self.motor_size < self.state_size:
-            output = output[:, 0 : self.motor_size]
+            output = output[:, 0: self.motor_size]
 
         if self._output_mapping in ["affine", "linear"]:
-            output = output * self._params["output_w"]
+            output = ops.multiply(output, self._params["output_w"])
         if self._output_mapping == "affine":
-            output = output + self._params["output_b"]
+            output = ops.add(output, self._params["output_b"])
         return output
 
-    def call(self, inputs, states):
-        if isinstance(inputs, (tuple, list)):
+    def call(self, sequence, states, training=False):
+        if isinstance(sequence, (tuple, list)):
             # Irregularly sampled mode
-            inputs, elapsed_time = inputs
+            inputs, elapsed_time = sequence
         else:
             # Regularly sampled mode (elapsed time = 1 second)
             elapsed_time = 1.0
-        inputs = self._map_inputs(inputs)
-
+        inputs = self._map_inputs(inputs)  # Ensure transformation applies to the right tensor
         next_state = self._ode_solver(inputs, states[0], elapsed_time)
 
         outputs = self._map_outputs(next_state)
@@ -330,15 +326,14 @@ class LTCCell(ncps.mini_keras.layers.Layer):
         return outputs, [next_state]
 
     def get_config(self):
-        seralized = self._wiring.get_config()
-        seralized["input_mapping"] = self._input_mapping
-        seralized["output_mapping"] = self._output_mapping
-        seralized["ode_unfolds"] = self._ode_unfolds
-        seralized["epsilon"] = self._epsilon
-        return seralized
+        config = super(LTCCell, self).get_config()
+        config["wiring"] = self.wiring.get_config()
+        config["input_mapping"] = self._input_mapping
+        config["output_mapping"] = self._output_mapping
+        config["ode_unfolds"] = self._ode_unfolds
+        config["epsilon"] = self._epsilon
+        return config
 
     @classmethod
     def from_config(cls, config):
-        wiring = ncps.wirings.Wiring.from_config(config)
-        return cls(wiring=wiring, **config)
-
+        return cls(**config)

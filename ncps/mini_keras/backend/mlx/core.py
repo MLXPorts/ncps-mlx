@@ -21,46 +21,53 @@ IS_THREAD_SAFE = True
 
 class Variable(KerasVariable):
     def _initialize(self, value):
-        self._value = mx.convert_to_tensor(value)
+        if isinstance(value, mx.array):
+            self._value = value
+        else:
+            self._value = mx.array(value)
 
     def _direct_assign(self, value):
-        self._value = mx.convert_to_tensor(value, dtype=self._dtype)
+        self._value = mx.array(value, dtype=self._dtype)
 
     def _convert_to_tensor(self, value, dtype=None):
         return convert_to_tensor(value, dtype=dtype)
 
     # Overload native accessor.
     def __array__(self):
-        return self.value.numpy()
+        return self.value
+
 
 def convert_to_tensor(x, dtype=None, sparse=None, ragged=None):
     if sparse:
-        raise ValueError("`sparse=True` is not supported with mlx backend")
+        raise ValueError("`sparse=True` is not supported with numpy backend")
     if ragged:
-        raise ValueError("`ragged=True` is not supported with mlx backend")
+        raise ValueError("`ragged=True` is not supported with numpy backend")
     if dtype is not None:
         dtype = standardize_dtype(dtype)
     if isinstance(x, Variable):
         if dtype and dtype != x.dtype:
-            return mx.cast(x.value, dtype)
+            return x.value.astype(dtype)
         return x.value
     if not is_tensor(x) and standardize_dtype(dtype) == "bfloat16":
         # Can't create bfloat16 arrays on the fly (e.g. from a h5 Dataset).
         # Instead we convert "as is" (to stored dtype) and cast.
-        return mx.cast(mx.convert_to_tensor(x), dtype)
+        return mx.asarray(x).astype(dtype)
     if dtype is None:
         dtype = result_type(
             *[getattr(item, "dtype", type(item)) for item in tree.flatten(x)]
         )
-    return mx.convert_to_tensor(x, dtype=dtype)
+    return mx.array(x, dtype=dtype)
+
 
 def convert_to_numpy(x):
-    return x.numpy()
+    return mx.array(x)
+
 
 def is_tensor(x):
     if isinstance(x, mx.array):
         return True
     return False
+
 
 def shape(x):
     return mx.shape(x)
@@ -84,7 +91,10 @@ def cast(x, dtype):
         return mx.array(x, dtype=mlx_dtype)
 
 def cond(pred, true_fn, false_fn):
-    return true_fn() if pred else false_fn()
+    if pred:
+        return true_fn()
+    return false_fn()
+
 
 def vectorized_map(function, elements):
     if not isinstance(elements, (list, tuple)):
@@ -95,26 +105,9 @@ def vectorized_map(function, elements):
         for index in range(batch_size):
             output_store.append(function([x[index] for x in elements]))
         return mx.stack(output_store)
-def convert_to_tensor(x, dtype=None, sparse=None, ragged=None):
-    if sparse:
-        raise ValueError("`sparse=True` is not supported with numpy backend")
-    if ragged:
-        raise ValueError("`ragged=True` is not supported with numpy backend")
-    if dtype is not None:
-        dtype = standardize_dtype(dtype)
-    if isinstance(x, Variable):
-        if dtype and dtype != x.dtype:
-            return x.value.astype(dtype)
-        return x.value
-    if not is_tensor(x) and standardize_dtype(dtype) == "bfloat16":
-        # Can't create bfloat16 arrays on the fly (e.g. from a h5 Dataset).
-        # Instead we convert "as is" (to stored dtype) and cast.
-        return mx.asarray(x).astype(dtype)
-    if dtype is None:
-        dtype = result_type(
-            *[getattr(item, "dtype", type(item)) for item in tree.flatten(x)]
-        )
-    return mx.array(x, dtype=dtype)
+    
+
+# Shape / dtype inference util
 def compute_output_spec(fn, *args, **kwargs):
     with StatelessScope(), SymbolicScope():
 
@@ -134,7 +127,10 @@ def compute_output_spec(fn, *args, **kwargs):
                     for i, e in enumerate(shape):
                         if e is None:
                             shape[i] = fill_value
-                return mx.zeros(shape=shape, dtype=x.dtype)
+                return mx.zeros(
+                    shape=shape, 
+                    dtype=x.dtype,
+                    )
             return x
 
         args_1, kwargs_1 = tree.map_structure(
@@ -171,6 +167,7 @@ def compute_output_spec(fn, *args, **kwargs):
 
         output_spec = tree.map_structure(convert_mlx_to_keras_tensor, outputs)
     return output_spec
+
 
 def map(f, xs):
     def g(_, x):
@@ -459,8 +456,9 @@ def while_loop(
     maximum_iterations=None,
 ):
     current_iter = 0
-    def iteration_check(iter):
-        return maximum_iterations is None or iter < maximum_iterations
+    iteration_check = (
+        lambda iter: maximum_iterations is None or iter < maximum_iterations
+    )
     is_tuple = isinstance(loop_vars, (tuple, list))
     loop_vars = tuple(loop_vars) if is_tuple else (loop_vars,)
     loop_vars = tree.map_structure(convert_to_tensor, loop_vars)

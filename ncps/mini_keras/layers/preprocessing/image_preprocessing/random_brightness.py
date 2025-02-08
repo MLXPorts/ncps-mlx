@@ -46,7 +46,7 @@ class RandomBrightness(BaseImagePreprocessingLayer):
     Example:
 
     ```python
-    random_bright = keras.layers.RandomBrightness(factor=0.2)
+    random_bright = ncps.mini_keras.layers.RandomBrightness(factor=0.2)
 
     # An image with shape [2, 2, 3]
     image = [[[1, 2, 3], [4 ,5 ,6]], [[7, 8, 9], [10, 11, 12]]]

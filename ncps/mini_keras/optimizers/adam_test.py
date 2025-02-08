@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import keras
+import ncps
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
 from ncps.mini_keras import testing
@@ -79,10 +79,10 @@ class AdamTest(testing.TestCase):
     @pytest.mark.requires_trainable_backend
     def test_ema(self):
         # TODO: test correctness
-        model = keras.Sequential([keras.layers.Dense(10)])
+        model = ncps.mini_keras.Sequential([ncps.mini_keras.layers.Dense(10)])
         model.compile(optimizer=Adam(use_ema=True), loss="mse")
-        x = keras.ops.zeros((1, 5))
-        y = keras.ops.zeros((1, 10))
+        x = ncps.mini_keras.ops.zeros((1, 5))
+        y = ncps.mini_keras.ops.zeros((1, 10))
         model.fit(x, y)
 
     @pytest.mark.skipif(
@@ -91,14 +91,14 @@ class AdamTest(testing.TestCase):
     )
     def test_clipnorm_indexed_slices(self):
         # https://github.com/keras-team/keras/issues/18985
-        model = keras.Sequential(
+        model = ncps.mini_keras.Sequential(
             [
-                keras.layers.Embedding(10, 4),
-                keras.layers.Flatten(),
-                keras.layers.Dense(2),
+                ncps.mini_keras.layers.Embedding(10, 4),
+                ncps.mini_keras.layers.Flatten(),
+                ncps.mini_keras.layers.Dense(2),
             ]
         )
         model.compile(optimizer=Adam(clipnorm=100), loss="mse")
-        x = keras.ops.ones((8, 5))
-        y = keras.ops.zeros((8, 2))
+        x = ncps.mini_keras.ops.ones((8, 5))
+        y = ncps.mini_keras.ops.zeros((8, 2))
         model.fit(x, y, verbose=0)

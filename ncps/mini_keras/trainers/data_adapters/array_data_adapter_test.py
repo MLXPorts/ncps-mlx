@@ -1,6 +1,15 @@
-import jax
-import jax.experimental.sparse as jax_sparse
-import numpy as np
+import jax # type: ignore
+import jax.experimental.sparse as jax_sparse # type: ignore
+
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+    
 import pandas
 import scipy
 import tensorflow as tf
@@ -76,7 +85,7 @@ class TestArrayDataAdapter(testing.TestCase):
 
         if backend.backend() == "numpy":
             it = adapter.get_numpy_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "tensorflow":
             it = adapter.get_tf_dataset()
             if array_type == "tf_ragged":
@@ -92,7 +101,7 @@ class TestArrayDataAdapter(testing.TestCase):
             if array_type in ("tf_sparse", "jax_sparse", "scipy_sparse"):
                 expected_class = jax_sparse.JAXSparse
             else:
-                expected_class = np.ndarray
+                expected_class = BackendArray
         elif backend.backend() == "torch":
             it = adapter.get_torch_dataloader()
             expected_class = torch.Tensor
@@ -159,12 +168,12 @@ class TestArrayDataAdapter(testing.TestCase):
             self.assertIsInstance(by, list)
             self.assertIsInstance(bw, list)
 
-            self.assertIsInstance(bx["x1"], np.ndarray)
-            self.assertIsInstance(bx["x2"], np.ndarray)
-            self.assertIsInstance(by[0], np.ndarray)
-            self.assertIsInstance(by[1], np.ndarray)
-            self.assertIsInstance(bw[0], np.ndarray)
-            self.assertIsInstance(bw[1], np.ndarray)
+            self.assertIsInstance(bx["x1"], BackendArray)
+            self.assertIsInstance(bx["x2"], BackendArray)
+            self.assertIsInstance(by[0], BackendArray)
+            self.assertIsInstance(by[1], BackendArray)
+            self.assertIsInstance(bw[0], BackendArray)
+            self.assertIsInstance(bw[1], BackendArray)
 
             self.assertEqual(bx["x1"].dtype, by[0].dtype)
             self.assertEqual(bx["x1"].dtype, backend.floatx())

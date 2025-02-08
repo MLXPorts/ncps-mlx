@@ -1,5 +1,10 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.layers.layer import Layer
@@ -188,7 +193,7 @@ class TextVectorization(Layer):
     >>> # Create the layer, passing the vocab directly. You can also pass the
     >>> # vocabulary arg a path to a file containing one vocabulary word per
     >>> # line.
-    >>> vectorize_layer = keras.layers.TextVectorization(
+    >>> vectorize_layer = ncps.mini_keras.layers.TextVectorization(
     ...     max_tokens=max_tokens,
     ...     output_mode='int',
     ...     output_sequence_length=max_len,
@@ -567,7 +572,7 @@ class TextVectorization(Layer):
 
     def call(self, inputs):
         if not isinstance(
-            inputs, (tf.Tensor, tf.RaggedTensor, np.ndarray, list, tuple)
+            inputs, (tf.Tensor, tf.RaggedTensor, BackendArray, list, tuple)
         ):
             inputs = tf.convert_to_tensor(backend.convert_to_numpy(inputs))
 

@@ -10,7 +10,10 @@ import os
 import re
 import warnings
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.backend import KerasTensor
@@ -77,7 +80,7 @@ def initialize(job_addresses=None, num_processes=None, process_id=None):
 
         On process 0:
         ```python
-        keras.distribute.initialize(
+        ncps.mini_keras.distribute.initialize(
             job_addresses="10.0.0.1:1234,10.0.0.2:2345",
             num_processes=2,
             process_id=0)
@@ -85,7 +88,7 @@ def initialize(job_addresses=None, num_processes=None, process_id=None):
 
         On process 1:
         ```python
-        keras.distribute.initialize(
+        ncps.mini_keras.distribute.initialize(
             job_addresses="10.0.0.1:1234,10.0.0.2:2345",
             num_processes=2,
             process_id=1)
@@ -98,7 +101,7 @@ def initialize(job_addresses=None, num_processes=None, process_id=None):
             "KERAS_DISTRIBUTION_JOB_ADDRESSES"] = "10.0.0.1:1234,10.0.0.2:2345"
         os.environ["KERAS_DISTRIBUTION_NUM_PROCESSES"] = "2"
         os.environ["KERAS_DISTRIBUTION_PROCESS_ID"] = "0"
-        keras.distribute.initialize()
+        ncps.mini_keras.distribute.initialize()
         ```
 
         On process 1:
@@ -107,7 +110,7 @@ def initialize(job_addresses=None, num_processes=None, process_id=None):
             "KERAS_DISTRIBUTION_JOB_ADDRESSES"] = "10.0.0.1:1234,10.0.0.2:2345"
         os.environ["KERAS_DISTRIBUTION_NUM_PROCESSES"] = "2"
         os.environ["KERAS_DISTRIBUTION_PROCESS_ID"] = "1"
-        keras.distribute.initialize()
+        ncps.mini_keras.distribute.initialize()
         ```
 
         Also note that for JAX backend, the `job_addresses` can be further

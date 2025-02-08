@@ -28,7 +28,7 @@ class KLDivergence(reduction_metrics.MeanMetricWrapper):
 
     Examples:
 
-    >>> m = keras.metrics.KLDivergence()
+    >>> m = ncps.mini_keras.metrics.KLDivergence()
     >>> m.update_state([[0, 1], [0, 0]], [[0.6, 0.4], [0.4, 0.6]])
     >>> m.result()
     0.45814306
@@ -71,7 +71,7 @@ class Poisson(reduction_metrics.MeanMetricWrapper):
 
     Examples:
 
-    >>> m = keras.metrics.Poisson()
+    >>> m = ncps.mini_keras.metrics.Poisson()
     >>> m.update_state([[0, 1], [0, 0]], [[1, 1], [0, 0]])
     >>> m.result()
     0.49999997
@@ -119,7 +119,7 @@ class BinaryCrossentropy(reduction_metrics.MeanMetricWrapper):
 
     Examples:
 
-    >>> m = keras.metrics.BinaryCrossentropy()
+    >>> m = ncps.mini_keras.metrics.BinaryCrossentropy()
     >>> m.update_state([[0, 1], [0, 0]], [[0.6, 0.4], [0.4, 0.6]])
     >>> m.result()
     0.81492424
@@ -200,7 +200,7 @@ class CategoricalCrossentropy(reduction_metrics.MeanMetricWrapper):
     >>> #      = -((log 0.95), (log 0.1))
     >>> #      = [0.051, 2.302]
     >>> # Reduced xent = (0.051 + 2.302) / 2
-    >>> m = keras.metrics.CategoricalCrossentropy()
+    >>> m = ncps.mini_keras.metrics.CategoricalCrossentropy()
     >>> m.update_state([[0, 1, 0], [0, 0, 1]],
     ...                [[0.05, 0.95, 0], [0.1, 0.8, 0.1]])
     >>> m.result()
@@ -288,7 +288,7 @@ class SparseCategoricalCrossentropy(reduction_metrics.MeanMetricWrapper):
     >>> # y_true * log(softmax) = [[0, -0.0513, 0], [0, 0, -2.3026]]
     >>> # xent = [0.0513, 2.3026]
     >>> # Reduced xent = (0.0513 + 2.3026) / 2
-    >>> m = keras.metrics.SparseCategoricalCrossentropy()
+    >>> m = ncps.mini_keras.metrics.SparseCategoricalCrossentropy()
     >>> m.update_state([1, 2],
     ...                [[0.05, 0.95, 0], [0.1, 0.8, 0.1]])
     >>> m.result()

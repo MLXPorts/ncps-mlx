@@ -1,6 +1,13 @@
 import inspect
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
 
 from ncps.mini_keras import backend
 from ncps.mini_keras import tree
@@ -19,7 +26,7 @@ class JaxLayer(Layer):
     """Keras Layer that wraps a JAX model.
 
     This layer enables the use of JAX components within Keras when using JAX as
-    the backend for Keras.
+    the backend for ncps.mini_keras.
 
     ## Model function
 
@@ -296,7 +303,7 @@ class JaxLayer(Layer):
 
         def create_variable(value):
             if backend.is_tensor(value) or isinstance(
-                value, (np.ndarray, np.generic)
+                value, (BackendArray, np.generic)
             ):
                 dtype = value.dtype
                 if is_float_dtype(dtype):
@@ -463,7 +470,7 @@ class FlaxLayer(JaxLayer):
     This layer enables the use of Flax components in the form of
     [`flax.linen.Module`](
         https://flax.readthedocs.io/en/latest/api_reference/flax.linen/module.html)
-    instances within Keras when using JAX as the backend for Keras.
+    instances within Keras when using JAX as the backend for ncps.mini_keras.
 
     The module method to use for the forward pass can be specified via the
     `method` argument and is `__call__` by default. This method must take the
@@ -555,7 +562,7 @@ class FlaxLayer(JaxLayer):
         **kwargs,
     ):
         # Late import to only require Flax when this is used.
-        from flax.core import scope as flax_scope
+        from flax.core import scope as flax_scope # type: ignore
 
         if backend.backend() != "jax":
             raise ValueError(

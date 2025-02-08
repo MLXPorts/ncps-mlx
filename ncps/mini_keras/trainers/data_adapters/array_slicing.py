@@ -1,7 +1,14 @@
 import collections
 import math
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
 
 from ncps.mini_keras import backend
 from ncps.mini_keras import tree
@@ -17,7 +24,7 @@ except ImportError:
 # Leave jax, tf, and torch arrays off this list. Instead we will use
 # `__array__` to detect these types. Doing so allows us to avoid importing a
 # backend framework we are not currently using just to do type-checking.
-ARRAY_TYPES = (np.ndarray,)
+ARRAY_TYPES = (BackendArray,)
 if pandas:
     ARRAY_TYPES = ARRAY_TYPES + (pandas.Series, pandas.DataFrame)
 
@@ -372,7 +379,7 @@ def convert_to_sliceable(arrays, target_backend=None):
 
         # Special case: handle np "object" arrays containing strings
         if (
-            isinstance(x, np.ndarray)
+            isinstance(x, BackendArray)
             and str(x.dtype) == "object"
             and backend.backend() == "tensorflow"
             and all(isinstance(e, str) for e in x)
@@ -380,7 +387,7 @@ def convert_to_sliceable(arrays, target_backend=None):
             x = tf.convert_to_tensor(x, dtype="string")
 
         # Step 1. Determine which Sliceable class to use.
-        if isinstance(x, np.ndarray):
+        if isinstance(x, BackendArray):
             sliceable_class = NumpySliceable
         elif data_adapter_utils.is_tensorflow_tensor(x):
             if data_adapter_utils.is_tensorflow_ragged(x):

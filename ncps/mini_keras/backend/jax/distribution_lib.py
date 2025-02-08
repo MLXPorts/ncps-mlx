@@ -1,7 +1,16 @@
 """Utilities for distribution strategy with JAX backend."""
 
 import jax
-import numpy as np
+try:
+    import jax.numpy as jnp
+    BackendArray = jnp.ndarray
+except ImportError:    
+    try:
+        import mlx.core as mx
+        BackendArray = mx.array
+    except ImportError:
+        import numpy as np
+        BackendArray = np.ndarray
 
 from ncps.mini_keras.utils import jax_utils
 
@@ -44,7 +53,7 @@ def distribute_variable(value, layout):
     if not isinstance(layout, jax.sharding.Sharding):
         layout = _to_jax_layout(layout)
     if isinstance(
-        value, (jax.Array, jax.numpy.ndarray)
+        value, (jax.Array, BackendArray)
     ) and value.sharding.is_equivalent_to(layout, ndim=len(value.shape)):
         # Skip the relayout if the value is already having the proper sharding
         return value

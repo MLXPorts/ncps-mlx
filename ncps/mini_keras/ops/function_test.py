@@ -1,7 +1,10 @@
 import json
 
-import mlx.core as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import testing
 from ncps.mini_keras.backend.common import keras_tensor
 from ncps.mini_keras.layers import Dense

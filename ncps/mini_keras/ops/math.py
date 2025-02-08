@@ -74,10 +74,10 @@ def segment_sum(data, segment_ids, num_segments=None, sorted=False):
 
     Example:
 
-    >>> data = keras.ops.convert_to_tensor([1, 2, 10, 20, 100, 200])
-    >>> segment_ids = keras.ops.convert_to_tensor([0, 0, 1, 1, 2, 2])
+    >>> data = ncps.mini_keras.ops.convert_to_tensor([1, 2, 10, 20, 100, 200])
+    >>> segment_ids = ncps.mini_keras.ops.convert_to_tensor([0, 0, 1, 1, 2, 2])
     >>> num_segments = 3
-    >>> keras.ops.segment_sum(data, segment_ids,num_segments)
+    >>> ncps.mini_keras.ops.segment_sum(data, segment_ids,num_segments)
     array([3, 30, 300], dtype=int32)
     """
     _segment_reduce_validation(data, segment_ids)
@@ -119,10 +119,10 @@ def segment_max(data, segment_ids, num_segments=None, sorted=False):
 
     Example:
 
-    >>> data = keras.ops.convert_to_tensor([1, 2, 10, 20, 100, 200])
-    >>> segment_ids = keras.ops.convert_to_tensor([0, 0, 1, 1, 2, 2])
+    >>> data = ncps.mini_keras.ops.convert_to_tensor([1, 2, 10, 20, 100, 200])
+    >>> segment_ids = ncps.mini_keras.ops.convert_to_tensor([0, 0, 1, 1, 2, 2])
     >>> num_segments = 3
-    >>> keras.ops.segment_max(data, segment_ids, num_segments)
+    >>> ncps.mini_keras.ops.segment_max(data, segment_ids, num_segments)
     array([2, 20, 200], dtype=int32)
     """
     _segment_reduce_validation(data, segment_ids)
@@ -169,7 +169,7 @@ def top_k(x, k, sorted=True):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([5, 2, 7, 1, 9, 3])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([5, 2, 7, 1, 9, 3])
     >>> values, indices = top_k(x, k=3)
     >>> print(values)
     array([9 7 5], shape=(3,), dtype=int32)
@@ -209,8 +209,8 @@ def in_top_k(targets, predictions, k):
 
     Example:
 
-    >>> targets = keras.ops.convert_to_tensor([2, 5, 3])
-    >>> predictions = keras.ops.convert_to_tensor(
+    >>> targets = ncps.mini_keras.ops.convert_to_tensor([2, 5, 3])
+    >>> predictions = ncps.mini_keras.ops.convert_to_tensor(
     ... [[0.1, 0.4, 0.6, 0.9, 0.5],
     ...  [0.1, 0.7, 0.9, 0.8, 0.3],
     ...  [0.1, 0.6, 0.9, 0.9, 0.5]])
@@ -254,7 +254,7 @@ def logsumexp(x, axis=None, keepdims=False):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([1., 2., 3.])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([1., 2., 3.])
     >>> logsumexp(x)
     3.407606
     """
@@ -315,7 +315,7 @@ def extract_sequences(x, sequence_length, sequence_stride):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([1, 2, 3, 4, 5, 6])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([1, 2, 3, 4, 5, 6])
     >>> extract_sequences(x, 3, 2)
     array([[1, 2, 3],
        [3, 4, 5]])
@@ -388,8 +388,8 @@ def fft(x):
     Example:
 
     >>> x = (
-    ...     keras.ops.convert_to_tensor([1., 2.]),
-    ...     keras.ops.convert_to_tensor([0., 1.]),
+    ...     ncps.mini_keras.ops.convert_to_tensor([1., 2.]),
+    ...     ncps.mini_keras.ops.convert_to_tensor([0., 1.]),
     ... )
     >>> fft(x)
     (array([ 3., -1.], dtype=float32), array([ 1., -1.], dtype=float32))
@@ -460,8 +460,8 @@ def fft2(x):
     Example:
 
     >>> x = (
-    ...     keras.ops.convert_to_tensor([[1., 2.], [2., 1.]]),
-    ...     keras.ops.convert_to_tensor([[0., 1.], [1., 0.]]),
+    ...     ncps.mini_keras.ops.convert_to_tensor([[1., 2.], [2., 1.]]),
+    ...     ncps.mini_keras.ops.convert_to_tensor([[0., 1.], [1., 0.]]),
     ... )
     >>> fft2(x)
     (array([[ 6.,  0.],
@@ -535,8 +535,8 @@ def ifft2(x):
     Example:
 
     >>> x = (
-    ...     keras.ops.convert_to_tensor([[1., 2.], [2., 1.]]),
-    ...     keras.ops.convert_to_tensor([[0., 1.], [1., 0.]]),
+    ...     ncps.mini_keras.ops.convert_to_tensor([[1., 2.], [2., 1.]]),
+    ...     ncps.mini_keras.ops.convert_to_tensor([[0., 1.], [1., 0.]]),
     ... )
     >>> ifft2(x)
     (array([[ 6.,  0.],
@@ -607,7 +607,7 @@ def rfft(x, fft_length=None):
 
     Examples:
 
-    >>> x = keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
     >>> rfft(x)
     (array([10.0, -2.5, -2.5]), array([0.0, 3.4409548, 0.81229924]))
 
@@ -691,8 +691,8 @@ def irfft(x, fft_length=None):
 
     Examples:
 
-    >>> real = keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
-    >>> imag = keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
+    >>> real = ncps.mini_keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
+    >>> imag = ncps.mini_keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
     >>> irfft((real, imag))
     array([0.66666667, -0.9106836, 0.24401694])
 
@@ -778,7 +778,7 @@ def stft(
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
     >>> stft(x, 3, 2, 3)
     (array([[0.75, -0.375],
        [3.75, -1.875],
@@ -906,7 +906,7 @@ def istft(
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([0.0, 1.0, 2.0, 3.0, 4.0])
     >>> istft(stft(x, 1, 1, 1), 1, 1, 1)
     array([0.0, 1.0, 2.0, 3.0, 4.0])
     """
@@ -950,8 +950,8 @@ def rsqrt(x):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([1.0, 10.0, 100.0])
-    >>> keras.ops.rsqrt(x)
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([1.0, 10.0, 100.0])
+    >>> ncps.mini_keras.ops.rsqrt(x)
     array([1.0, 0.31622776, 0.1], dtype=float32)
     """
     if any_symbolic_tensors((x,)):
@@ -981,7 +981,7 @@ def erf(x):
     Example:
 
     >>> x = np.array([-3.0, -2.0, -1.0, 0.0, 1.0])
-    >>> keras.ops.erf(x)
+    >>> ncps.mini_keras.ops.erf(x)
     array([-0.99998 , -0.99532, -0.842701,  0.,  0.842701], dtype=float32)
     """
     if any_symbolic_tensors((x,)):
@@ -1011,7 +1011,7 @@ def erfinv(x):
     Example:
 
     >>> x = np.array([-0.5, -0.2, -0.1, 0.0, 0.3])
-    >>> keras.ops.erfinv(x)
+    >>> ncps.mini_keras.ops.erfinv(x)
     array([-0.47694, -0.17914, -0.08886,  0. ,  0.27246], dtype=float32)
     """
     if any_symbolic_tensors((x,)):

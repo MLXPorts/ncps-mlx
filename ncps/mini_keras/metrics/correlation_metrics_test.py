@@ -1,4 +1,8 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
 from scipy.stats import pearsonr
 
 from ncps.mini_keras import testing

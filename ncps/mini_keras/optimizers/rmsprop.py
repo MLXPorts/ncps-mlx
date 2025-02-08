@@ -37,8 +37,8 @@ class RMSprop(optimizer.Optimizer):
 
     Example:
 
-    >>> opt = keras.optimizers.RMSprop(learning_rate=0.1)
-    >>> var1 = keras.backend.Variable(10.0)
+    >>> opt = ncps.mini_keras.optimizers.RMSprop(learning_rate=0.1)
+    >>> var1 = ncps.mini_keras.backend.Variable(10.0)
     >>> loss = lambda: (var1 ** 2) / 2.0  # d(loss) / d(var1) = var1
     >>> opt.minimize(loss, [var1])
     >>> var1

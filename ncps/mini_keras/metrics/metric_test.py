@@ -1,7 +1,10 @@
 import pickle
 
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import dtype_policies
 from ncps.mini_keras import initializers

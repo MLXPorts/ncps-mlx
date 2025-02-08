@@ -1,8 +1,10 @@
 import re
 import string
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import ml_dtypes
-import numpy as np
 
 from ncps.mini_keras import activations
 from ncps.mini_keras import constraints
@@ -68,10 +70,10 @@ class EinsumDense(Layer):
     einsum operations. This example is equivalent to
     `keras.layers.Dense(64, use_bias=True)`.
 
-    >>> layer = keras.layers.EinsumDense("ab,bc->ac",
+    >>> layer = ncps.mini_keras.layers.EinsumDense("ab,bc->ac",
     ...                                       output_shape=64,
     ...                                       bias_axes="c")
-    >>> input_tensor = keras.Input(shape=[32])
+    >>> input_tensor = ncps.mini_keras.Input(shape=[32])
     >>> output_tensor = layer(input_tensor)
     >>> output_tensor.shape
     (None, 64)
@@ -84,10 +86,10 @@ class EinsumDense(Layer):
     dimension in the `output_shape` is `None`, because the sequence dimension
     `b` has an unknown shape.
 
-    >>> layer = keras.layers.EinsumDense("abc,cd->abd",
+    >>> layer = ncps.mini_keras.layers.EinsumDense("abc,cd->abd",
     ...                                       output_shape=(None, 64),
     ...                                       bias_axes="d")
-    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> input_tensor = ncps.mini_keras.Input(shape=[32, 128])
     >>> output_tensor = layer(input_tensor)
     >>> output_tensor.shape
     (None, 32, 64)
@@ -103,10 +105,10 @@ class EinsumDense(Layer):
     layer can handle any number of sequence dimensions - including the case
     where no sequence dimension exists.
 
-    >>> layer = keras.layers.EinsumDense("...x,xy->...y",
+    >>> layer = ncps.mini_keras.layers.EinsumDense("...x,xy->...y",
     ...                                       output_shape=64,
     ...                                       bias_axes="y")
-    >>> input_tensor = keras.Input(shape=[32, 128])
+    >>> input_tensor = ncps.mini_keras.Input(shape=[32, 128])
     >>> output_tensor = layer(input_tensor)
     >>> output_tensor.shape
     (None, 32, 64)

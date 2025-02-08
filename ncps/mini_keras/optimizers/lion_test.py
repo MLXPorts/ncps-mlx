@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import keras
+import ncps
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
 from ncps.mini_keras import testing
@@ -78,8 +78,8 @@ class LionTest(testing.TestCase):
     @pytest.mark.requires_trainable_backend
     def test_ema(self):
         # TODO: test correctness
-        model = keras.Sequential([keras.layers.Dense(10)])
+        model = ncps.mini_keras.Sequential([ncps.mini_keras.layers.Dense(10)])
         model.compile(optimizer=Lion(use_ema=True), loss="mse")
-        x = keras.ops.zeros((1, 5))
-        y = keras.ops.zeros((1, 10))
+        x = ncps.mini_keras.ops.zeros((1, 5))
+        y = ncps.mini_keras.ops.zeros((1, 10))
         model.fit(x, y)

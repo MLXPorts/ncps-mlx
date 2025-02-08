@@ -51,7 +51,7 @@ class MaxPooling1D(BasePooling):
 
     >>> x = np.array([1., 2., 3., 4., 5.])
     >>> x = np.reshape(x, [1, 5, 1])
-    >>> max_pool_1d = keras.layers.MaxPooling1D(pool_size=2,
+    >>> max_pool_1d = ncps.mini_keras.layers.MaxPooling1D(pool_size=2,
     ...    strides=1, padding="valid")
     >>> max_pool_1d(x)
 
@@ -59,7 +59,7 @@ class MaxPooling1D(BasePooling):
 
     >>> x = np.array([1., 2., 3., 4., 5.])
     >>> x = np.reshape(x, [1, 5, 1])
-    >>> max_pool_1d = keras.layers.MaxPooling1D(pool_size=2,
+    >>> max_pool_1d = ncps.mini_keras.layers.MaxPooling1D(pool_size=2,
     ...    strides=2, padding="valid")
     >>> max_pool_1d(x)
 
@@ -67,7 +67,7 @@ class MaxPooling1D(BasePooling):
 
     >>> x = np.array([1., 2., 3., 4., 5.])
     >>> x = np.reshape(x, [1, 5, 1])
-    >>> max_pool_1d = keras.layers.MaxPooling1D(pool_size=2,
+    >>> max_pool_1d = ncps.mini_keras.layers.MaxPooling1D(pool_size=2,
     ...    strides=1, padding="same")
     >>> max_pool_1d(x)
     """

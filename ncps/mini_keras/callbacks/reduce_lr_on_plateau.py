@@ -1,6 +1,9 @@
 import warnings
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export

@@ -79,10 +79,10 @@ def clone_model(
 
     ```python
     # Create a test Sequential model.
-    model = keras.Sequential([
-        keras.layers.Input(shape=(728,)),
-        keras.layers.Dense(32, activation='relu'),
-        keras.layers.Dense(1, activation='sigmoid'),
+    model = ncps.mini_keras.Sequential([
+        ncps.mini_keras.layers.Input(shape=(728,)),
+        ncps.mini_keras.layers.Dense(32, activation='relu'),
+        ncps.mini_keras.layers.Dense(1, activation='sigmoid'),
     ])
     # Create a copy of the test model (with freshly initialized weights).
     new_model = clone_model(model)
@@ -107,8 +107,8 @@ def clone_model(
     ```python
     def call_function(layer, *args, **kwargs):
         out = layer(*args, **kwargs)
-        if isinstance(layer, keras.layers.Dense):
-            out = keras.layers.Dropout(0.5)(out)
+        if isinstance(layer, ncps.mini_keras.layers.Dense):
+            out = ncps.mini_keras.layers.Dropout(0.5)(out)
         return out
 
     new_model = clone_model(

@@ -3,8 +3,10 @@ import functools
 import logging
 import traceback
 
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 @functools.lru_cache()
 def patch_tf2onnx():

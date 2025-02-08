@@ -2,7 +2,10 @@
 
 import json
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.utils.file_utils import get_file
@@ -154,16 +157,16 @@ def get_word_index(path="imdb_word_index.json"):
     Example:
 
     ```python
-    # Use the default parameters to keras.datasets.imdb.load_data
+    # Use the default parameters to ncps.mini_keras.datasets.imdb.load_data
     start_char = 1
     oov_char = 2
     index_from = 3
     # Retrieve the training sequences.
-    (x_train, _), _ = keras.datasets.imdb.load_data(
+    (x_train, _), _ = ncps.mini_keras.datasets.imdb.load_data(
         start_char=start_char, oov_char=oov_char, index_from=index_from
     )
     # Retrieve the word index file mapping words to indices
-    word_index = keras.datasets.imdb.get_word_index()
+    word_index = ncps.mini_keras.datasets.imdb.get_word_index()
     # Reverse the word index to obtain a dict mapping indices to words
     # And add `index_from` to indices to sync with `x_train`
     inverted_word_index = dict(

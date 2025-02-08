@@ -105,7 +105,7 @@ def batch_dot(x, y, axes=None):
             "Cannot perform batch_dot over axis 0. "
             "If your inputs are not batched, "
             "add a dummy batch dimension to your "
-            "inputs using keras.ops.expand_dims(x, 0)"
+            "inputs using ncps.mini_keras.ops.expand_dims(x, 0)"
         )
     a0, a1 = axes
     d1 = x_shape[a0]
@@ -213,13 +213,13 @@ class Dot(Merge):
 
     >>> x = np.arange(10).reshape(1, 5, 2)
     >>> y = np.arange(10, 20).reshape(1, 2, 5)
-    >>> keras.layers.Dot(axes=(1, 2))([x, y])
+    >>> ncps.mini_keras.layers.Dot(axes=(1, 2))([x, y])
 
     Usage in a Keras model:
 
-    >>> x1 = keras.layers.Dense(8)(np.arange(10).reshape(5, 2))
-    >>> x2 = keras.layers.Dense(8)(np.arange(10, 20).reshape(5, 2))
-    >>> y = keras.layers.Dot(axes=1)([x1, x2])
+    >>> x1 = ncps.mini_keras.layers.Dense(8)(np.arange(10).reshape(5, 2))
+    >>> x2 = ncps.mini_keras.layers.Dense(8)(np.arange(10, 20).reshape(5, 2))
+    >>> y = ncps.mini_keras.layers.Dot(axes=1)([x1, x2])
 
     Args:
         axes: Integer or tuple of integers, axis or axes along which to

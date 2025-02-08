@@ -1,7 +1,10 @@
 from enum import Enum
 
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
 from ncps.mini_keras.losses.loss import squeeze_or_expand_to_same_rank
@@ -640,7 +643,7 @@ def confusion_matrix(
     For example:
 
     ```python
-    keras.metrics.metrics_utils.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+    ncps.mini_keras.metrics.metrics_utils.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
         [[0 0 0 0 0]
         [0 0 1 0 0]
         [0 0 1 0 0]

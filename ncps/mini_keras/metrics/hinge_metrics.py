@@ -18,7 +18,7 @@ class Hinge(reduction_metrics.MeanMetricWrapper):
 
     Examples:
 
-    >>> m = keras.metrics.Hinge()
+    >>> m = ncps.mini_keras.metrics.Hinge()
     >>> m.update_state([[0, 1], [0, 0]], [[0.6, 0.4], [0.4, 0.6]])
     >>> m.result()
     1.3
@@ -51,7 +51,7 @@ class SquaredHinge(reduction_metrics.MeanMetricWrapper):
 
     Example:
 
-    >>> m = keras.metrics.SquaredHinge()
+    >>> m = ncps.mini_keras.metrics.SquaredHinge()
     >>> m.update_state([[0, 1], [0, 0]], [[0.6, 0.4], [0.4, 0.6]])
     >>> m.result()
     1.86
@@ -80,7 +80,7 @@ class CategoricalHinge(reduction_metrics.MeanMetricWrapper):
         dtype: (Optional) data type of the metric result.
 
     Example:
-    >>> m = keras.metrics.CategoricalHinge()
+    >>> m = ncps.mini_keras.metrics.CategoricalHinge()
     >>> m.update_state([[0, 1], [0, 0]], [[0.6, 0.4], [0.4, 0.6]])
     >>> m.result().numpy()
     1.4000001

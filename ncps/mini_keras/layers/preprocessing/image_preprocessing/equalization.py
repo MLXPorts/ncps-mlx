@@ -46,7 +46,7 @@ class Equalization(BaseImagePreprocessingLayer):
 
     ```python
     # Create an equalization layer for standard 8-bit images
-    equalizer = keras.layers.Equalization()
+    equalizer = ncps.mini_keras.layers.Equalization()
 
     # An image with uneven intensity distribution
     image = [...] # your input image
@@ -55,7 +55,7 @@ class Equalization(BaseImagePreprocessingLayer):
     equalized_image = equalizer(image)
 
     # For images with custom value range
-    custom_equalizer = keras.layers.Equalization(
+    custom_equalizer = ncps.mini_keras.layers.Equalization(
         value_range=[0.0, 1.0],  # for normalized images
         bins=128  # fewer bins for more subtle equalization
     )

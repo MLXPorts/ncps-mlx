@@ -59,8 +59,8 @@ class Trainer:
             optimizer=keras.optimizers.Adam(learning_rate=1e-3),
             loss=keras.losses.BinaryCrossentropy(),
             metrics=[
-                keras.metrics.BinaryAccuracy(),
-                keras.metrics.FalseNegatives(),
+                ncps.mini_keras.metrics.BinaryAccuracy(),
+                ncps.mini_keras.metrics.FalseNegatives(),
             ],
         )
         ```

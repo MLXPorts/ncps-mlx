@@ -317,7 +317,7 @@ def _upload_model_to_hf(model, hf_path, weights_format):
         api.upload_folder(
             repo_id=repo_id,
             folder_path=tmp_dir,
-            commit_message="Save model using Keras.",
+            commit_message="Save model using ncps.mini_keras.",
         )
         io_utils.print_msg(
             f"Model saved to the Hugging Face Hub: {repo_url}\n"

@@ -27,7 +27,7 @@ class Constraint:
 
     Usage in a layer:
 
-    >>> keras.layers.Dense(4, kernel_constraint=NonNegative())
+    >>> ncps.mini_keras.layers.Dense(4, kernel_constraint=NonNegative())
     """
 
     def __call__(self, w):

@@ -2,6 +2,7 @@ from .eltc_cell import EnhancedLTCCell
 from ncps.wirings import Wiring
 from ncps.mini_keras import layers
 from ncps.mini_keras.ops.ode import SOLVERS
+import ncps
 
 @ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="WiredEnhancedLTCCell")
 class WiredEnhancedLTCCell(layers.RNNCell):

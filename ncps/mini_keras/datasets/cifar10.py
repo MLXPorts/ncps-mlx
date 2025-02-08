@@ -2,7 +2,10 @@
 
 import os
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
@@ -53,7 +56,7 @@ def load_data():
     Example:
 
     ```python
-    (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+    (x_train, y_train), (x_test, y_test) = ncps.mini_keras.datasets.cifar10.load_data()
     assert x_train.shape == (50000, 32, 32, 3)
     assert x_test.shape == (10000, 32, 32, 3)
     assert y_train.shape == (50000, 1)

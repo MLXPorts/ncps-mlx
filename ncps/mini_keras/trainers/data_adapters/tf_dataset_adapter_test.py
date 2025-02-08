@@ -1,7 +1,15 @@
 from unittest import mock
 
-import jax
-import numpy as np
+import jax # type: ignore
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+
 import pytest
 import tensorflow as tf
 import torch
@@ -25,16 +33,19 @@ class TestTFDatasetAdapter(testing.TestCase):
 
         if backend.backend() == "numpy":
             it = adapter.get_numpy_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "tensorflow":
             it = adapter.get_tf_dataset()
             expected_class = tf.Tensor
         elif backend.backend() == "jax":
             it = adapter.get_jax_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "torch":
             it = adapter.get_torch_dataloader()
             expected_class = torch.Tensor
+        elif backend.backend() == "mlx":
+            it = adapter.get_mlx_dataset()
+            expected_class = BackendArray
 
         for i, batch in enumerate(it):
             self.assertEqual(len(batch), 2)
@@ -230,8 +241,8 @@ class TestTFDatasetAdapter(testing.TestCase):
         for i, batch in enumerate(gen):
             self.assertEqual(len(batch), 2)
             bx, by = batch
-            self.assertIsInstance(bx, np.ndarray)
-            self.assertIsInstance(by, np.ndarray)
+            self.assertIsInstance(bx, BackendArray)
+            self.assertIsInstance(by, BackendArray)
             self.assertEqual(bx.dtype, by.dtype)
             self.assertEqual(bx.dtype, "float32")
             if i < 2:
@@ -269,9 +280,9 @@ class TestTFDatasetAdapter(testing.TestCase):
         base_ds = tf.data.Dataset.from_tensors((x, y))
         adapter = tf_dataset_adapter.TFDatasetAdapter(base_ds)
 
-        if backend.backend() == "numpy":
+        if backend.backend() == "numpy" or backend.backend() == "mlx":
             it = adapter.get_numpy_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "tensorflow":
             it = adapter.get_tf_dataset()
             expected_class = tf.SparseTensor

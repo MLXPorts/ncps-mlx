@@ -1,8 +1,12 @@
 import os
 
-import jax
-import jax.numpy as jnp
-import numpy as np
+import jax # type: ignore
+import jax.numpy as jnp # type: ignore
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -21,7 +25,7 @@ from ncps.mini_keras.utils.jax_layer import FlaxLayer
 from ncps.mini_keras.utils.jax_layer import JaxLayer
 
 try:
-    import flax
+    import flax # type: ignore
 except ImportError:
     flax = None
 

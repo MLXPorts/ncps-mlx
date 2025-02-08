@@ -1,4 +1,9 @@
-import numpy as np
+try:
+    import mlx.core as mx
+    BackendArray = mx.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -35,7 +40,7 @@ class TestEpochIterator(testing.TestCase):
             batch = batch[0]
             steps_seen.append(step)
             self.assertEqual(len(batch), 3)
-            self.assertIsInstance(batch[0], np.ndarray)
+            self.assertIsInstance(batch[0], BackendArray)
         self.assertEqual(steps_seen, [0, 1, 2, 3, 4, 5, 6])
 
     def test_insufficient_data(self):

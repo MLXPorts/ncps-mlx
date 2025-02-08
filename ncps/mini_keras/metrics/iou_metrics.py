@@ -206,7 +206,7 @@ class IoU(_IoUBase):
     >>> # sum_row = [2, 2], sum_col = [2, 2], true_positives = [1, 1]
     >>> # iou = true_positives / (sum_row + sum_col - true_positives))
     >>> # iou = [0.33, 0.33]
-    >>> m = keras.metrics.IoU(num_classes=2, target_class_ids=[0])
+    >>> m = ncps.mini_keras.metrics.IoU(num_classes=2, target_class_ids=[0])
     >>> m.update_state([0, 0, 1, 1], [0, 1, 0, 1])
     >>> m.result()
     0.33333334
@@ -356,7 +356,7 @@ class BinaryIoU(IoU):
 
     Example:
 
-    >>> m = keras.metrics.BinaryIoU(target_class_ids=[0, 1], threshold=0.3)
+    >>> m = ncps.mini_keras.metrics.BinaryIoU(target_class_ids=[0, 1], threshold=0.3)
     >>> m.update_state([0, 1, 0, 1], [0.1, 0.2, 0.4, 0.7])
     >>> m.result()
     0.33333334
@@ -482,7 +482,7 @@ class MeanIoU(IoU):
     >>> # sum_row = [2, 2], sum_col = [2, 2], true_positives = [1, 1]
     >>> # iou = true_positives / (sum_row + sum_col - true_positives))
     >>> # result = (1 / (2 + 2 - 1) + 1 / (2 + 2 - 1)) / 2 = 0.33
-    >>> m = keras.metrics.MeanIoU(num_classes=2)
+    >>> m = ncps.mini_keras.metrics.MeanIoU(num_classes=2)
     >>> m.update_state([0, 0, 1, 1], [0, 1, 0, 1])
     >>> m.result()
     0.33333334
@@ -593,7 +593,7 @@ class OneHotIoU(IoU):
     >>> y_pred = np.array([[0.2, 0.3, 0.5], [0.1, 0.2, 0.7], [0.5, 0.3, 0.1],
     ...                       [0.1, 0.4, 0.5]])
     >>> sample_weight = [0.1, 0.2, 0.3, 0.4]
-    >>> m = keras.metrics.OneHotIoU(num_classes=3, target_class_ids=[0, 2])
+    >>> m = ncps.mini_keras.metrics.OneHotIoU(num_classes=3, target_class_ids=[0, 2])
     >>> m.update_state(
     ...     y_true=y_true, y_pred=y_pred, sample_weight=sample_weight)
     >>> # cm = [[0, 0, 0.2+0.4],
@@ -708,7 +708,7 @@ class OneHotMeanIoU(MeanIoU):
     >>> y_pred = np.array([[0.2, 0.3, 0.5], [0.1, 0.2, 0.7], [0.5, 0.3, 0.1],
     ...                       [0.1, 0.4, 0.5]])
     >>> sample_weight = [0.1, 0.2, 0.3, 0.4]
-    >>> m = keras.metrics.OneHotMeanIoU(num_classes=3)
+    >>> m = ncps.mini_keras.metrics.OneHotMeanIoU(num_classes=3)
     >>> m.update_state(
     ...     y_true=y_true, y_pred=y_pred, sample_weight=sample_weight)
     >>> # cm = [[0, 0, 0.2+0.4],

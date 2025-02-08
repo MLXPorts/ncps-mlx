@@ -111,6 +111,8 @@ class InputLayer(Layer):
             input_tensor = backend.KerasTensor(
                 shape=batch_shape,
                 dtype=dtype,
+                sparse=sparse,
+                ragged=ragged,
                 name=name,
             )
         self._input_tensor = input_tensor

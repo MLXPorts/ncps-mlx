@@ -1,6 +1,9 @@
 import os
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 from absl.testing import parameterized
 
@@ -82,7 +85,7 @@ class EmbeddingTest(test_case.TestCase):
 
             x = tf.SparseTensor([[0, 0], [1, 2]], [2, 1], (2, 3))
         elif backend.backend() == "jax":
-            import jax.experimental.sparse as jax_sparse
+            import jax.experimental.sparse as jax_sparse # type: ignore
 
             x = jax_sparse.BCOO(([2, 1], [[0, 0], [1, 2]]), shape=(2, 3))
         else:

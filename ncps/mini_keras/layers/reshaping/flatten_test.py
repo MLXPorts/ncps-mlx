@@ -1,4 +1,8 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
 import pytest
 from absl.testing import parameterized
 
@@ -35,7 +39,7 @@ class FlattenTest(testing.TestCase):
 
                 dense_to_sparse = tf.sparse.from_dense
             elif backend.backend() == "jax":
-                import jax.experimental.sparse as jax_sparse
+                import jax.experimental.sparse as jax_sparse # type: ignore
 
                 dense_to_sparse = jax_sparse.BCOO.fromdense
             else:

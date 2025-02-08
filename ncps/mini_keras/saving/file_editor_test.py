@@ -1,27 +1,34 @@
 import os
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+
 import pytest
 
-import keras
+import ncps
+import ncps.mini_keras
 from ncps.mini_keras import testing
 from ncps.mini_keras.saving.file_editor import KerasFileEditor
 
 
 def get_source_model():
-    inputs = keras.Input((2,))
-    x = keras.layers.Dense(3, name="mydense")(inputs)
-    outputs = keras.layers.Dense(3, name="output_layer")(x)
-    model = keras.Model(inputs, outputs)
+    inputs = ncps.mini_keras.Input((2,))
+    x = ncps.mini_keras.layers.Dense(3, name="mydense")(inputs)
+    outputs = ncps.mini_keras.layers.Dense(3, name="output_layer")(x)
+    model = ncps.mini_keras.Model(inputs, outputs)
     return model
 
 
 def get_target_model():
-    inputs = keras.Input((2,))
-    x = keras.layers.Dense(3, name="mydense")(inputs)
-    x = keras.layers.Dense(3, name="myotherdense")(x)
-    outputs = keras.layers.Dense(3, name="output_layer")(x)
-    model = keras.Model(inputs, outputs)
+    inputs = ncps.mini_keras.Input((2,))
+    x = ncps.mini_keras.layers.Dense(3, name="mydense")(inputs)
+    x = ncps.mini_keras.layers.Dense(3, name="myotherdense")(x)
+    outputs = ncps.mini_keras.layers.Dense(3, name="output_layer")(x)
+    model = ncps.mini_keras.Model(inputs, outputs)
     return model
 
 
@@ -92,9 +99,9 @@ class SavingTest(testing.TestCase):
 
     @pytest.mark.requires_trainable_backend
     def test_scalar_weight(self):
-        model = keras.Sequential(name="my_sequential")
-        model.add(keras.Input(shape=(1,), name="my_input"))
-        model.add(keras.layers.Dense(1, activation="sigmoid", name="my_dense"))
+        model = ncps.mini_keras.Sequential(name="my_sequential")
+        model.add(ncps.mini_keras.Input(shape=(1,), name="my_input"))
+        model.add(ncps.mini_keras.layers.Dense(1, activation="sigmoid", name="my_dense"))
         model.compile(optimizer="adam", loss="mse", metrics=["mae"])
         model.fit(np.array([[1]]), np.array([[1]]), verbose=0)
         model_fpath = os.path.join(self.get_temp_dir(), "model.keras")

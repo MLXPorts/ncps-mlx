@@ -1,6 +1,9 @@
 """Tests for iou functions."""
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras import testing
 from ncps.mini_keras.layers.preprocessing.image_preprocessing.bounding_boxes import (

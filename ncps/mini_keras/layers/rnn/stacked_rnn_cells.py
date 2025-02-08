@@ -24,8 +24,8 @@ class StackedRNNCells(Layer):
     x = np.reshape(np.arange(30), new_shape)
 
     rnn_cells = [keras.layers.LSTMCell(128) for _ in range(2)]
-    stacked_lstm = keras.layers.StackedRNNCells(rnn_cells)
-    lstm_layer = keras.layers.RNN(stacked_lstm)
+    stacked_lstm = ncps.mini_keras.layers.StackedRNNCells(rnn_cells)
+    lstm_layer = ncps.mini_keras.layers.RNN(stacked_lstm)
 
     result = lstm_layer(x)
     ```

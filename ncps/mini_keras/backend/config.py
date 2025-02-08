@@ -15,26 +15,6 @@ _IMAGE_DATA_FORMAT = "channels_last"
 # Default backend is MLX - this is a fork of Keras minimal for NCP usage
 _BACKEND = "mlx"
 
-# Mini-Keras home directory (separate from Keras to avoid conflicts)
-_MINI_KERAS_DIR = os.path.join(os.path.expanduser("~"), ".mini_keras")
-
-# Support both Keras and Mini-Keras config locations
-if "KERAS_HOME" in os.environ:
-    _KERAS_DIR = os.environ.get("KERAS_HOME")
-elif "MINI_KERAS_HOME" in os.environ:
-    _KERAS_DIR = os.environ.get("MINI_KERAS_HOME") 
-else:
-    _keras_base_dir = os.path.expanduser("~")
-    if not os.access(_keras_base_dir, os.W_OK):
-        _keras_base_dir = "/tmp"
-    _KERAS_DIR = os.path.join(_keras_base_dir, ".keras")
-    _MINI_KERAS_DIR = os.path.join(_keras_base_dir, ".mini_keras")
-
-def keras_home():
-    """Private accessor for Keras home location.
-    Checks both Keras and Mini-Keras locations."""
-    return _KERAS_DIR
-
 
 @keras_mini_export(["ncps.mini_keras.config.floatx", "ncps.mini_keras.backend.floatx"])
 def floatx():
@@ -58,14 +38,25 @@ def floatx():
 @keras_mini_export(["ncps.mini_keras.config.set_floatx", "ncps.mini_keras.backend.set_floatx"])
 def set_floatx(value):
     """Set the default float dtype.
-    
-    Note: MLX arrays inherit from NumPy's ndarray, so they support all NumPy float types
-    while providing accelerated operations through the MLX backend.
+    Note: It is not recommended to set this to `"float16"` for training,
+    as this will likely cause numeric stability issues.
+    Instead, mixed precision, which leverages
+    a mix of `float16` and `float32`. It can be configured by calling
+    `keras.mixed_precision.set_dtype_policy('mixed_float16')`.
 
     Args:
-        value: String; 'float16', 'float32', or 'float64'. These correspond to
-               NumPy-compatible dtypes that are accelerated by MLX.
+        value: String; `'bfloat16'`, `'float16'`, `'float32'`, or `'float64'`.
 
+    Examples:
+    >>> ncps.mini_keras.config.floatx()
+    'float32'
+
+    >>> ncps.mini_keras.config.set_floatx('float64')
+    >>> ncps.mini_keras.config.floatx()
+    'float64'
+
+    >>> # Set it back to float32
+    >>> ncps.mini_keras.config.set_floatx('float32')
     Raises:
         ValueError: In case of invalid value.
     """
@@ -88,7 +79,7 @@ def epsilon():
 
     Example:
 
-    >>> keras.config.epsilon()
+    >>> ncps.mini_keras.config.epsilon()
     1e-07
 
     """
@@ -103,15 +94,15 @@ def set_epsilon(value):
         value: float. New value of epsilon.
 
     Examples:
-    >>> keras.config.epsilon()
+    >>> ncps.mini_keras.config.epsilon()
     1e-07
 
-    >>> keras.config.set_epsilon(1e-5)
-    >>> keras.config.epsilon()
+    >>> ncps.mini_keras.config.set_epsilon(1e-5)
+    >>> ncps.mini_keras.config.epsilon()
     1e-05
 
     >>> # Set it back to the default value.
-    >>> keras.config.set_epsilon(1e-7)
+    >>> ncps.mini_keras.config.set_epsilon(1e-7)
 
     """
     global _EPSILON
@@ -132,7 +123,7 @@ def image_data_format():
 
     Example:
 
-    >>> keras.config.image_data_format()
+    >>> ncps.mini_keras.config.image_data_format()
     'channels_last'
 
     """
@@ -153,15 +144,15 @@ def set_image_data_format(data_format):
 
     Examples:
 
-    >>> keras.config.image_data_format()
+    >>> ncps.mini_keras.config.image_data_format()
     'channels_last'
 
-    >>> keras.config.set_image_data_format('channels_first')
-    >>> keras.config.image_data_format()
+    >>> ncps.mini_keras.config.set_image_data_format('channels_first')
+    >>> ncps.mini_keras.config.image_data_format()
     'channels_first'
 
     >>> # Set it back to `'channels_last'`
-    >>> keras.config.set_image_data_format('channels_last')
+    >>> ncps.mini_keras.config.set_image_data_format('channels_last')
 
     """
     global _IMAGE_DATA_FORMAT
@@ -214,7 +205,7 @@ def disable_flash_attention():
 
 @keras_mini_export("ncps.mini_keras.config.is_flash_attention_enabled")
 def is_flash_attention_enabled():
-    """Checks whether flash attention is globally enabled in Keras.
+    """Checks whether flash attention is globally enabled in ncps.mini_keras.
 
     Flash attention is a performance-optimized method for computing attention
     in large models, such as transformers, allowing for faster and more
@@ -246,72 +237,78 @@ def standardize_data_format(data_format):
         )
     return data_format
 
+# Set Keras base dir path given KERAS_HOME env variable, if applicable.
+# Otherwise either ~/.keras or /tmp.
+if "KERAS_HOME" in os.environ:
+    _KERAS_DIR = os.environ.get("KERAS_HOME")
+else:
+    _keras_base_dir = os.path.expanduser("~")
+    if not os.access(_keras_base_dir, os.W_OK):
+        _keras_base_dir = "/tmp"
+    _KERAS_DIR = os.path.join(_keras_base_dir, ".keras")
 
-# Config file handling
-def _get_mini_keras_dir():
-    if "MINI_KERAS_HOME" in os.environ:
-        return os.environ.get("MINI_KERAS_HOME")
-    return _MINI_KERAS_DIR
+
+def keras_home():
+    # Private accessor for the keras home location.
+    return _KERAS_DIR
 
 
-# Initialize config directory if needed
-config_dir = _get_mini_keras_dir()
-if not os.path.exists(config_dir):
-    try:
-        os.makedirs(config_dir)
-    except OSError:
-        # Handle permission denied and race conditions
-        pass
-
-# Try loading from Keras config first, fall back to mini-keras
+# Attempt to read Keras config file.
 _config_path = os.path.expanduser(os.path.join(_KERAS_DIR, "keras.json"))
-_mini_config_path = os.path.expanduser(os.path.join(_MINI_KERAS_DIR, "mini_keras.json"))
-
 if os.path.exists(_config_path):
-    # Load from Keras config
     try:
         with open(_config_path) as f:
             _config = json.load(f)
     except ValueError:
         _config = {}
     _floatx = _config.get("floatx", floatx())
-    _epsilon = _config.get("epsilon", _EPSILON)
-    _image_data_format = _config.get("image_data_format", _IMAGE_DATA_FORMAT)
+    assert _floatx in {"float16", "float32", "float64"}
+    _epsilon = _config.get("epsilon", epsilon())
+    assert isinstance(_epsilon, float)
+    _backend = _config.get("backend", _BACKEND)
+    _image_data_format = _config.get("image_data_format", image_data_format())
+    assert _image_data_format in {"channels_last", "channels_first"}
 
     set_floatx(_floatx)
     set_epsilon(_epsilon)
     set_image_data_format(_image_data_format)
-elif os.path.exists(_mini_config_path):
-    # Load from mini-keras config
+    _BACKEND = _backend
+
+# Save config file, if possible.
+if not os.path.exists(_KERAS_DIR):
     try:
-        with open(_mini_config_path) as f:
-            _config = json.load(f)
-    except ValueError:
-        _config = {}
-    _floatx = _config.get("floatx", floatx())
-    _epsilon = _config.get("epsilon", _EPSILON)
-    _image_data_format = _config.get("image_data_format", _IMAGE_DATA_FORMAT)
+        os.makedirs(_KERAS_DIR)
+    except OSError:
+        # Except permission denied and potential race conditions
+        # in multi-threaded environments.
+        pass
 
-    set_floatx(_floatx)
-    set_epsilon(_epsilon)
-    set_image_data_format(_image_data_format)
-
-# Create config in mini-keras location if neither exists
-if not os.path.exists(_config_path) and not os.path.exists(_mini_config_path):
+if not os.path.exists(_config_path):
     _config = {
         "floatx": floatx(),
-        "epsilon": _EPSILON,
+        "epsilon": epsilon(),
         "backend": _BACKEND,
-        "image_data_format": _IMAGE_DATA_FORMAT
+        "image_data_format": image_data_format(),
     }
-    config_dir = _MINI_KERAS_DIR
-    config_file = _mini_config_path
     try:
-        with open(config_file, "w") as f:
+        with open(_config_path, "w") as f:
             f.write(json.dumps(_config, indent=4))
     except IOError:
-        # Handle permission denied
+        # Except permission denied.
         pass
+
+# Set backend based on KERAS_BACKEND flag, if applicable.
+if "KERAS_BACKEND" in os.environ:
+    _backend = os.environ["KERAS_BACKEND"]
+    if _backend:
+        _BACKEND = _backend
+
+
+if _BACKEND != "tensorflow":
+    # If we are not running on the tensorflow backend, we should stop tensorflow
+    # from using all available GPU memory. See
+    # https://www.tensorflow.org/guide/gpu#limiting_gpu_memory_growth
+    os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 
 @keras_mini_export(
@@ -321,13 +318,17 @@ if not os.path.exists(_config_path) and not os.path.exists(_mini_config_path):
     ]
 )
 def backend():
-    """Returns the current backend name.
+    """Publicly accessible method for determining the current backend.
 
     Returns:
-        String 'mlx', as this is an MLX-specific implementation.
+        String, the name of the backend Keras is currently using. One of
+            `"tensorflow"`, `"torch"`, `"mlx"`, or `"jax"`.
 
-    Note: While the original Keras supports multiple backends, this mini_keras
-    implementation is specifically for MLX backend usage in Neural Circuit Policies.
-    NumPy-style operations are supported but are converted to MLX arrays internally.
+    Example:
+
+    >>> ncps.mini_keras.config.backend()
+    'tensorflow'
+
     """
+
     return _BACKEND

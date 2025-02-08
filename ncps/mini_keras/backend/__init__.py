@@ -25,6 +25,7 @@ from ncps.mini_keras.backend.common.variables import is_float_dtype
 from ncps.mini_keras.backend.common.variables import is_int_dtype
 from ncps.mini_keras.backend.common.variables import standardize_dtype
 from ncps.mini_keras.backend.common.variables import standardize_shape
+from ncps.mini_keras.backend.common.numpy import pi
 from ncps.mini_keras.backend.config import epsilon
 from ncps.mini_keras.backend.config import floatx
 from ncps.mini_keras.backend.config import image_data_format
@@ -43,22 +44,19 @@ elif backend() == "jax":
 elif backend() == "torch":
     from ncps.mini_keras.backend.torch import *  # noqa: F403
     from ncps.mini_keras.backend.torch.core import Variable as BackendVariable
-
     distribution_lib = None
 elif backend() == "numpy":
     from ncps.mini_keras.backend.numpy import *  # noqa: F403
     from ncps.mini_keras.backend.numpy.core import Variable as BackendVariable
-
     distribution_lib = None
 elif backend() == "openvino":
     from ncps.mini_keras.backend.openvino import *  # noqa: F403
     from ncps.mini_keras.backend.openvino.core import Variable as BackendVariable
-
     distribution_lib = None
 elif backend() == "mlx":
     from ncps.mini_keras.backend.mlx import * # noqa: F403
     from ncps.mini_keras.backend.mlx.core import Variable as BackendVariable
-    
+    distribution_lib = None
 else:
     raise ValueError(f"Unable to import backend : {backend()}")
 
@@ -68,7 +66,7 @@ __all__ = [ "keras_mini_export", "result_type", "KerasTensor", "any_symbolic_ten
            "get_autocast_scope", "is_float_dtype", "is_int_dtype", "standardize_dtype", "standardize_shape", 
            "epsilon", "floatx", "image_data_format", "set_epsilon", "set_floatx", "set_image_data_format", 
            "standardize_data_format", "distribution_lib", "Variable", "name_scope", "device", 
-           "backend_name_scope", "torch"]
+           "backend_name_scope", "torch", "pi"]
 
 @keras_mini_export("ncps.keras_mini.Variable")
 class Variable(BackendVariable):  # noqa: F811

@@ -20,14 +20,6 @@ from .cfc import CfC
 from .eltc_cell import EnhancedLTCCell
 #from packaging.version import parse
 
-try:
-    import mlx as mx
-except:  # noqa: E722
-    raise ImportWarning(
-        "It seems like the MLX package is not installed\n"
-        "Please run"
-        "`$ pip install mlx`. \n",
-    )
 # Move these imports after mx is imported
 from .ltc_cell import LTCCell
 from .ltc import LTC

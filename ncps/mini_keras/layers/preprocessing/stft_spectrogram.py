@@ -27,7 +27,7 @@ class STFTSpectrogram(layers.Layer):
     Apply it as a non-trainable preprocessing layer on 3 audio tracks of
     1 channel, 10 seconds and sampled at 16 kHz.
 
-    >>> layer = keras.layers.STFTSpectrogram(
+    >>> layer = ncps.mini_keras.layers.STFTSpectrogram(
     ...     mode='log',
     ...     frame_length=256,
     ...     frame_step=128,   # 50% overlap
@@ -43,7 +43,7 @@ class STFTSpectrogram(layers.Layer):
     2 channels, 10 seconds and sampled at 16 kHz. This is initialized as the
     non-trainable layer, but then can be trained jointly within a model.
 
-    >>> layer = keras.layers.STFTSpectrogram(
+    >>> layer = ncps.mini_keras.layers.STFTSpectrogram(
     ...     mode='log',
     ...     frame_length=256,
     ...     frame_step=128,    # 50% overlap
@@ -60,7 +60,7 @@ class STFTSpectrogram(layers.Layer):
     3 input channels to output an image tensor, hence is directly applicable
     with an image model.
 
-    >>> layer = keras.layers.STFTSpectrogram(
+    >>> layer = ncps.mini_keras.layers.STFTSpectrogram(
     ...     mode='log',
     ...     frame_length=256,
     ...     frame_step=128,

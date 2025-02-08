@@ -1,7 +1,12 @@
 import os
 
-import mlx.core as np
-
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from ncps.mini_keras import testing
 from ncps.mini_keras.utils import audio_dataset_utils
 from ncps.mini_keras.utils.module_utils import tensorflow as tf

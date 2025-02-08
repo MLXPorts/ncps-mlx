@@ -5,8 +5,13 @@ import inspect
 import types
 import warnings
 
-import numpy as np
-
+try:
+    import mlx.core as mx
+    BackendArray = mx.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from ncps.mini_keras import api_export
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
@@ -191,7 +196,7 @@ def serialize_keras_object(obj):
             },
         }
     if type(obj).__module__ == np.__name__:
-        if isinstance(obj, np.ndarray) and obj.ndim > 0:
+        if isinstance(obj, BackendArray) and obj.ndim > 0:
             return {
                 "class_name": "__numpy__",
                 "config": {

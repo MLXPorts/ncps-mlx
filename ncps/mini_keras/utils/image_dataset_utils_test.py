@@ -1,7 +1,10 @@
 import os
 
-import numpy as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import testing
 from ncps.mini_keras.utils import image_dataset_utils

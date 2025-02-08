@@ -1,7 +1,10 @@
 import math
 
-import mlx.core as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import tree
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.backend.common.backend_utils import canonicalize_axis

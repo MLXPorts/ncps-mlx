@@ -15,7 +15,7 @@ class TorchModuleWrapper(Layer):
 
     `TorchModuleWrapper` is a wrapper class that can turn any
     `torch.nn.Module` into a Keras layer, in particular by making its
-    parameters trackable by Keras.
+    parameters trackable by ncps.mini_keras.
 
     `TorchModuleWrapper` is only compatible with the PyTorch backend and
     cannot be used with the TensorFlow or JAX backends.
@@ -38,7 +38,7 @@ class TorchModuleWrapper(Layer):
     import torch.nn.functional as F
 
     import keras
-    from keras.layers import TorchModuleWrapper
+    from ncps.mini_keras.layers import TorchModuleWrapper
 
     class Classifier(keras.Model):
         def __init__(self, **kwargs):

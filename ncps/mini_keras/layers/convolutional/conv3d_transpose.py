@@ -93,7 +93,7 @@ class Conv3DTranspose(BaseConvTranspose):
     Example:
 
     >>> x = np.random.rand(4, 10, 8, 12, 128)
-    >>> y = keras.layers.Conv3DTranspose(32, 2, 2, activation='relu')(x)
+    >>> y = ncps.mini_keras.layers.Conv3DTranspose(32, 2, 2, activation='relu')(x)
     >>> print(y.shape)
     (4, 20, 16, 24, 32)
     """

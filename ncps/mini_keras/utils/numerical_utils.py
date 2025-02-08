@@ -1,5 +1,10 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.utils import tf_utils
@@ -22,7 +27,7 @@ def normalize(x, axis=-1, order=2):
     """
     from ncps.mini_keras import ops
 
-    if isinstance(x, np.ndarray):
+    if isinstance(x, BackendArray):
         # NumPy input
         norm = np.atleast_1d(np.linalg.norm(x, order, axis))
         norm[norm == 0] = 1
@@ -53,7 +58,7 @@ def to_categorical(x, num_classes=None):
 
     Example:
 
-    >>> a = keras.utils.to_categorical([0, 1, 2, 3], num_classes=4)
+    >>> a = ncps.mini_keras.utils.to_categorical([0, 1, 2, 3], num_classes=4)
     >>> print(a)
     [[1. 0. 0. 0.]
      [0. 1. 0. 0.]
@@ -65,11 +70,11 @@ def to_categorical(x, num_classes=None):
     ...               .04, .01, .94, .05,
     ...               .12, .21, .5, .17],
     ...               shape=[4, 4])
-    >>> loss = keras.ops.categorical_crossentropy(a, b)
+    >>> loss = ncps.mini_keras.ops.categorical_crossentropy(a, b)
     >>> print(np.around(loss, 5))
     [0.10536 0.82807 0.1011  1.77196]
 
-    >>> loss = keras.ops.categorical_crossentropy(a, a)
+    >>> loss = ncps.mini_keras.ops.categorical_crossentropy(a, a)
     >>> print(np.around(loss, 5))
     [0. 0. 0. 0.]
     """

@@ -5,8 +5,13 @@ import enum
 import functools
 import json
 
-import numpy as np
-
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from ncps.mini_keras.legacy.saving import serialization
 from ncps.mini_keras.saving import serialization_lib
 from ncps.mini_keras.utils.module_utils import tensorflow as tf
@@ -152,7 +157,7 @@ def get_json_type(obj):
 
     # if obj is any numpy type
     if type(obj).__module__ == np.__name__:
-        if isinstance(obj, np.ndarray):
+        if isinstance(obj, BackendArray):
             return obj.tolist()
         else:
             return obj.item()

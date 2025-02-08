@@ -40,6 +40,12 @@ class TFDatasetAdapter(DataAdapter):
         for batch in self._dataset:
             yield tree.map_structure(convert_to_numpy, batch)
 
+    def get_mlx_iterator(self):
+        from ncps.mini_keras.backend.tensorflow.core import convert_to_numpy
+
+        for batch in self._dataset:
+            yield tree.map_structure(convert_to_numpy, batch)
+
     def get_jax_iterator(self):
         from ncps.mini_keras.backend.tensorflow.core import convert_to_numpy
         from ncps.mini_keras.utils.module_utils import tensorflow as tf

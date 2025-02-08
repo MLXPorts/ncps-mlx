@@ -20,7 +20,7 @@ class ZeroPadding2D(Layer):
     >>> x
     [[[[0 1]
        [2 3]]]]
-    >>> y = keras.layers.ZeroPadding2D(padding=1)(x)
+    >>> y = ncps.mini_keras.layers.ZeroPadding2D(padding=1)(x)
     >>> y
     [[[[0 0]
        [0 0]

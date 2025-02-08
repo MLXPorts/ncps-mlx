@@ -13,7 +13,7 @@ class KerasTensor:
 
     Example:
 
-    >>> x = keras.KerasTensor(shape=(3, 4), dtype="float32")
+    >>> x = ncps.mini_keras.KerasTensor(shape=(3, 4), dtype="float32")
     >>> x.shape
     (3, 4)
     >>> x.dtype

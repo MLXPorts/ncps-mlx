@@ -35,9 +35,9 @@ class SeedGenerator:
     Example:
 
     ```python
-    seed_gen = keras.random.SeedGenerator(seed=42)
-    values = keras.random.normal(shape=(2, 3), seed=seed_gen)
-    new_values = keras.random.normal(shape=(2, 3), seed=seed_gen)
+    seed_gen = ncps.mini_keras.random.SeedGenerator(seed=42)
+    values = ncps.mini_keras.random.normal(shape=(2, 3), seed=seed_gen)
+    new_values = ncps.mini_keras.random.normal(shape=(2, 3), seed=seed_gen)
     ```
 
     Usage in a layer:
@@ -46,11 +46,11 @@ class SeedGenerator:
     class Dropout(keras.Layer):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.seed_generator = keras.random.SeedGenerator(1337)
+            self.seed_generator = ncps.mini_keras.random.SeedGenerator(1337)
 
         def call(self, x, training=False):
             if training:
-                return keras.random.dropout(
+                return ncps.mini_keras.random.dropout(
                     x, rate=0.5, seed=self.seed_generator
                 )
             return x
@@ -128,9 +128,9 @@ def global_seed_generator():
             "after tracing. Example:\n\n"
             "```\n"
             "# Make sure to set the seed generator as a layer attribute\n"
-            "self.seed_generator = keras.random.SeedGenerator(seed=1337)\n"
+            "self.seed_generator = ncps.mini_keras.random.SeedGenerator(seed=1337)\n"
             "...\n"
-            "out = keras.random.normal(shape=(1,), seed=self.seed_generator)\n"
+            "out = ncps.mini_keras.random.normal(shape=(1,), seed=self.seed_generator)\n"
             "```"
         )
     gen = global_state.get_global_attribute("global_seed_generator")

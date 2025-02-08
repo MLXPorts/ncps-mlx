@@ -3,10 +3,15 @@ import itertools
 import math
 import warnings
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 import pytest
 from absl.testing import parameterized
 
+import ncps
 import ncps.mini_keras as keras
 from ncps.mini_keras import backend
 from ncps.mini_keras import testing
@@ -4465,21 +4470,21 @@ class NumpyOneInputOpsCorrectnessTest(testing.TestCase):
 
     def test_tril_in_layer(self):
         # https://github.com/keras-team/keras/issues/18890
-        x = keras.Input((None, 3))
-        y1 = keras.layers.Lambda(
-            lambda x: keras.ops.tril(
-                keras.ops.ones((keras.ops.shape(x)[1], keras.ops.shape(x)[1]))
+        x = ncps.mini_keras.Input((None, 3))
+        y1 = ncps.mini_keras.layers.Lambda(
+            lambda x: ncps.mini_keras.ops.tril(
+                ncps.mini_keras.ops.ones((keras.ops.shape(x)[1], ncps.mini_keras.ops.shape(x)[1]))
             ),
             output_shape=(None, None, 3),
         )(x)
-        y2 = keras.layers.Lambda(
-            lambda x: keras.ops.tril(
-                keras.ops.ones((keras.ops.shape(x)[1], keras.ops.shape(x)[1])),
+        y2 = ncps.mini_keras.layers.Lambda(
+            lambda x: ncps.mini_keras.ops.tril(
+                ncps.mini_keras.ops.ones((keras.ops.shape(x)[1], ncps.mini_keras.ops.shape(x)[1])),
                 k=-1,
             ),
             output_shape=(None, None, 3),
         )(x)
-        model = keras.Model(x, [y1, y2])
+        model = ncps.mini_keras.Model(x, [y1, y2])
 
         result = model(np.ones((1, 2, 3), "float32"))
         self.assertAllClose(
@@ -4517,21 +4522,21 @@ class NumpyOneInputOpsCorrectnessTest(testing.TestCase):
 
     def test_triu_in_layer(self):
         # https://github.com/keras-team/keras/issues/18890
-        x = keras.Input((None, 3))
-        y1 = keras.layers.Lambda(
-            lambda x: keras.ops.triu(
-                keras.ops.ones((keras.ops.shape(x)[1], keras.ops.shape(x)[1]))
+        x = ncps.mini_keras.Input((None, 3))
+        y1 = ncps.mini_keras.layers.Lambda(
+            lambda x: ncps.mini_keras.ops.triu(
+                ncps.mini_keras.ops.ones((keras.ops.shape(x)[1], ncps.mini_keras.ops.shape(x)[1]))
             ),
             output_shape=(None, None, 3),
         )(x)
-        y2 = keras.layers.Lambda(
-            lambda x: keras.ops.triu(
-                keras.ops.ones((keras.ops.shape(x)[1], keras.ops.shape(x)[1])),
+        y2 = ncps.mini_keras.layers.Lambda(
+            lambda x: ncps.mini_keras.ops.triu(
+                ncps.mini_keras.ops.ones((keras.ops.shape(x)[1], ncps.mini_keras.ops.shape(x)[1])),
                 k=-1,
             ),
             output_shape=(None, None, 3),
         )(x)
-        model = keras.Model(x, [y1, y2])
+        model = ncps.mini_keras.Model(x, [y1, y2])
 
         result = model(np.ones((1, 2, 3), "float32"))
         self.assertAllClose(
@@ -5294,7 +5299,7 @@ class NumpyDtypeTest(testing.TestCase):
     """Test the dtype to verify that the behavior matches JAX."""
 
     # TODO: Using uint64 will lead to weak type promotion (`float`),
-    # resulting in different behavior between JAX and Keras. Currently, we
+    # resulting in different behavior between JAX and ncps.mini_keras. Currently, we
     # are skipping the test for uint64
     ALL_DTYPES = [
         x

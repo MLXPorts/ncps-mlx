@@ -1,4 +1,8 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 import pytest
 import tensorflow as tf
 
@@ -15,11 +19,11 @@ class TestRandomSeedSetting(test_case.TestCase):
     )
     def test_set_random_seed(self):
         def get_model_output():
-            model = keras.Sequential(
+            model = ncps.mini_keras.Sequential(
                 [
-                    keras.layers.Dense(10),
-                    keras.layers.Dropout(0.5),
-                    keras.layers.Dense(10),
+                    ncps.mini_keras.layers.Dense(10),
+                    ncps.mini_keras.layers.Dropout(0.5),
+                    ncps.mini_keras.layers.Dense(10),
                 ]
             )
             x = np.random.random((32, 10)).astype("float32")

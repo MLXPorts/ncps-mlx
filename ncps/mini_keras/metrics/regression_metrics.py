@@ -28,7 +28,7 @@ class MeanSquaredError(reduction_metrics.MeanMetricWrapper):
         dtype: (Optional) data type of the metric result.
 
     Example:
-    >>> m = keras.metrics.MeanSquaredError()
+    >>> m = ncps.mini_keras.metrics.MeanSquaredError()
     >>> m.update_state([[0, 1], [0, 0]], [[1, 1], [0, 0]])
     >>> m.result()
     0.25
@@ -59,7 +59,7 @@ class MeanAbsoluteError(reduction_metrics.MeanMetricWrapper):
 
     Examples:
 
-    >>> m = keras.metrics.MeanAbsoluteError()
+    >>> m = ncps.mini_keras.metrics.MeanAbsoluteError()
     >>> m.update_state([[0, 1], [0, 0]], [[1, 1], [0, 0]])
     >>> m.result()
     0.25
@@ -104,7 +104,7 @@ class MeanAbsolutePercentageError(reduction_metrics.MeanMetricWrapper):
         dtype: (Optional) data type of the metric result.
 
     Examples:
-    >>> m = keras.metrics.MeanAbsolutePercentageError()
+    >>> m = ncps.mini_keras.metrics.MeanAbsolutePercentageError()
     >>> m.update_state([[0, 1], [0, 0]], [[1, 1], [0, 0]])
     >>> m.result()
     250000000.0
@@ -150,7 +150,7 @@ class MeanSquaredLogarithmicError(reduction_metrics.MeanMetricWrapper):
 
     Examples:
 
-    >>> m = keras.metrics.MeanSquaredLogarithmicError()
+    >>> m = ncps.mini_keras.metrics.MeanSquaredLogarithmicError()
     >>> m.update_state([[0, 1], [0, 0]], [[1, 1], [0, 0]])
     >>> m.result()
     0.12011322
@@ -196,7 +196,7 @@ class RootMeanSquaredError(reduction_metrics.Mean):
 
     Examples:
 
-    >>> m = keras.metrics.RootMeanSquaredError()
+    >>> m = ncps.mini_keras.metrics.RootMeanSquaredError()
     >>> m.update_state([[0, 1], [0, 0]], [[1, 1], [0, 0]])
     >>> m.result()
     0.5
@@ -272,7 +272,7 @@ class CosineSimilarity(reduction_metrics.MeanMetricWrapper):
     >>> # l2_norm(y_true) . l2_norm(y_pred) = [[0., 0.], [0.5, 0.5]]
     >>> # result = mean(sum(l2_norm(y_true) . l2_norm(y_pred), axis=1))
     >>> #        = ((0. + 0.) +  (0.5 + 0.5)) / 2
-    >>> m = keras.metrics.CosineSimilarity(axis=1)
+    >>> m = ncps.mini_keras.metrics.CosineSimilarity(axis=1)
     >>> m.update_state([[0., 1.], [1., 1.]], [[1., 0.], [1., 1.]])
     >>> m.result()
     0.49999997
@@ -319,7 +319,7 @@ class LogCoshError(reduction_metrics.MeanMetricWrapper):
 
     Examples:
 
-    >>> m = keras.metrics.LogCoshError()
+    >>> m = ncps.mini_keras.metrics.LogCoshError()
     >>> m.update_state([[0, 1], [0, 0]], [[1, 1], [0, 0]])
     >>> m.result()
     0.10844523
@@ -394,7 +394,7 @@ class R2Score(reduction_metrics.Metric):
 
     >>> y_true = np.array([[1], [4], [3]], dtype=np.float32)
     >>> y_pred = np.array([[2], [4], [4]], dtype=np.float32)
-    >>> metric = keras.metrics.R2Score()
+    >>> metric = ncps.mini_keras.metrics.R2Score()
     >>> metric.update_state(y_true, y_pred)
     >>> result = metric.result()
     >>> result
@@ -597,7 +597,7 @@ def cosine_similarity(y_true, y_pred, axis=-1):
 
     >>> y_true = [[0., 1.], [1., 1.], [1., 1.]]
     >>> y_pred = [[1., 0.], [1., 1.], [-1., -1.]]
-    >>> loss = keras.losses.cosine_similarity(y_true, y_pred, axis=-1)
+    >>> loss = ncps.mini_keras.losses.cosine_similarity(y_true, y_pred, axis=-1)
     [0., 0.99999994, -0.99999994]
     """
     y_pred = ops.convert_to_tensor(y_pred)

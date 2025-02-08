@@ -1,6 +1,9 @@
 """MNIST handwritten digits dataset."""
 
-import mlx.core as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.utils.file_utils import get_file
@@ -39,7 +42,7 @@ def load_data(path="mnist.npz"):
     Example:
 
     ```python
-    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+    (x_train, y_train), (x_test, y_test) = ncps.mini_keras.datasets.mnist.load_data()
     assert x_train.shape == (60000, 28, 28)
     assert x_test.shape == (10000, 28, 28)
     assert y_train.shape == (60000,)

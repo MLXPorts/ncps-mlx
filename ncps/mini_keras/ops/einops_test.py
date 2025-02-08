@@ -1,4 +1,4 @@
-from conftest import skip_if_backend
+from conftest import skip_if_backend # type: ignore
 from ncps.mini_keras import ops
 from ncps.mini_keras import testing
 from ncps.mini_keras.backend.common import keras_tensor

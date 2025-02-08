@@ -58,8 +58,8 @@ class AveragePooling3D(BasePooling):
     width = 30
     channels = 3
 
-    inputs = keras.layers.Input(shape=(depth, height, width, channels))
-    layer = keras.layers.AveragePooling3D(pool_size=3)
+    inputs = ncps.mini_keras.layers.Input(shape=(depth, height, width, channels))
+    layer = ncps.mini_keras.layers.AveragePooling3D(pool_size=3)
     outputs = layer(inputs)  # Shape: (batch_size, 10, 10, 10, 3)
     ```
     """

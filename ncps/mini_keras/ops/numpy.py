@@ -1,8 +1,12 @@
 import builtins
 import re
 
-import mlx.core as np
-
+try:
+    import mlx.core as np
+    MLX = True
+except ImportError:
+    import numpy as np
+    MLX = False    
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.backend import KerasTensor
@@ -2935,6 +2939,24 @@ class Floor(Operation):
             else dtypes.result_type(x.dtype, float)
         )
         return KerasTensor(x.shape, dtype=dtype, sparse=sparse)
+
+@keras_mini_export(["ncps.mini_keras.ops.pi", "ncps.mini_keras.ops.numpy.pi"])
+def pi():
+    """Provide the value of Euler's number `e` raised to the power of `x`.
+
+    Args:
+        None
+
+    Returns:
+        Scalar value of Euler's number `e` raised to the power of `x`.
+    """
+    if MLX == True:
+        return backend.mlx.pi()
+    else:
+        return backend.numpy.pi()
+
+
+
 
 
 @keras_mini_export(["ncps.mini_keras.ops.floor", "ncps.mini_keras.ops.numpy.floor"])

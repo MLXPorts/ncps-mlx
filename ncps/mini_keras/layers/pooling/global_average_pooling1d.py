@@ -54,7 +54,7 @@ class GlobalAveragePooling1D(BaseGlobalPooling):
     Example:
 
     >>> x = np.random.rand(2, 3, 4)
-    >>> y = keras.layers.GlobalAveragePooling1D()(x)
+    >>> y = ncps.mini_keras.layers.GlobalAveragePooling1D()(x)
     >>> y.shape
     (2, 4)
     """

@@ -1,5 +1,10 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.layers.preprocessing.index_lookup import IndexLookup
@@ -398,7 +403,7 @@ class IntegerLookup(IndexLookup):
 
     def call(self, inputs):
         if not isinstance(
-            inputs, (tf.Tensor, tf.RaggedTensor, np.ndarray, list, tuple)
+            inputs, (tf.Tensor, tf.RaggedTensor, BackendArray, list, tuple)
         ):
             inputs = tf.convert_to_tensor(backend.convert_to_numpy(inputs))
         outputs = super().call(inputs)

@@ -91,7 +91,7 @@ class SeparableConv2D(BaseSeparableConv):
     Example:
 
     >>> x = np.random.rand(4, 10, 10, 12)
-    >>> y = keras.layers.SeparableConv2D(3, 4, 3, 2, activation='relu')(x)
+    >>> y = ncps.mini_keras.layers.SeparableConv2D(3, 4, 3, 2, activation='relu')(x)
     >>> print(y.shape)
     (4, 4, 4, 4)
     """

@@ -92,7 +92,7 @@ class RandomZoom(BaseImagePreprocessingLayer):
     Example:
 
     >>> input_img = np.random.random((32, 224, 224, 3))
-    >>> layer = keras.layers.RandomZoom(.5, .2)
+    >>> layer = ncps.mini_keras.layers.RandomZoom(.5, .2)
     >>> out_img = layer(input_img)
     """
 

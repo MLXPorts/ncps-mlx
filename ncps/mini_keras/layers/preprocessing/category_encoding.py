@@ -22,7 +22,7 @@ class CategoryEncoding(TFDataLayer):
 
     **One-hot encoding data**
 
-    >>> layer = keras.layers.CategoryEncoding(
+    >>> layer = ncps.mini_keras.layers.CategoryEncoding(
     ...           num_tokens=4, output_mode="one_hot")
     >>> layer([3, 2, 0, 1])
     array([[0., 0., 0., 1.],
@@ -32,7 +32,7 @@ class CategoryEncoding(TFDataLayer):
 
     **Multi-hot encoding data**
 
-    >>> layer = keras.layers.CategoryEncoding(
+    >>> layer = ncps.mini_keras.layers.CategoryEncoding(
     ...           num_tokens=4, output_mode="multi_hot")
     >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]])
     array([[1., 1., 0., 0.],
@@ -42,7 +42,7 @@ class CategoryEncoding(TFDataLayer):
 
     **Using weighted inputs in `"count"` mode**
 
-    >>> layer = keras.layers.CategoryEncoding(
+    >>> layer = ncps.mini_keras.layers.CategoryEncoding(
     ...           num_tokens=4, output_mode="count")
     >>> count_weights = np.array([[.1, .2], [.1, .1], [.2, .3], [.4, .2]])
     >>> layer([[0, 1], [0, 0], [1, 2], [3, 1]], count_weights=count_weights)

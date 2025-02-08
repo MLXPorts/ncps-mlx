@@ -1,7 +1,12 @@
 import inspect
 
-import mlx.core as np
-
+try:
+    import mlx.core as np
+    from mlx.core import array as BackendArrayType
+except ImportError:
+    import numpy as np
+    BackendArrayType = np.ndarray
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
 from ncps.mini_keras.api_export import keras_mini_export
@@ -87,7 +92,7 @@ def get(identifier):
     (case-sensitively).
 
     >>> identifier = 'Ones'
-    >>> keras.initializers.get(identifier)
+    >>> ncps.mini_keras.initializers.get(identifier)
     <...keras.initializers.initializers.Ones...>
 
     You can also specify `config` of the initializer to this function by passing
@@ -95,7 +100,7 @@ def get(identifier):
     the `class_name` must map to a `Initializer` class.
 
     >>> cfg = {'class_name': 'Ones', 'config': {}}
-    >>> keras.initializers.get(cfg)
+    >>> ncps.mini_keras.initializers.get(cfg)
     <...keras.initializers.initializers.Ones...>
 
     In the case that the `identifier` is a class, this method will return a new
@@ -105,7 +110,7 @@ def get(identifier):
     and `dtype=None` as an identifier.
 
     >>> fn = lambda shape, dtype=None: ops.ones(shape, dtype)
-    >>> keras.initializers.get(fn)
+    >>> ncps.mini_keras.initializers.get(fn)
     <function <lambda> at ...>
 
     Alternatively, you can pass a backend tensor or numpy array as the
@@ -114,7 +119,7 @@ def get(identifier):
     the shape of the tensor.
 
     >>> tensor = ops.ones(shape=(5, 5))
-    >>> keras.initializers.get(tensor)
+    >>> ncps.mini_keras.initializers.get(tensor)
     <function get.<locals>.initialize_fn at ...>
 
     Args:
@@ -134,9 +139,7 @@ def get(identifier):
     elif isinstance(identifier, str):
         config = {"class_name": str(identifier), "config": {}}
         obj = deserialize(config)
-    elif ops.is_tensor(identifier) or isinstance(
-        identifier, (np.generic, np.ndarray)
-    ):
+    elif isinstance(identifier, BackendArrayType):
 
         def initialize_fn(shape, dtype=None):
             dtype = backend.standardize_dtype(dtype)

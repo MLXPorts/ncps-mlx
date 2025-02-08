@@ -24,13 +24,13 @@ class Reshape(Layer):
 
     Example:
 
-    >>> x = keras.Input(shape=(12,))
-    >>> y = keras.layers.Reshape((3, 4))(x)
+    >>> x = ncps.mini_keras.Input(shape=(12,))
+    >>> y = ncps.mini_keras.layers.Reshape((3, 4))(x)
     >>> y.shape
     (None, 3, 4)
 
     >>> # also supports shape inference using `-1` as dimension
-    >>> y = keras.layers.Reshape((-1, 2, 2))(x)
+    >>> y = ncps.mini_keras.layers.Reshape((-1, 2, 2))(x)
     >>> y.shape
     (None, 3, 2, 2)
     """

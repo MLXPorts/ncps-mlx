@@ -1,8 +1,10 @@
-import mlx.core as mx
+import functools
+
+import jax
+import jax.numpy as jnp
 
 from ncps.mini_keras import backend
-from ncps.mini_keras.backend.mlx.core import convert_to_tensor
-from ncps.mini_keras.utils.module_utils import scipy
+from ncps.mini_keras.backend.jax.core import convert_to_tensor
 
 RESIZE_INTERPOLATIONS = (
     "bilinear",
@@ -29,16 +31,18 @@ def rgb_to_grayscale(images, data_format=None):
     images = images.astype(compute_dtype)
 
     # Ref: tf.image.rgb_to_grayscale
-    rgb_weights = mx.array([0.2989, 0.5870, 0.1140], dtype=images.dtype)
-    grayscales = mx.tensordot(images, rgb_weights, axes=(channels_axis, -1))
-    grayscales = mx.expand_dims(grayscales, axis=channels_axis)
-    return grayscales.astype(original_dtype)
+    rgb_weights = convert_to_tensor(
+        [0.2989, 0.5870, 0.1140], dtype=images.dtype
+    )
+    images = jnp.tensordot(images, rgb_weights, axes=(channels_axis, -1))
+    images = jnp.expand_dims(images, axis=channels_axis)
+    return images.astype(original_dtype)
 
 
 def rgb_to_hsv(images, data_format=None):
     # Ref: dm_pix
     images = convert_to_tensor(images)
-    dtype = backend.standardize_dtype(images.dtype)
+    dtype = images.dtype
     data_format = backend.standardize_data_format(data_format)
     channels_axis = -1 if data_format == "channels_last" else -3
     if len(images.shape) not in (3, 4):
@@ -50,39 +54,39 @@ def rgb_to_hsv(images, data_format=None):
     if not backend.is_float_dtype(dtype):
         raise ValueError(
             "Invalid images dtype: expected float dtype. "
-            f"Received: images.dtype={dtype}"
+            f"Received: images.dtype={backend.standardize_dtype(dtype)}"
         )
-    eps = ml_dtypes.finfo(dtype).eps
-    images = mx.where(mx.abs(images) < eps, 0.0, images)
-    red, green, blue = mx.split(images, 3, channels_axis)
-    red = mx.squeeze(red, channels_axis)
-    green = mx.squeeze(green, channels_axis)
-    blue = mx.squeeze(blue, channels_axis)
+    eps = jnp.finfo(dtype).eps
+    images = jnp.where(jnp.abs(images) < eps, 0.0, images)
+    red, green, blue = jnp.split(images, 3, channels_axis)
+    red = jnp.squeeze(red, channels_axis)
+    green = jnp.squeeze(green, channels_axis)
+    blue = jnp.squeeze(blue, channels_axis)
 
     def rgb_planes_to_hsv_planes(r, g, b):
-        value = mx.maximum(mx.maximum(r, g), b)
-        minimum = mx.minimum(mx.minimum(r, g), b)
+        value = jnp.maximum(jnp.maximum(r, g), b)
+        minimum = jnp.minimum(jnp.minimum(r, g), b)
         range_ = value - minimum
 
-        safe_value = mx.where(value > 0, value, 1.0)
-        safe_range = mx.where(range_ > 0, range_, 1.0)
+        safe_value = jnp.where(value > 0, value, 1.0)
+        safe_range = jnp.where(range_ > 0, range_, 1.0)
 
-        saturation = mx.where(value > 0, range_ / safe_value, 0.0)
+        saturation = jnp.where(value > 0, range_ / safe_value, 0.0)
         norm = 1.0 / (6.0 * safe_range)
 
-        hue = mx.where(
+        hue = jnp.where(
             value == g,
             norm * (b - r) + 2.0 / 6.0,
             norm * (r - g) + 4.0 / 6.0,
         )
-        hue = mx.where(value == r, norm * (g - b), hue)
-        hue = mx.where(range_ > 0, hue, 0.0) + (hue < 0.0).astype(hue.dtype)
+        hue = jnp.where(value == r, norm * (g - b), hue)
+        hue = jnp.where(range_ > 0, hue, 0.0) + (hue < 0.0).astype(hue.dtype)
         return hue, saturation, value
 
-    images = mx.stack(
+    images = jnp.stack(
         rgb_planes_to_hsv_planes(red, green, blue), axis=channels_axis
     )
-    return images.astype(dtype)
+    return images
 
 
 def hsv_to_rgb(images, data_format=None):
@@ -102,16 +106,16 @@ def hsv_to_rgb(images, data_format=None):
             "Invalid images dtype: expected float dtype. "
             f"Received: images.dtype={backend.standardize_dtype(dtype)}"
         )
-    hue, saturation, value = mx.split(images, 3, channels_axis)
-    hue = mx.squeeze(hue, channels_axis)
-    saturation = mx.squeeze(saturation, channels_axis)
-    value = mx.squeeze(value, channels_axis)
+    hue, saturation, value = jnp.split(images, 3, channels_axis)
+    hue = jnp.squeeze(hue, channels_axis)
+    saturation = jnp.squeeze(saturation, channels_axis)
+    value = jnp.squeeze(value, channels_axis)
 
     def hsv_planes_to_rgb_planes(hue, saturation, value):
-        dh = mx.mod(hue, 1.0) * 6.0
-        dr = mx.clip(mx.abs(dh - 3.0) - 1.0, 0.0, 1.0)
-        dg = mx.clip(2.0 - mx.abs(dh - 2.0), 0.0, 1.0)
-        db = mx.clip(2.0 - mx.abs(dh - 4.0), 0.0, 1.0)
+        dh = jnp.mod(hue, 1.0) * 6.0
+        dr = jnp.clip(jnp.abs(dh - 3.0) - 1.0, 0.0, 1.0)
+        dg = jnp.clip(2.0 - jnp.abs(dh - 2.0), 0.0, 1.0)
+        db = jnp.clip(2.0 - jnp.abs(dh - 4.0), 0.0, 1.0)
         one_minus_s = 1.0 - saturation
 
         red = value * (one_minus_s + saturation * dr)
@@ -119,10 +123,10 @@ def hsv_to_rgb(images, data_format=None):
         blue = value * (one_minus_s + saturation * db)
         return red, green, blue
 
-    images = mx.stack(
+    images = jnp.stack(
         hsv_planes_to_rgb_planes(hue, saturation, value), axis=channels_axis
     )
-    return images.astype(dtype)
+    return images
 
 
 def resize(
@@ -164,6 +168,7 @@ def resize(
             size = (images.shape[0],) + size + (images.shape[-1],)
         else:
             size = (images.shape[0], images.shape[1]) + size
+        batch_size = images.shape[0]
     elif len(images.shape) == 3:
         if data_format == "channels_last":
             size = size + (images.shape[-1],)
@@ -172,7 +177,7 @@ def resize(
     else:
         raise ValueError(
             "Invalid images rank: expected rank 3 (single image) "
-            "or rank 4 (batch of images). Received imxut with shape: "
+            "or rank 4 (batch of images). Received input with shape: "
             f"images.shape={images.shape}"
         )
 
@@ -218,11 +223,11 @@ def resize(
                 ]
     elif pad_to_aspect_ratio:
         shape = images.shape
-        batch_size = images.shape[0]
         if data_format == "channels_last":
             height, width, channels = shape[-3], shape[-2], shape[-1]
         else:
-            channels, height, width = shape[-3], shape[-2], shape[-1]
+            height, width, channels = shape[-2], shape[-1], shape[-3]
+
         pad_height = int(float(width * target_height) / target_width)
         pad_height = max(height, pad_height)
         pad_width = int(float(height * target_width) / target_height)
@@ -230,77 +235,139 @@ def resize(
         img_box_hstart = int(float(pad_height - height) / 2)
         img_box_wstart = int(float(pad_width - width) / 2)
         if data_format == "channels_last":
-            if len(images.shape) == 4:
-                padded_img = (
-                    mx.ones(
-                        (
-                            batch_size,
-                            pad_height + height,
-                            pad_width + width,
-                            channels,
-                        ),
-                        dtype=images.dtype,
+            if img_box_hstart > 0:
+                if len(images.shape) == 4:
+                    padded_img = jnp.concatenate(
+                        [
+                            jnp.ones(
+                                (batch_size, img_box_hstart, width, channels),
+                                dtype=images.dtype,
+                            )
+                            * fill_value,
+                            images,
+                            jnp.ones(
+                                (batch_size, img_box_hstart, width, channels),
+                                dtype=images.dtype,
+                            )
+                            * fill_value,
+                        ],
+                        axis=1,
                     )
-                    * fill_value
-                )
-                padded_img[
-                    :,
-                    img_box_hstart : img_box_hstart + height,
-                    img_box_wstart : img_box_wstart + width,
-                    :,
-                ] = images
+                else:
+                    padded_img = jnp.concatenate(
+                        [
+                            jnp.ones(
+                                (img_box_hstart, width, channels),
+                                dtype=images.dtype,
+                            )
+                            * fill_value,
+                            images,
+                            jnp.ones(
+                                (img_box_hstart, width, channels),
+                                dtype=images.dtype,
+                            )
+                            * fill_value,
+                        ],
+                        axis=0,
+                    )
+            elif img_box_wstart > 0:
+                if len(images.shape) == 4:
+                    padded_img = jnp.concatenate(
+                        [
+                            jnp.ones(
+                                (batch_size, height, img_box_wstart, channels),
+                                dtype=images.dtype,
+                            )
+                            * fill_value,
+                            images,
+                            jnp.ones(
+                                (batch_size, height, img_box_wstart, channels),
+                                dtype=images.dtype,
+                            )
+                            * fill_value,
+                        ],
+                        axis=2,
+                    )
+                else:
+                    padded_img = jnp.concatenate(
+                        [
+                            jnp.ones(
+                                (height, img_box_wstart, channels),
+                                dtype=images.dtype,
+                            )
+                            * fill_value,
+                            images,
+                            jnp.ones(
+                                (height, img_box_wstart, channels),
+                                dtype=images.dtype,
+                            )
+                            * fill_value,
+                        ],
+                        axis=1,
+                    )
             else:
-                padded_img = (
-                    mx.ones(
-                        (pad_height + height, pad_width + width, channels),
-                        dtype=images.dtype,
-                    )
-                    * fill_value
-                )
-                padded_img[
-                    img_box_hstart : img_box_hstart + height,
-                    img_box_wstart : img_box_wstart + width,
-                    :,
-                ] = images
+                padded_img = images
         else:
-            if len(images.shape) == 4:
-                padded_img = (
-                    mx.ones(
-                        (
-                            batch_size,
-                            channels,
-                            pad_height + height,
-                            pad_width + width,
-                        ),
-                        dtype=images.dtype,
+            if img_box_hstart > 0:
+                if len(images.shape) == 4:
+                    padded_img = jnp.concatenate(
+                        [
+                            jnp.ones(
+                                (batch_size, channels, img_box_hstart, width)
+                            )
+                            * fill_value,
+                            images,
+                            jnp.ones(
+                                (batch_size, channels, img_box_hstart, width)
+                            )
+                            * fill_value,
+                        ],
+                        axis=2,
                     )
-                    * fill_value
-                )
-                padded_img[
-                    :,
-                    :,
-                    img_box_hstart : img_box_hstart + height,
-                    img_box_wstart : img_box_wstart + width,
-                ] = images
+                else:
+                    padded_img = jnp.concatenate(
+                        [
+                            jnp.ones((channels, img_box_hstart, width))
+                            * fill_value,
+                            images,
+                            jnp.ones((channels, img_box_hstart, width))
+                            * fill_value,
+                        ],
+                        axis=1,
+                    )
+            elif img_box_wstart > 0:
+                if len(images.shape) == 4:
+                    padded_img = jnp.concatenate(
+                        [
+                            jnp.ones(
+                                (batch_size, channels, height, img_box_wstart)
+                            )
+                            * fill_value,
+                            images,
+                            jnp.ones(
+                                (batch_size, channels, height, img_box_wstart)
+                            )
+                            * fill_value,
+                        ],
+                        axis=3,
+                    )
+                else:
+                    padded_img = jnp.concatenate(
+                        [
+                            jnp.ones((channels, height, img_box_wstart))
+                            * fill_value,
+                            images,
+                            jnp.ones((channels, height, img_box_wstart))
+                            * fill_value,
+                        ],
+                        axis=2,
+                    )
             else:
-                padded_img = (
-                    mx.ones(
-                        (channels, pad_height + height, pad_width + width),
-                        dtype=images.dtype,
-                    )
-                    * fill_value
-                )
-                padded_img[
-                    :,
-                    img_box_hstart : img_box_hstart + height,
-                    img_box_wstart : img_box_wstart + width,
-                ] = images
+                padded_img = images
         images = padded_img
 
-    return mx.array(
-        jax.image.resize(
-            images, size, method=interpolation, antialias=antialias
-        )
+    return jax.image.resize(
+        images, size, method=interpolation, antialias=antialias
     )
 
 
@@ -353,76 +420,65 @@ def affine_transform(
             f"transform.shape={transform.shape}"
         )
 
-    # scipy.ndimage.map_coordinates lacks support for half precision.
-    input_dtype = images.dtype
-    if input_dtype == "float16":
-        images = images.astype("float32")
-
     # unbatched case
     need_squeeze = False
     if len(images.shape) == 3:
-        images = mx.expand_dims(images, axis=0)
+        images = jnp.expand_dims(images, axis=0)
         need_squeeze = True
     if len(transform.shape) == 1:
-        transform = mx.expand_dims(transform, axis=0)
+        transform = jnp.expand_dims(transform, axis=0)
 
     if data_format == "channels_first":
-        images = mx.transpose(images, (0, 2, 3, 1))
+        images = jnp.transpose(images, (0, 2, 3, 1))
 
     batch_size = images.shape[0]
 
     # get indices
-    meshgrid = mx.meshgrid(
-        *[mx.arange(size) for size in images.shape[1:]], indexing="ij"
+    meshgrid = jnp.meshgrid(
+        *[jnp.arange(size) for size in images.shape[1:]], indexing="ij"
     )
-    indices = mx.concatenate(
-        [mx.expand_dims(x, axis=-1) for x in meshgrid], axis=-1
+    indices = jnp.concatenate(
+        [jnp.expand_dims(x, axis=-1) for x in meshgrid], axis=-1
     )
-    indices = mx.tile(indices, (batch_size, 1, 1, 1, 1))
+    indices = jnp.tile(indices, (batch_size, 1, 1, 1, 1))
 
     # swap the values
-    a0 = transform[:, 0].copy()
-    a2 = transform[:, 2].copy()
-    b1 = transform[:, 4].copy()
-    b2 = transform[:, 5].copy()
-    transform[:, 0] = b1
-    transform[:, 2] = b2
-    transform[:, 4] = a0
-    transform[:, 5] = a2
+    a0 = transform[:, 0]
+    a2 = transform[:, 2]
+    b1 = transform[:, 4]
+    b2 = transform[:, 5]
+    transform = transform.at[:, 0].set(b1)
+    transform = transform.at[:, 2].set(b2)
+    transform = transform.at[:, 4].set(a0)
+    transform = transform.at[:, 5].set(a2)
 
     # deal with transform
-    transform = mx.pad(transform, pad_width=[[0, 0], [0, 1]], constant_values=1)
-    transform = mx.reshape(transform, (batch_size, 3, 3))
-    offset = transform[:, 0:2, 2].copy()
-    offset = mx.pad(offset, pad_width=[[0, 0], [0, 1]])
-    transform[:, 0:2, 2] = 0
+    transform = jnp.pad(
+        transform, pad_width=[[0, 0], [0, 1]], constant_values=1
+    )
+    transform = jnp.reshape(transform, (batch_size, 3, 3))
+    offset = transform[:, 0:2, 2]
+    offset = jnp.pad(offset, pad_width=[[0, 0], [0, 1]])
+    transform = transform.at[:, 0:2, 2].set(0)
 
     # transform the indices
-    coordinates = mx.einsum("Bhwij, Bjk -> Bhwik", indices, transform)
-    coordinates = mx.moveaxis(coordinates, source=-1, destination=1)
-    coordinates += mx.reshape(a=offset, newshape=(*offset.shape, 1, 1, 1))
+    coordinates = jnp.einsum("Bhwij, Bjk -> Bhwik", indices, transform)
+    coordinates = jnp.moveaxis(coordinates, source=-1, destination=1)
+    coordinates += jnp.reshape(a=offset, shape=(*offset.shape, 1, 1, 1))
 
     # apply affine transformation
-    affined = mx.stack(
-        [
-            map_coordinates(
-                images[i],
-                coordinates[i],
-                order=AFFINE_TRANSFORM_INTERPOLATIONS[interpolation],
-                fill_mode=fill_mode,
-                fill_value=fill_value,
-            )
-            for i in range(batch_size)
-        ],
-        axis=0,
+    _map_coordinates = functools.partial(
+        jax.scipy.ndimage.map_coordinates,
+        order=AFFINE_TRANSFORM_INTERPOLATIONS[interpolation],
+        mode=fill_mode,
+        cval=fill_value,
     )
+    affined = jax.vmap(_map_coordinates)(images, coordinates)
 
     if data_format == "channels_first":
-        affined = mx.transpose(affined, (0, 3, 1, 2))
+        affined = jnp.transpose(affined, (0, 3, 1, 2))
     if need_squeeze:
-        affined = mx.squeeze(affined, axis=0)
-    if input_dtype == "float16":
-        affined = affined.astype(input_dtype)
+        affined = jnp.squeeze(affined, axis=0)
     return affined
 
 
@@ -455,7 +511,7 @@ def map_coordinates(
     if fill_mode not in MAP_COORDINATES_FILL_MODES:
         raise ValueError(
             "Invalid value for argument `fill_mode`. Expected one of "
-            f"{set(MAP_COORDINATES_FILL_MODES.keys())}. Received: "
+            f"{set(MAP_COORDINATES_FILL_MODES)}. Received: "
             f"fill_mode={fill_mode}"
         )
     if order not in range(2):
@@ -463,30 +519,6 @@ def map_coordinates(
             "Invalid value for argument `order`. Expected one of "
             f"{[0, 1]}. Received: order={order}"
         )
-    # SciPy's implementation of map_coordinates handles boundaries incorrectly,
-    # unless mode='reflect'. For order=1, this only affects interpolation
-    # outside the bounds of the original array.
-    # https://github.com/scipy/scipy/issues/2640
-    padding = [
-        (
-            max(-mx.floor(c.min()).astype(int) + 1, 0),
-            max(mx.ceil(c.max()).astype(int) + 1 - size, 0),
-        )
-        for c, size in zip(coordinates, inputs.shape)
-    ]
-    shifted_coords = [c + p[0] for p, c in zip(padding, coordinates)]
-    pad_mode = {
-        "nearest": "edge",
-        "mirror": "reflect",
-        "reflect": "symmetric",
-    }.get(fill_mode, fill_mode)
-    if fill_mode == "constant":
-        padded = mx.pad(
-            imxuts, padding, mode=pad_mode, constant_values=fill_value
-        )
-    else:
-        padded = mx.pad(inputs, padding, mode=pad_mode)
-    result = scipy.ndimage.map_coordinates(
-        padded, shifted_coords, order=order, mode=fill_mode, cval=fill_value
+    return jax.scipy.ndimage.map_coordinates(
+        inputs, coordinates, order, fill_mode, fill_value
     )
-    return result

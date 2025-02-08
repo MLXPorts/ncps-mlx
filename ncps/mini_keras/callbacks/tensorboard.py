@@ -90,7 +90,7 @@ class TensorBoard(Callback):
     Examples:
 
     ```python
-    tensorboard_callback = keras.callbacks.TensorBoard(log_dir="./logs")
+    tensorboard_callback = ncps.mini_keras.callbacks.TensorBoard(log_dir="./logs")
     model.fit(x_train, y_train, epochs=2, callbacks=[tensorboard_callback])
     # Then run the tensorboard command to view the visualizations.
     ```
@@ -101,7 +101,7 @@ class TensorBoard(Callback):
     class MyModel(keras.Model):
 
         def build(self, _):
-            self.dense = keras.layers.Dense(10)
+            self.dense = ncps.mini_keras.layers.Dense(10)
 
         def call(self, x):
             outputs = self.dense(x)
@@ -114,7 +114,7 @@ class TensorBoard(Callback):
     # Make sure to set `update_freq=N` to log a batch-level summary every N
     # batches.  In addition to any `tf.summary` contained in `model.call()`,
     # metrics added in `Model.compile` will be logged every N batches.
-    tb_callback = keras.callbacks.TensorBoard('./logs', update_freq=1)
+    tb_callback = ncps.mini_keras.callbacks.TensorBoard('./logs', update_freq=1)
     model.fit(x_train, y_train, callbacks=[tb_callback])
     ```
 
@@ -125,16 +125,16 @@ class TensorBoard(Callback):
         tf.summary.histogram('x', x)
         return x
 
-    inputs = keras.Input(10)
-    x = keras.layers.Dense(10)(inputs)
-    outputs = keras.layers.Lambda(my_summary)(x)
-    model = keras.Model(inputs, outputs)
+    inputs = ncps.mini_keras.Input(10)
+    x = ncps.mini_keras.layers.Dense(10)(inputs)
+    outputs = ncps.mini_keras.layers.Lambda(my_summary)(x)
+    model = ncps.mini_keras.Model(inputs, outputs)
     model.compile('sgd', 'mse')
 
     # Make sure to set `update_freq=N` to log a batch-level summary every N
     # batches. In addition to any `tf.summary` contained in `Model.call`,
     # metrics added in `Model.compile` will be logged every N batches.
-    tb_callback = keras.callbacks.TensorBoard('./logs', update_freq=1)
+    tb_callback = ncps.mini_keras.callbacks.TensorBoard('./logs', update_freq=1)
     model.fit(x_train, y_train, callbacks=[tb_callback])
     ```
 
@@ -142,12 +142,12 @@ class TensorBoard(Callback):
 
     ```python
     # Profile a single batch, e.g. the 5th batch.
-    tensorboard_callback = keras.callbacks.TensorBoard(
+    tensorboard_callback = ncps.mini_keras.callbacks.TensorBoard(
         log_dir='./logs', profile_batch=5)
     model.fit(x_train, y_train, epochs=2, callbacks=[tensorboard_callback])
 
     # Profile a range of batches, e.g. from 10 to 20.
-    tensorboard_callback = keras.callbacks.TensorBoard(
+    tensorboard_callback = ncps.mini_keras.callbacks.TensorBoard(
         log_dir='./logs', profile_batch=(10,20))
     model.fit(x_train, y_train, epochs=2, callbacks=[tensorboard_callback])
     ```

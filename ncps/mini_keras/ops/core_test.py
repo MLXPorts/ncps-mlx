@@ -2,7 +2,13 @@ import contextlib
 import operator
 from unittest.mock import Mock
 
-import mlx.core as np
+try:
+    import mlx.core as mx
+    BackendArray = mx.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 import pytest
 from absl.testing import parameterized
 
@@ -649,14 +655,14 @@ class CoreOpsCorrectnessTest(testing.TestCase):
         x = ops.convert_to_tensor(x)
         x = ops.convert_to_numpy(x)
         self.assertAllEqual(x, (1, 1))
-        self.assertIsInstance(x, np.ndarray)
+        self.assertIsInstance(x, BackendArray)
 
         # Empty lists should give an empty array.
         x = ops.convert_to_tensor([])
         np_x = ops.convert_to_numpy(x)
         self.assertTrue(ops.is_tensor(x))
         self.assertAllEqual(x, [])
-        self.assertIsInstance(np_x, np.ndarray)
+        self.assertIsInstance(np_x, BackendArray)
 
         # Partially converted.
         x = ops.convert_to_tensor((1, ops.array(2), 3))
@@ -687,7 +693,7 @@ class CoreOpsCorrectnessTest(testing.TestCase):
         self.assertAllClose(x, x_dense)
 
         x_numpy = ops.convert_to_numpy(x)
-        self.assertIsInstance(x_numpy, np.ndarray)
+        self.assertIsInstance(x_numpy, BackendArray)
         self.assertAllClose(x_numpy, x_dense)
 
     def test_cond(self):
@@ -864,7 +870,7 @@ class CoreOpsCorrectnessTest(testing.TestCase):
 
 class CoreOpsDtypeTest(testing.TestCase):
     # TODO: Using uint64 will lead to weak type promotion (`float`),
-    # resulting in different behavior between JAX and Keras. Currently, we
+    # resulting in different behavior between JAX and ncps.mini_keras. Currently, we
     # are skipping the test for uint64
     ALL_DTYPES = [
         x
@@ -1257,7 +1263,7 @@ class CoreOpsBehaviorTests(testing.TestCase):
     def test_convert_to_numpy(self):
         x = ops.array([1, 2, 3], dtype="float32")
         y = ops.convert_to_numpy(x)
-        self.assertIsInstance(y, np.ndarray)
+        self.assertIsInstance(y, BackendArray)
         # Test assignment -- should not fail.
         y[0] = 1.0
 

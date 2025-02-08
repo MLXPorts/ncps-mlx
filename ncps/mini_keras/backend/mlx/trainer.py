@@ -1,447 +1,157 @@
-import collections
-import itertools
-from functools import partial
-
-import mlx.core as mlx
-
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import callbacks as callbacks_module
-from ncps.mini_keras import optimizers as optimizers_module
 from ncps.mini_keras import tree
-from ncps.mini_keras.distribution import distribution_lib
+from ncps.mini_keras.backend.common import standardize_dtype
+from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
+from ncps.mini_keras.backend.numpy.core import is_tensor
 from ncps.mini_keras.trainers import trainer as base_trainer
-from ncps.mini_keras.trainers.data_adapters import array_slicing
 from ncps.mini_keras.trainers.data_adapters import data_adapter_utils
 from ncps.mini_keras.trainers.epoch_iterator import EpochIterator
 from ncps.mini_keras.utils import traceback_utils
 
 
 class MLXTrainer(base_trainer.Trainer):
-    """MLX-specific trainer implementation.
-    
-    This trainer implements the training, evaluation, and prediction loops
-    optimized for MLX backend, including proper state management and 
-    distributed training support.
-    """
     def __init__(self):
         super().__init__()
-        self.train_function = None
         self.test_function = None
         self.predict_function = None
-        self._mlx_state_synced = True
 
-    def compute_loss_and_updates(
-        self,
-        trainable_variables,
-        non_trainable_variables,
-        metrics_variables,
-        x,
-        y,
-        sample_weight,
-        training=False,
-        optimizer_variables=None,
-    ):
-        """This method is stateless and is intended for use with mlx.grad."""
-        kwargs = {}
-        if self._call_has_training_arg:
-            kwargs["training"] = training
-
-        # Run stateless forward pass
-        y_pred, non_trainable_variables, losses = self.stateless_call(
-            trainable_variables,
-            non_trainable_variables,
+    def test_step(self, data):
+        (
             x,
-            return_losses=True,
-            **kwargs,
-        )
-        if losses:
-            # Make forward pass losses available to compute_loss.
-            self._losses_override.clear()
-            self._losses_override = losses
-
-        loss, variables = self.stateless_compute_loss(
-            trainable_variables,
-            non_trainable_variables,
-            metrics_variables,
-            x=x,
-            y=y,
-            y_pred=y_pred,
-            sample_weight=sample_weight,
-            training=training,
-        )
-        if losses:
-            self._losses_override.clear()
-        (trainable_variables, non_trainable_variables, metrics_variables) = (
-            variables
-        )
-
-        # Handle loss scaling
-        unscaled_loss = loss
-        if training and self.optimizer is not None:
-            # Scale loss with a StatelessScope, to use an update scale variable.
-            mapping = list(zip(self.optimizer.variables, optimizer_variables))
-            with backend.StatelessScope(state_mapping=mapping):
-                loss = self.optimizer.scale_loss(loss)
-        return loss, (
-            unscaled_loss,
-            y_pred,
-            non_trainable_variables,
-            metrics_variables,
-        )
-    @traceback_utils.filter_traceback
-    def evaluate(
-        self,
-        x=None,
-        y=None,
-        batch_size=None,
-        verbose="auto",
-        sample_weight=None,
-        steps=None,
-        callbacks=None,
-        return_dict=False,
-        **kwargs,
-    ):
-        self._assert_compile_called("evaluate")
-        # TODO: respect compiled trainable state
-        use_cached_eval_dataset = kwargs.pop("_use_cached_eval_dataset", False)
-        if kwargs:
-            raise ValueError(f"Arguments not recognized: {kwargs}")
-
-        if use_cached_eval_dataset:
-            epoch_iterator = self._eval_epoch_iterator
+            y,
+            sample_weight,
+        ) = data_adapter_utils.unpack_x_y_sample_weight(data)
+        if self._call_has_training_arg:
+            y_pred = self(x, training=False)
         else:
-            # Create an iterator that yields batches of input/target data.
-            epoch_iterator = MLXEpochIterator(
-                x=x,
-                y=y,
-                sample_weight=sample_weight,
-                batch_size=batch_size,
-                steps_per_epoch=steps,
-                shuffle=False,
-                steps_per_execution=self.steps_per_execution,
-            )
-
-        self._symbolic_build(iterator=epoch_iterator)
-        epoch_iterator.reset()
-
-        # Container that configures and calls callbacks.
-        if not isinstance(callbacks, callbacks_module.CallbackList):
-            callbacks = callbacks_module.CallbackList(
-                callbacks,
-                add_history=True,
-                add_progbar=verbose != 0,
-                verbose=verbose,
-                epochs=1,
-                steps=epoch_iterator.num_batches,
-                model=self,
-            )
-        self._record_training_state_sharding_spec()
-
-        self.make_test_function()
-        self.stop_evaluating = False
-        callbacks.on_test_begin()
-        logs = {}
-        self.reset_metrics()
-
-        self._mlx_state_synced = True
-        with epoch_iterator.catch_stop_iteration():
-            for step, iterator in epoch_iterator:
-                callbacks.on_test_batch_begin(step)
-
-                if self._mlx_state_synced:
-                    # The state may have been synced by a callback.
-                    state = self._get_mlx_state(
-                        trainable_variables=True,
-                        non_trainable_variables=True,
-                        metrics_variables=True,
-                        purge_model_variables=True,
-                    )
-                    self._mlx_state_synced = False
-
-                logs, state = self.test_function(state, iterator)
-                (
-                    trainable_variables,
-                    non_trainable_variables,
-                    metrics_variables,
-                ) = state
-
-                # Setting _mlx_state enables callbacks to force a state sync
-                # if they need to.
-                self._mlx_state = {
-                    # I wouldn't recommend modifying non-trainable model state
-                    # during evaluate(), but it's allowed.
-                    "trainable_variables": trainable_variables,
-                    "non_trainable_variables": non_trainable_variables,
-                    "metrics_variables": metrics_variables,
-                }
-
-                # Dispatch callbacks. This takes care of async dispatch.
-                callbacks.on_test_batch_end(step, logs)
-
-                if self.stop_evaluating:
-                    break
-
-        # Reattach state back to model (if not already done by a callback).
-        self.mlx_state_sync()
-
-        # Aggregate metrics across processes in distributed setting
-        with mlx.spmd_mode("allow_all"):
-            # Get final metrics results
-            logs = self._get_metrics_result_or_logs(logs)
-            # Aggregate across all processes
-            logs = mlx.distributed.all_reduce(logs, operation="mean")
-
-        callbacks.on_test_end(logs)
-        self._mlx_state = None
-        if return_dict:
-            return logs
-        return self._flatten_metrics_in_order(logs)
-    def train_step(self, state, data):
-        (
-            trainable_variables,
-            non_trainable_variables,
-            optimizer_variables,
-            metrics_variables,
-        ) = state
-        x, y, sample_weight = data_adapter_utils.unpack_x_y_sample_weight(data)
-        grad_fn = mlx.value_and_grad(
-            self.compute_loss_and_updates, has_aux=True
+            y_pred = self(x)
+        loss = self._compute_loss(
+            x=x, y=y, y_pred=y_pred, sample_weight=sample_weight, training=False
         )
-        (loss, aux), grads = grad_fn(
-            trainable_variables,
-            non_trainable_variables,
-            metrics_variables,
-            x,
-            y,
-            sample_weight,
-            training=True,
-            optimizer_variables=optimizer_variables,
+        self._loss_tracker.update_state(
+            loss, sample_weight=tree.flatten(x)[0].shape[0]
         )
-        (unscaled_loss, y_pred, non_trainable_variables, metrics_variables) = (
-            aux
-        )
+        return self.compute_metrics(x, y, y_pred, sample_weight=sample_weight)
 
-        (
-            trainable_variables,
-            optimizer_variables,
-        ) = self.optimizer.stateless_apply(
-            optimizer_variables, grads, trainable_variables
-        )
-
-        # Fix metrics synchronization in distributed setting
-        with mlx.spmd_mode("allow_all"):
-            with backend.StatelessScope(
-                state_mapping=[
-                    (ref_v, v)
-                    for ref_v, v in zip(self.metrics_variables, metrics_variables)
-                ]
-            ) as scope:
-                self._loss_tracker.update_state(
-                    unscaled_loss, sample_weight=tree.flatten(x)[0].shape[0]
-                )
-                logs = self.compute_metrics(x, y, y_pred, sample_weight)
-
-        new_metrics_variables = []
-        for ref_v in self.metrics_variables:
-            new_v = scope.get_current_value(ref_v)
-            if new_v is None:
-                new_v = ref_v.value
-            new_metrics_variables.append(new_v)
-        metrics_variables = new_metrics_variables
-
-        state = (
-            trainable_variables,
-            non_trainable_variables, 
-            optimizer_variables,
-            metrics_variables
-        )
-        return logs, state
-
-    def test_step(self, state, data):
-        (
-            trainable_variables,
-            non_trainable_variables,
-            metrics_variables,
-        ) = state
-        x, y, sample_weight = data_adapter_utils.unpack_x_y_sample_weight(data)
-        loss, aux = self.compute_loss_and_updates(
-            trainable_variables,
-            non_trainable_variables,
-            metrics_variables,
-            x,
-            y,
-            sample_weight,
-            training=False,
-        )
-        (unscaled_loss, y_pred, non_trainable_variables, metrics_variables) = (
-            aux
-        )
-
-        with backend.StatelessScope(
-            state_mapping=[
-                (ref_v, v)
-                for ref_v, v in zip(self.metrics_variables, metrics_variables)
-            ]
-        ) as scope:
-            self._loss_tracker.update_state(
-                unscaled_loss, sample_weight=tree.flatten(x)[0].shape[0]
-            )
-            logs = self.compute_metrics(x, y, y_pred, sample_weight)
-
-        new_metrics_variables = []
-        for ref_v in self.metrics_variables:
-            new_v = scope.get_current_value(ref_v)
-            if new_v is None:
-                new_v = ref_v.value
-            new_metrics_variables.append(new_v)
-        metrics_variables = new_metrics_variables
-
-        (
-            trainable_variables,
-            non_trainable_variables,
-            _,
-            metrics_variables,
-        ) = self._enforce_mlx_state_sharding(
-            trainable_variables=trainable_variables,
-            non_trainable_variables=non_trainable_variables,
-            optimizer_variables=None,
-            metrics_variables=metrics_variables,
-        )
-        state = (
-            trainable_variables,
-            non_trainable_variables,
-            metrics_variables,
-        )
-        return logs, state
-
-    def predict_step(self, state, data):
-        trainable_variables, non_trainable_variables = state
-        kwargs = {}
-        if self._call_has_training_arg:
-            kwargs["training"] = False
-
+    def predict_step(self, data):
         x, _, _ = data_adapter_utils.unpack_x_y_sample_weight(data)
-        outputs, non_trainable_variables = self.stateless_call(
-            trainable_variables, non_trainable_variables, x, **kwargs
-        )
-        (
-            _,
-            non_trainable_variables,
-            _,
-            _,
-        ) = self._enforce_mlx_state_sharding(
-            trainable_variables=None,
-            non_trainable_variables=non_trainable_variables,
-            optimizer_variables=None,
-            metrics_variables=None,
-        )
-        return outputs, non_trainable_variables
-
-    def _make_function(self, step_function, concatenate_outputs=False):
-        if self.steps_per_execution > 1:
-            if concatenate_outputs:
-
-                def concatenate(outputs):
-                    output = outputs[0]
-                    for next_output in outputs[1:]:
-                        output = tree.map_structure(
-                            lambda t1, t2: mlx.concatenate([t1, t2]),
-                            output,
-                            next_output,
-                        )
-                    return output
-
-                if not self.run_eagerly and self.jit_compile:
-                    concatenate = mlx.jit(concatenate)
-
-                def iterator_step(state, iterator):
-                    data = next(iterator)
-                    outputs, state = step_function(state, data)
-                    outputs = [outputs]
-                    try:
-                        for _ in range(self.steps_per_execution - 1):
-                            data = next(iterator)
-                            _outputs, state = step_function(state, data)
-                            outputs.append(_outputs)
-                    except StopIteration:
-                        pass
-                    outputs = concatenate(outputs)
-                    return outputs, state
-
-            else:
-
-                def iterator_step(state, iterator):
-                    data = next(iterator)
-                    outputs, state = step_function(state, data)
-                    try:
-                        for _ in range(self.steps_per_execution - 1):
-                            data = next(iterator)
-                            outputs, state = step_function(state, data)
-                    except StopIteration:
-                        pass
-                    return outputs, state
-
+        if self._call_has_training_arg:
+            y_pred = self(x, training=False)
         else:
-
-            def iterator_step(state, iterator):
-                return step_function(state, next(iterator))
-
-        return iterator_step
-
-    def make_train_function(self, force=False):
-        if self.train_function is not None and not force:
-            return
-        if not self.run_eagerly and self.jit_compile:
-            # Note that we mark the state to be donated to mlx,
-            # so that mlx will reuse the memory buffer for outputs.
-            # This will reduce the memory usage of the training function by
-            # half.
-            train_step = mlx.jit(self.train_step, donate_argnums=0)
-        else:
-            train_step = self.train_step
-
-        step_function = self._make_function(train_step)
-
-        self.train_function = step_function
+            y_pred = self(x)
+        return y_pred
 
     def make_test_function(self, force=False):
         if self.test_function is not None and not force:
-            return
-        if not self.run_eagerly and self.jit_compile:
-            # Note that we mark the state to be donated to mlx,
-            # so that mlx will reuse the memory buffer for outputs.
-            # This will reduce the memory usage of the training function by
-            # half.
-            test_step = mlx.jit(self.test_step, donate_argnums=0)
+            return self.test_function
+
+        def one_test_step(data):
+            data = data[0]
+            return self.test_step(data)
+
+        def multi_test_steps(data):
+            for single_step_data in data:
+                logs = one_test_step([single_step_data])
+            return logs
+
+        if self.steps_per_execution > 1:
+            test_step = multi_test_steps
         else:
-            test_step = self.test_step
+            test_step = one_test_step
 
-        step_function = self._make_function(test_step)
-
-        self.test_function = step_function
+        self.test_function = test_step
 
     def make_predict_function(self, force=False):
         if self.predict_function is not None and not force:
             return self.predict_function
 
-        def predict_step(state, data):
-            outputs, non_trainable_variables = self.predict_step(state, data)
-            return outputs, (state[0], non_trainable_variables)
+        def one_predict_step(data):
+            data = data[0]
+            return self.predict_step(data)
 
-        if not self.run_eagerly and self.jit_compile:
-            predict_step = mlx.jit(predict_step)
+        def multi_predict_steps(data):
+            outputs = one_predict_step(data[:1])
 
-        _step_function = self._make_function(
-            predict_step, concatenate_outputs=True
+            for single_step_data in data[1:]:
+                step_outputs = one_predict_step([single_step_data])
+                outputs = tree.map_structure(
+                    lambda t1, t2: np.concatenate([t1, t2]),
+                    outputs,
+                    step_outputs,
+                )
+            return outputs
+
+        if self.steps_per_execution > 1:
+            predict_step = multi_predict_steps
+        else:
+            predict_step = one_predict_step
+
+        self.predict_function = predict_step
+
+    def _symbolic_build(self, data_batch):
+        model_unbuilt = not all(layer.built for layer in self._flatten_layers())
+        compile_metrics_unbuilt = (
+            self._compile_metrics is not None
+            and not self._compile_metrics.built
         )
+        compile_loss_unbuilt = (
+            self._compile_loss is not None and not self._compile_loss.built
+        )
+        if model_unbuilt or compile_metrics_unbuilt or compile_loss_unbuilt:
+            # Create symbolic tensors matching an input batch.
 
-        def step_function(state, iterator):
-            outputs, state = _step_function(state, iterator)
-            return outputs, state[1]
+            def to_symbolic_input(v):
+                if is_tensor(v):
+                    return KerasTensor(v.shape, standardize_dtype(v.dtype))
+                return v
 
-        self.predict_function = step_function
+            data_batch = tree.map_structure(to_symbolic_input, data_batch)
+            (
+                x,
+                y,
+                sample_weight,
+            ) = data_adapter_utils.unpack_x_y_sample_weight(data_batch)
+            # Build all model state with `backend.compute_output_spec`.
+            try:
+                y_pred = backend.compute_output_spec(self, x)
+            except:
+                raise RuntimeError(
+                    "Unable to automatically build the model. "
+                    "Please build it yourself before calling "
+                    "fit/evaluate/predict. "
+                    "A model is 'built' when its variables have "
+                    "been created and its `self.built` attribute "
+                    "is True. Usually, calling the model on a batch "
+                    "of data is the right way to build it."
+                )
+            if compile_metrics_unbuilt:
+                # Build all metric state with `backend.compute_output_spec`.
+                backend.compute_output_spec(
+                    self.compute_metrics,
+                    x,
+                    y,
+                    y_pred,
+                    sample_weight=sample_weight,
+                )
+            if compile_loss_unbuilt:
+                # Build `CompileLoss` state with `backend.compute_output_spec`.
+                backend.compute_output_spec(
+                    self._compute_loss,
+                    x,
+                    y,
+                    y_pred,
+                    sample_weight=sample_weight,
+                )
+        self._post_build()
 
-    @traceback_utils.filter_traceback
     def fit(
         self,
         x=None,
@@ -461,189 +171,153 @@ class MLXTrainer(base_trainer.Trainer):
         validation_batch_size=None,
         validation_freq=1,
     ):
-        self._assert_compile_called("fit")
-        # TODO: respect compiled trainable state
-        self._eval_epoch_iterator = None
-        if validation_split and validation_data is None:
-            # Create the validation data using the training data. Only supported
-            # for TF/numpy/jax arrays.
-            (
-                (x, y, sample_weight),
-                validation_data,
-            ) = array_slicing.train_validation_split(
-                (x, y, sample_weight), validation_split=validation_split
-            )
-
-        if validation_data is not None:
-            (
-                val_x,
-                val_y,
-                val_sample_weight,
-            ) = data_adapter_utils.unpack_x_y_sample_weight(validation_data)
-
-        # Create an iterator that yields batches for one epoch.
-        epoch_iterator = MLXEpochIterator(
+        # Create an iterator that yields batches of input/target data
+        epoch_iterator = EpochIterator(
             x=x,
             y=y,
             sample_weight=sample_weight,
             batch_size=batch_size,
             steps_per_epoch=steps_per_epoch,
             shuffle=shuffle,
-            class_weight=class_weight,
             steps_per_execution=self.steps_per_execution,
         )
 
-        self._symbolic_build(iterator=epoch_iterator)
-        epoch_iterator.reset()
+        # Handle validation data
+        if validation_data is not None:
+            val_x, val_y, val_sample_weight = data_adapter_utils.unpack_x_y_sample_weight(
+                validation_data
+            )
+            val_iterator = EpochIterator(
+                x=val_x,
+                y=val_y,
+                sample_weight=val_sample_weight,
+                batch_size=validation_batch_size or batch_size,
+                steps_per_epoch=validation_steps,
+                shuffle=False,
+                steps_per_execution=self.steps_per_execution,
+            )
+        else:
+            val_iterator = None
 
-        # Container that configures and calls callbacks.
+        # Container that configures and calls callbacks
         if not isinstance(callbacks, callbacks_module.CallbackList):
             callbacks = callbacks_module.CallbackList(
                 callbacks,
                 add_history=True,
                 add_progbar=verbose != 0,
+                model=self,
                 verbose=verbose,
                 epochs=epochs,
                 steps=epoch_iterator.num_batches,
-                model=self,
             )
-        self._record_training_state_sharding_spec()
 
-        self.make_train_function()
         self.stop_training = False
-        training_logs = {}
         callbacks.on_train_begin()
-        initial_epoch = self._initial_epoch or initial_epoch
+        
         for epoch in range(initial_epoch, epochs):
             self.reset_metrics()
             callbacks.on_epoch_begin(epoch)
-
-            self._mlx_state_synced = True
-            with epoch_iterator.catch_stop_iteration():
-                for step, iterator in epoch_iterator:
-                    # Callbacks
-                    callbacks.on_train_batch_begin(step)
-
-                    # Train step
-                    if self._mlx_state_synced:
-                        # The state may have been synced by a callback.
-                        state = self._get_mlx_state(
-                            trainable_variables=True,
-                            non_trainable_variables=True,
-                            optimizer_variables=True,
-                            metrics_variables=True,
-                            purge_model_variables=True,
-                        )
-                        self._mlx_state_synced = False
-
-                    logs, state = self.train_function(state, iterator)
-                    (
-                        trainable_variables,
-                        non_trainable_variables,
-                        optimizer_variables,
-                        metrics_variables,
-                    ) = state
-
-                    # Setting _mlx_state enables callbacks to force a state sync
-                    # if they need to.
-                    self._mlx_state = {
-                        "trainable_variables": trainable_variables,
-                        "non_trainable_variables": non_trainable_variables,
-                        "optimizer_variables": optimizer_variables,
-                        "metrics_variables": metrics_variables,
-                    }
-                    # Dispatch callbacks. This takes care of async dispatch.
-                    callbacks.on_train_batch_end(step, logs)
-
-                    if self.stop_training:
-                        # Stop training if a callback has set
-                        # this flag in on_(train_)batch_end.
-                        break
-
-            # Reattach state to the model (if not already done by a callback).
-            # NOTE: doing this after each step would be a big performance
-            # bottleneck.
-            self.mlx_state_sync()
-
-            # Override with model metrics instead of last step logs if needed.
-            # The mlx spmd_mode is need for multi-process context, since the
-            # metrics values are replicated, and we don't want to do a all
-            # gather, and only need the local copy of the value.
-            with mlx.spmd_mode("allow_all"):
-                epoch_logs = dict(self._get_metrics_result_or_logs(logs))
-
-            # Run validation.
-            if validation_data is not None and self._should_eval(
-                epoch, validation_freq
-            ):
-                # Create MLXEpochIterator for evaluation and cache it.
-                if getattr(self, "_eval_epoch_iterator", None) is None:
-                    self._eval_epoch_iterator = MLXEpochIterator(
-                        x=val_x,
-                        y=val_y,
-                        sample_weight=val_sample_weight,
-                        batch_size=validation_batch_size or batch_size,
-                        steps_per_execution=self.steps_per_execution,
-                        steps_per_epoch=validation_steps,
-                        shuffle=False,
-                    )
+            
+            for step, data in epoch_iterator:
+                callbacks.on_train_batch_begin(step)
+                logs = self.train_on_batch(
+                    *data_adapter_utils.unpack_x_y_sample_weight(data[0]),
+                    class_weight=class_weight,
+                    return_dict=True,
+                )
+                callbacks.on_train_batch_end(step, logs)
+                
+                if self.stop_training:
+                    break
+            
+            # Run validation if needed
+            if val_iterator and (epoch + 1) % validation_freq == 0:
                 val_logs = self.evaluate(
-                    x=val_x,
-                    y=val_y,
-                    sample_weight=val_sample_weight,
+                    val_iterator.x,
+                    val_iterator.y,
                     batch_size=validation_batch_size or batch_size,
-                    steps=validation_steps,
+                    sample_weight=val_iterator.sample_weights,
                     callbacks=callbacks,
                     return_dict=True,
                     _use_cached_eval_dataset=True,
                 )
-                val_logs = {
-                    "val_" + name: val for name, val in val_logs.items()
-                }
-                epoch_logs.update(val_logs)
-
-            callbacks.on_epoch_end(epoch, epoch_logs)
-            training_logs = epoch_logs
+                val_logs = {"val_" + name: val for name, val in val_logs.items()}
+                logs.update(val_logs)
+            
+            callbacks.on_epoch_end(epoch, logs)
+            
             if self.stop_training:
                 break
-
-        if (
-            isinstance(self.optimizer, optimizers_module.Optimizer)
-            and epochs > 0
-        ):
-            self.optimizer.finalize_variable_values(self.trainable_weights)
-
-        # If _eval_epoch_iterator exists, delete it after all epochs are done.
-        if getattr(self, "_eval_epoch_iterator", None) is not None:
-            del self._eval_epoch_iterator
-        callbacks.on_train_end(logs=training_logs)
-        self._mlx_state = None
+                
+        callbacks.on_train_end(logs)
         return self.history
+
+    def train_on_batch(
+        self,
+        x,
+        y=None,
+        sample_weight=None,
+        class_weight=None,
+        return_dict=False,
+    ):
+        self._assert_compile_called("train_on_batch")
+        
+        # Maybe build model
+        self._symbolic_build((x, y, sample_weight))
+
+        # Get trainable variables
+        trainable_variables = self.trainable_variables
+        if not trainable_variables:
+            raise ValueError("The model does not have any trainable weights.")
+
+        # Forward pass and compute loss
+        with np.tape() as tape:
+            if self._call_has_training_arg:
+                y_pred = self(x, training=True)
+            else:
+                y_pred = self(x)
+                
+            loss = self._compute_loss(
+                x=x,
+                y=y, 
+                y_pred=y_pred,
+                sample_weight=sample_weight,
+                training=True,
+            )
+
+        # Compute gradients and update weights
+        grads = tape.grad(loss, trainable_variables)
+        
+        self.optimizer.apply_gradients(
+            zip(grads, trainable_variables), 
+            trainable_variables=trainable_variables,
+        )
+
+        # Update metrics
+        logs = {}
+        self._loss_tracker.update_state(loss)
+        logs["loss"] = self._loss_tracker.result()
+        
+        logs.update(
+            self.compute_metrics(x, y, y_pred, sample_weight=sample_weight)
+        )
+
+        if return_dict:
+            return logs
+        return self._flatten_metrics_in_order(logs)
 
     @traceback_utils.filter_traceback
     def predict(
         self, x, batch_size=None, verbose="auto", steps=None, callbacks=None
     ):
         # Create an iterator that yields batches of input data.
-        epoch_iterator = MLXEpochIterator(
+        epoch_iterator = EpochIterator(
             x=x,
             batch_size=batch_size,
             steps_per_epoch=steps,
             shuffle=False,
             steps_per_execution=self.steps_per_execution,
         )
-
-        if not all(layer.built for layer in self._flatten_layers()):
-            # Build the model on one batch of data.
-            for _, iterator in epoch_iterator:
-                # Build model
-                x, _, _ = data_adapter_utils.unpack_x_y_sample_weight(
-                    next(iterator)
-                )
-                with backend.StatelessScope():
-                    self(x)
-                break
-            epoch_iterator.reset()
 
         # Container that configures and calls callbacks.
         if not isinstance(callbacks, callbacks_module.CallbackList):
@@ -656,10 +330,6 @@ class MLXTrainer(base_trainer.Trainer):
                 steps=epoch_iterator.num_batches,
                 model=self,
             )
-
-        self.make_predict_function()
-        self.stop_predicting = False
-        callbacks.on_predict_begin()
 
         def append_to_outputs(batch_outputs, outputs):
             if outputs is None:
@@ -676,162 +346,114 @@ class MLXTrainer(base_trainer.Trainer):
                 )
             return outputs
 
-        self._mlx_state_synced = True
+        self.make_predict_function()
+        self.stop_predicting = False
+        callbacks.on_predict_begin()
         outputs = None
-        non_trainable_variables = None
-        with epoch_iterator.catch_stop_iteration():
-            for step, iterator in epoch_iterator:
-                callbacks.on_predict_batch_begin(step)
-                if self._mlx_state_synced:
-                    state = self._get_mlx_state(
-                        trainable_variables=True,
-                        non_trainable_variables=True,
-                    )
-                    self._purge_model_variables(non_trainable_variables=True)
-                    self._mlx_state_synced = False
-                else:
-                    state = (state[0], non_trainable_variables)
-                batch_outputs, non_trainable_variables = self.predict_function(
-                    state, iterator
-                )
-                outputs = append_to_outputs(batch_outputs, outputs)
-
-                callbacks.on_predict_batch_end(step, {"outputs": batch_outputs})
-
-                if self.stop_predicting:
-                    break
-
-        self._mlx_state = {
-            "non_trainable_variables": non_trainable_variables,
-        }
-        self.mlx_state_sync()
+        for step, data in epoch_iterator:
+            callbacks.on_predict_batch_begin(step)
+            batch_outputs = self.predict_function(data)
+            outputs = append_to_outputs(batch_outputs, outputs)
+            callbacks.on_predict_batch_end(step, {"outputs": batch_outputs})
+            if self.stop_predicting:
+                break
         callbacks.on_predict_end()
-        self._mlx_state = None
-        return tree.map_structure_up_to(
-            batch_outputs, lambda x: mlx.concat(x), outputs
-        )
+        return tree.map_structure_up_to(batch_outputs, np.concatenate, outputs)
 
-    def mlx_state_sync(self):
-        """Synchronize MLX state back to the model variables."""
-        if not getattr(self, "_mlx_state", None) or self._mlx_state_synced:
-            return
-
-        trainable_variables = self._mlx_state.get("trainable_variables", None)
-        non_trainable_variables = self._mlx_state.get(
-            "non_trainable_variables", None
-        )
-        optimizer_variables = self._mlx_state.get("optimizer_variables", None)
-        metrics_variables = self._mlx_state.get("metrics_variables", None)
-
-        if trainable_variables:
-            for ref_v, v in zip(self.trainable_variables, trainable_variables):
-                ref_v.assign(v)
-        if non_trainable_variables:
-            for ref_v, v in zip(
-                self.non_trainable_variables, non_trainable_variables
-            ):
-                ref_v.assign(v)
-        if optimizer_variables:
-            for ref_v, v in zip(self.optimizer.variables, optimizer_variables):
-                ref_v.assign(v)
-        if metrics_variables:
-            for ref_v, v in zip(self.metrics_variables, metrics_variables):
-                ref_v.assign(v)
-        self._mlx_state_synced = True
-
-    def _enforce_mlx_state_sharding(
+    @traceback_utils.filter_traceback
+    def evaluate(
         self,
-        trainable_variables,
-        non_trainable_variables,
-        optimizer_variables,
-        metrics_variables,
+        x=None,
+        y=None,
+        batch_size=None,
+        verbose="auto",
+        sample_weight=None,
+        steps=None,
+        callbacks=None,
+        return_dict=False,
+        **kwargs,
     ):
-        """MLX does not need sharding enforcement like JAX."""
-        return (
-            trainable_variables,
-            non_trainable_variables,
-            optimizer_variables,
-            metrics_variables,
-        )
+        # TODO: respect compiled trainable state
+        use_cached_eval_dataset = kwargs.pop("_use_cached_eval_dataset", False)
+        if kwargs:
+            raise ValueError(f"Arguments not recognized: {kwargs}")
 
-    def _get_mlx_state(
-        self,
-        trainable_variables=False,
-        non_trainable_variables=False,
-        optimizer_variables=False,
-        metrics_variables=False,
-        purge_model_variables=False,
-    ):
-        """Get MLX state for training/evaluation."""
-        state = []
-        if trainable_variables:
-            state.append([v.value for v in self.trainable_variables])
-        if non_trainable_variables:
-            state.append([v.value for v in self.non_trainable_variables])
-        if optimizer_variables:
-            state.append([v.value for v in self.optimizer.variables])
-        if metrics_variables:
-            state.append([v.value for v in self.metrics_variables])
-        if purge_model_variables:
-            self._purge_model_variables(
-                trainable_variables=trainable_variables,
-                non_trainable_variables=non_trainable_variables,
-                optimizer_variables=optimizer_variables,
-                metrics_variables=metrics_variables,
+        if use_cached_eval_dataset:
+            epoch_iterator = self._eval_epoch_iterator
+        else:
+            # Create an iterator that yields batches of input/target data.
+            epoch_iterator = EpochIterator(
+                x=x,
+                y=y,
+                sample_weight=sample_weight,
+                batch_size=batch_size,
+                steps_per_epoch=steps,
+                shuffle=False,
+                steps_per_execution=self.steps_per_execution,
             )
-        return tuple(state)
 
-    def _record_training_state_sharding_spec(self):
-        """MLX does not use sharding specs like JAX."""
-        pass
+        if not all(layer.built for layer in self._flatten_layers()):
+            # Build the model on one batch of data.
+            for _, data in epoch_iterator:
+                data_batch = data[0]
+                self._symbolic_build(data_batch)
+                break
 
-    def _get_metrics_result_or_logs(self, logs):
-        """Get results from metrics or return logs directly.
-        
-        Args:
-            logs: Dict of metric logs from the last training step.
-            
-        Returns:
-            Dict containing either metric results or the input logs.
-        """
-        if not self.metrics:
+        # Container that configures and calls callbacks.
+        if not isinstance(callbacks, callbacks_module.CallbackList):
+            callbacks = callbacks_module.CallbackList(
+                callbacks,
+                add_history=True,
+                add_progbar=verbose != 0,
+                verbose=verbose,
+                epochs=1,
+                steps=epoch_iterator.num_batches,
+                model=self,
+            )
+
+        self.make_test_function()
+        self.stop_evaluating = False
+        callbacks.on_test_begin()
+        logs = {}
+        self.reset_metrics()
+        for step, data in epoch_iterator:
+            callbacks.on_test_batch_begin(step)
+            logs = self.test_function(data)
+            callbacks.on_test_batch_end(step, logs)
+            if self.stop_evaluating:
+                break
+        logs = self._get_metrics_result_or_logs(logs)
+        callbacks.on_test_end(logs)
+
+        if return_dict:
             return logs
-            
-        return {m.name: m.result() for m in self.metrics}
+        return self._flatten_metrics_in_order(logs)
 
+    def test_on_batch(
+        self,
+        x,
+        y=None,
+        sample_weight=None,
+        return_dict=False,
+    ):
+        self._assert_compile_called("test_on_batch")
 
-class MLXEpochIterator(EpochIterator):
-    def __next__(self):
-        return next(self._epoch_iterator)
+        data = (x, y, sample_weight)
 
-    def _get_iterator(self):
-        distribution = distribution_lib.distribution()
-        if distribution is not None:
-            return self._get_distributed_iterator(distribution)
+        # Maybe build model
+        self._symbolic_build(data)
+        self.make_test_function()
 
-        return self._prefetch_numpy_iterator(
-            self.data_adapter.get_numpy_iterator()
+        logs = self.test_function([data])
+        logs = tree.map_structure(lambda x: np.array(x), logs)
+        if return_dict:
+            return logs
+        return self._flatten_metrics_in_order(logs)
+
+    def predict_on_batch(self, x):
+        self.make_predict_function()
+        batch_outputs = self.predict_function([(x,)])
+        batch_outputs = tree.map_structure(
+            backend.convert_to_numpy, batch_outputs
         )
-
-    def _get_distributed_iterator(self, distribution):
-        """Process data for distributed training."""
-        for data in self.data_adapter.get_numpy_iterator():
-            yield _distribute_data(data)
-
-    def _prefetch_numpy_iterator(self, numpy_iterator):
-        """Prefetch data batches."""
-        queue = collections.deque()
-
-        def enqueue(n=2):
-            for data in itertools.islice(numpy_iterator, n):
-                queue.append(_distribute_data(data))
-
-        enqueue(n=2)
-        while queue:
-            yield queue.popleft()
-            enqueue(1)
-
-
-def _distribute_data(data):
-    """Convert input data to MLX arrays."""
-    return tree.map_structure(mlx.array, data)
+        return batch_outputs

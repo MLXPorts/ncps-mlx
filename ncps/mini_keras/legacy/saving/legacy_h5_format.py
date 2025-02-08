@@ -2,7 +2,11 @@ import json
 import os
 import warnings
 
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+
 from absl import logging
 
 from ncps.mini_keras import backend

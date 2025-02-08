@@ -17,7 +17,7 @@ class UpSampling3D(Layer):
 
     >>> input_shape = (2, 1, 2, 1, 3)
     >>> x = np.ones(input_shape)
-    >>> y = keras.layers.UpSampling3D(size=(2, 2, 2))(x)
+    >>> y = ncps.mini_keras.layers.UpSampling3D(size=(2, 2, 2))(x)
     >>> y.shape
     (2, 2, 4, 2, 3)
 

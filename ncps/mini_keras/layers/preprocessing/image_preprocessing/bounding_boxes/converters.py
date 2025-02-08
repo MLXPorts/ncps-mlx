@@ -42,12 +42,12 @@ def convert_format(
     ```python
     boxes = np.array([[10, 20, 30, 40], [50, 60, 70, 80]])
     # Convert from 'xyxy' to 'xywh' format
-    boxes_xywh = keras.utils.bounding_boxes.convert_format(
+    boxes_xywh = ncps.mini_keras.utils.bounding_boxes.convert_format(
         boxes, source='xyxy', target='xywh'
     )  # Output: [[10. 20. 20. 20.], [50. 60. 20. 20.]]
 
     # Convert to relative 'rel_xyxy' format
-    boxes_rel_xyxy = keras.utils.bounding_boxes.convert_format(
+    boxes_rel_xyxy = ncps.mini_keras.utils.bounding_boxes.convert_format(
         boxes, source='xyxy', target='rel_xyxy', height=200, width=300
     ) # Output: [[0.03333334 0.1        0.1        0.2       ],
                #[0.16666667 0.3        0.23333333 0.4       ]]
@@ -90,7 +90,7 @@ def clip_to_image_size(
     ```python
     boxes = {"boxes": np.array([[-10, -20, 150, 160], [50, 40, 70, 80]]),
              "labels": np.array([0, 1])}
-    clipped_boxes = keras.utils.bounding_boxes.clip_to_image_size(
+    clipped_boxes = ncps.mini_keras.utils.bounding_boxes.clip_to_image_size(
         boxes, height=100, width=120,
     )
     # Output will have boxes clipped to the image boundaries, and labels
@@ -202,7 +202,7 @@ def crop(boxes, top, left, height, width, bounding_box_format="xyxy"):
     Example:
     ```python
     boxes = np.array([[10, 20, 50, 60], [70, 80, 100, 120]])  # xyxy format
-    cropped_boxes = keras.utils.bounding_boxes.crop(
+    cropped_boxes = ncps.mini_keras.utils.bounding_boxes.crop(
         boxes, bounding_box_format="xyxy", top=10, left=20, height=40, width=30
     )  # Cropping a 30x40 region starting at (20, 10)
     print(cropped_boxes)

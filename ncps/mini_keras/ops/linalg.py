@@ -356,8 +356,8 @@ def norm(x, ord=None, axis=None, keepdims=False):
 
     Example:
 
-    >>> x = keras.ops.reshape(keras.ops.arange(9, dtype="float32") - 4, (3, 3))
-    >>> keras.ops.linalg.norm(x)
+    >>> x = ncps.mini_keras.ops.reshape(keras.ops.arange(9, dtype="float32") - 4, (3, 3))
+    >>> ncps.mini_keras.ops.linalg.norm(x)
     7.7459664
     """
     if any_symbolic_tensors((x,)):
@@ -426,7 +426,7 @@ def qr(x, mode="reduced"):
 
     Example:
 
-    >>> x = keras.ops.convert_to_tensor([[1., 2.], [3., 4.], [5., 6.]])
+    >>> x = ncps.mini_keras.ops.convert_to_tensor([[1., 2.], [3., 4.], [5., 6.]])
     >>> q, r = qr(x)
     >>> print(q)
     array([[-0.16903079  0.897085]

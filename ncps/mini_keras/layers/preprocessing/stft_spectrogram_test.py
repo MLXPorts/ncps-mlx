@@ -1,10 +1,14 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 import pytest
 import scipy.signal
 import tensorflow as tf
 
-from keras import Input
-from keras import Sequential
+from ncps.mini_keras import Input
+from ncps.mini_keras import Sequential
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
 from ncps.mini_keras import testing

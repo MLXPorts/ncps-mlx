@@ -1,6 +1,14 @@
 import math
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+
 import tensorflow as tf
 import torch
 from absl.testing import parameterized
@@ -26,15 +34,15 @@ class TestTorchDataLoaderAdapter(testing.TestCase):
         self.assertEqual(adapter.has_partial_batch, True)
         self.assertEqual(adapter.partial_batch_size, 2)
 
-        if backend.backend() == "numpy":
+        if backend.backend() == "numpy" or backend.backend() == "mlx":
             it = adapter.get_numpy_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "tensorflow":
             it = adapter.get_tf_dataset()
             expected_class = tf.Tensor
         elif backend.backend() == "jax":
             it = adapter.get_jax_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "torch":
             it = adapter.get_torch_dataloader()
             expected_class = torch.Tensor
@@ -96,13 +104,13 @@ class TestTorchDataLoaderAdapter(testing.TestCase):
 
         if backend.backend() == "numpy":
             it = adapter.get_numpy_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "tensorflow":
             it = adapter.get_tf_dataset()
             expected_class = tf.Tensor
         elif backend.backend() == "jax":
             it = adapter.get_jax_iterator()
-            expected_class = np.ndarray
+            expected_class = BackendArray
         elif backend.backend() == "torch":
             it = adapter.get_torch_dataloader()
             expected_class = torch.Tensor

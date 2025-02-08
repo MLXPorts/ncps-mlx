@@ -50,7 +50,7 @@ class FBetaScore(Metric):
 
     Example:
 
-    >>> metric = keras.metrics.FBetaScore(beta=2.0, threshold=0.5)
+    >>> metric = ncps.mini_keras.metrics.FBetaScore(beta=2.0, threshold=0.5)
     >>> y_true = np.array([[1, 1, 1],
     ...                    [1, 0, 0],
     ...                    [1, 1, 0]], np.int32)
@@ -287,7 +287,7 @@ class F1Score(FBetaScore):
 
     Example:
 
-    >>> metric = keras.metrics.F1Score(threshold=0.5)
+    >>> metric = ncps.mini_keras.metrics.F1Score(threshold=0.5)
     >>> y_true = np.array([[1, 1, 1],
     ...                    [1, 0, 0],
     ...                    [1, 1, 0]], np.int32)

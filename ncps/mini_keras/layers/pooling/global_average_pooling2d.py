@@ -49,7 +49,7 @@ class GlobalAveragePooling2D(BaseGlobalPooling):
     Example:
 
     >>> x = np.random.rand(2, 4, 5, 3)
-    >>> y = keras.layers.GlobalAveragePooling2D()(x)
+    >>> y = ncps.mini_keras.layers.GlobalAveragePooling2D()(x)
     >>> y.shape
     (2, 3)
     """

@@ -140,7 +140,7 @@ class DistributeTest(testing.TestCase):
     def test_seed_generator(self):
         strategy = tf.distribute.MirroredStrategy(["CPU:0", "CPU:1"])
         with strategy.scope():
-            seed_generator = keras.random.SeedGenerator(42)
+            seed_generator = ncps.mini_keras.random.SeedGenerator(42)
             states = strategy.run(lambda: seed_generator.state.value).values
             for s in states:
                 self.assertAllClose(keras.ops.convert_to_numpy(s), (42, 0))
@@ -149,8 +149,8 @@ class DistributeTest(testing.TestCase):
         strategy = tf.distribute.MirroredStrategy(["CPU:0", "CPU:1"])
 
         batch_size = 12
-        x = keras.ops.ones((batch_size, 1))
-        y = keras.ops.zeros((batch_size, 1))
+        x = ncps.mini_keras.ops.ones((batch_size, 1))
+        y = ncps.mini_keras.ops.zeros((batch_size, 1))
 
         # Runs without a strategy to get expected weights.
         inputs = layers.Input(shape=(1,))
@@ -164,7 +164,7 @@ class DistributeTest(testing.TestCase):
         model.compile(loss="mse", optimizer="sgd")
         history = model.fit(x, y, batch_size=batch_size, epochs=1)
         expected_loss = history.history["loss"]
-        expected_weights = keras.ops.convert_to_numpy(layer.kernel)
+        expected_weights = ncps.mini_keras.ops.convert_to_numpy(layer.kernel)
 
         # Runs with a mirrored strategy.
         with strategy.scope():
@@ -183,5 +183,5 @@ class DistributeTest(testing.TestCase):
             self.assertAllClose(history.history["loss"], expected_loss)
             for w in weights:
                 self.assertAllClose(
-                    keras.ops.convert_to_numpy(w), expected_weights
+                    ncps.mini_keras.ops.convert_to_numpy(w), expected_weights
                 )

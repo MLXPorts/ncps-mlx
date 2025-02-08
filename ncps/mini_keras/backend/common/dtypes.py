@@ -296,17 +296,17 @@ def result_type(*dtypes):
 
     Examples:
 
-    >>> x = keras.ops.ones((1,), dtype="bfloat16")
-    >>> keras.backend.result_type(x.dtype, int)
+    >>> x = ncps.mini_keras.ops.ones((1,), dtype="bfloat16")
+    >>> ncps.mini_keras.backend.result_type(x.dtype, int)
     "bfloat16"
 
-    >>> x = keras.ops.ones((1,), dtype="int32")
-    >>> y = keras.ops.ones((1,), dtype="float32")
-    >>> keras.backend.result_type(x.dtype, y.dtype)
+    >>> x = ncps.mini_keras.ops.ones((1,), dtype="int32")
+    >>> y = ncps.mini_keras.ops.ones((1,), dtype="float32")
+    >>> ncps.mini_keras.backend.result_type(x.dtype, y.dtype)
     "float32"
 
-    >>> z= keras.ops.ones((1,), dtype='complex64')
-    >>> keras.backend.result_type(z.dtype, int)
+    >>> z= ncps.mini_keras.ops.ones((1,), dtype='complex64')
+    >>> ncps.mini_keras.backend.result_type(z.dtype, int)
     "float64"
 
     """

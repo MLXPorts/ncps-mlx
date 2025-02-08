@@ -1,7 +1,10 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import scipy.signal
 
-from conftest import skip_if_backend
+from conftest import skip_if_backend # type: ignore
 from ncps.mini_keras import backend
 from ncps.mini_keras import initializers
 from ncps.mini_keras import testing

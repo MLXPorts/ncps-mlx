@@ -39,7 +39,7 @@ class Hashing(Layer):
 
     **Example (FarmHash64)**
 
-    >>> layer = keras.layers.Hashing(num_bins=3)
+    >>> layer = ncps.mini_keras.layers.Hashing(num_bins=3)
     >>> inp = [['A'], ['B'], ['C'], ['D'], ['E']]
     >>> layer(inp)
     array([[1],
@@ -50,7 +50,7 @@ class Hashing(Layer):
 
     **Example (FarmHash64) with a mask value**
 
-    >>> layer = keras.layers.Hashing(num_bins=3, mask_value='')
+    >>> layer = ncps.mini_keras.layers.Hashing(num_bins=3, mask_value='')
     >>> inp = [['A'], ['B'], [''], ['C'], ['D']]
     >>> layer(inp)
     array([[1],
@@ -61,7 +61,7 @@ class Hashing(Layer):
 
     **Example (SipHash64)**
 
-    >>> layer = keras.layers.Hashing(num_bins=3, salt=[133, 137])
+    >>> layer = ncps.mini_keras.layers.Hashing(num_bins=3, salt=[133, 137])
     >>> inp = [['A'], ['B'], ['C'], ['D'], ['E']]
     >>> layer(inp)
     array([[1],
@@ -72,7 +72,7 @@ class Hashing(Layer):
 
     **Example (Siphash64 with a single integer, same as `salt=[133, 133]`)**
 
-    >>> layer = keras.layers.Hashing(num_bins=3, salt=133)
+    >>> layer = ncps.mini_keras.layers.Hashing(num_bins=3, salt=133)
     >>> inp = [['A'], ['B'], ['C'], ['D'], ['E']]
     >>> layer(inp)
     array([[0],

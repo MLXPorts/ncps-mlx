@@ -1,4 +1,10 @@
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    
 from absl.testing import parameterized
 
 from ncps.mini_keras import backend
@@ -65,7 +71,7 @@ class TestNumericalUtils(testing.TestCase):
 
         # Test NumPy
         out = numerical_utils.normalize(xnp, axis=-1, order=order)
-        self.assertIsInstance(out, np.ndarray)
+        self.assertIsInstance(out, BackendArray)
         self.assertAllClose(out, expected)
 
         # Test backend

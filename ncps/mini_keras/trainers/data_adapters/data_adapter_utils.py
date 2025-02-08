@@ -1,5 +1,12 @@
-import numpy as np
-
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+    
 from ncps.mini_keras import backend
 from ncps.mini_keras import ops
 from ncps.mini_keras import tree
@@ -182,11 +189,11 @@ def get_tensor_spec(batches):
 
 
 def get_jax_iterator(iterable):
-    import jax
-    import jax.experimental.sparse as jax_sparse
+    import jax # type: ignore
+    import jax.experimental.sparse as jax_sparse # type: ignore
 
     def convert_to_jax_compatible(x):
-        if isinstance(x, (jax.Array, jax_sparse.JAXSparse, np.ndarray)):
+        if isinstance(x, (jax.Array, jax_sparse.JAXSparse, BackendArray)):
             return x
         elif is_scipy_sparse(x):
             return scipy_sparse_to_jax_sparse(x)
@@ -306,16 +313,16 @@ def scipy_sparse_to_tf_sparse(x):
 
 
 def scipy_sparse_to_jax_sparse(x):
-    import jax
-    import jax.experimental.sparse as jax_sparse
+    import jax # type: ignore
+    import jax.experimental.sparse as jax_sparse # type: ignore
 
     with jax.default_device(jax.local_devices(backend="cpu")[0]):
         return jax_sparse.BCOO.from_scipy_sparse(x)
 
 
 def tf_sparse_to_jax_sparse(x):
-    import jax
-    import jax.experimental.sparse as jax_sparse
+    import jax # type: ignore
+    import jax.experimental.sparse as jax_sparse # type: ignore
 
     values = np.asarray(x.values)
     indices = np.asarray(x.indices)

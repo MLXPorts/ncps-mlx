@@ -4,7 +4,15 @@ import io
 import pathlib
 import warnings
 
-import numpy as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+    def to_array(x): return np.array(x)
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+    def to_array(x): return np.array(x)
+    
 
 from ncps.mini_keras import backend
 from ncps.mini_keras.api_export import keras_mini_export
@@ -46,7 +54,7 @@ def array_to_img(x, data_format=None, scale=True, dtype=None):
     ```python
     from PIL import Image
     img = np.random.random(size=(100, 100, 3))
-    pil_img = keras.utils.array_to_img(img)
+    pil_img = ncps.mini_keras.utils.array_to_img(img)
     ```
 
     Args:
@@ -121,8 +129,8 @@ def img_to_array(img, data_format=None, dtype=None):
     ```python
     from PIL import Image
     img_data = np.random.random(size=(100, 100, 3))
-    img = keras.utils.array_to_img(img_data)
-    array = keras.utils.image.img_to_array(img)
+    img = ncps.mini_keras.utils.array_to_img(img_data)
+    array = ncps.mini_keras.utils.image.img_to_array(img)
     ```
 
     Args:
@@ -197,8 +205,8 @@ def load_img(
     Example:
 
     ```python
-    image = keras.utils.load_img(image_path)
-    input_arr = keras.utils.img_to_array(image)
+    image = ncps.mini_keras.utils.load_img(image_path)
+    input_arr = ncps.mini_keras.utils.img_to_array(image)
     input_arr = np.array([input_arr])  # Convert single image to a batch.
     predictions = model.predict(input_arr)
     ```
@@ -452,6 +460,6 @@ def smart_resize(
         img, size=size, interpolation=interpolation, data_format=data_format
     )
 
-    if isinstance(x, np.ndarray):
-        return np.array(img)
+    if isinstance(x, BackendArray):
+        return to_array(img)
     return img

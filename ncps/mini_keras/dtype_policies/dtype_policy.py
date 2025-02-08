@@ -37,17 +37,17 @@ class DTypePolicy:
     API name. Mixed precision can be enabled by passing `"mixed_float16"` or
     `"mixed_bfloat16"` to `keras.mixed_precision.set_dtype_policy()`.
 
-    >>> keras.config.set_dtype_policy("mixed_float16")
-    >>> layer1 = keras.layers.Dense(10)
+    >>> ncps.mini_keras.config.set_dtype_policy("mixed_float16")
+    >>> layer1 = ncps.mini_keras.layers.Dense(10)
     >>> layer1.dtype_policy  # layer1 will automatically use mixed precision
     <DTypePolicy "mixed_float16">
     >>> # Can optionally override layer to use float32
     >>> # instead of mixed precision.
-    >>> layer2 = keras.layers.Dense(10, dtype="float32")
+    >>> layer2 = ncps.mini_keras.layers.Dense(10, dtype="float32")
     >>> layer2.dtype_policy
     <DTypePolicy "float32">
     >>> # Set policy back to initial float32.
-    >>> keras.config.set_dtype_policy('float32')
+    >>> ncps.mini_keras.config.set_dtype_policy('float32')
 
     In the example above, passing `dtype="float32"` to the layer is
     equivalent to passing

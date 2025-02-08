@@ -1,8 +1,11 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 from tensorflow import data as tf_data
 
-import keras
+import ncps.mini_keras
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
 from ncps.mini_keras import testing
@@ -32,36 +35,36 @@ class RandomHueTest(testing.TestCase):
         self.assertAllClose(inputs, output)
 
     def test_random_hue_value_range_0_to_1(self):
-        image = keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)
+        image = ncps.mini_keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)
 
         layer = layers.RandomHue(0.2, (0, 1))
         adjusted_image = layer(image)
 
-        self.assertTrue(keras.ops.numpy.all(adjusted_image >= 0))
-        self.assertTrue(keras.ops.numpy.all(adjusted_image <= 1))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image >= 0))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image <= 1))
 
     def test_random_hue_value_range_0_to_255(self):
-        image = keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=255)
+        image = ncps.mini_keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=255)
 
         layer = layers.RandomHue(0.2, (0, 255))
         adjusted_image = layer(image)
 
-        self.assertTrue(keras.ops.numpy.all(adjusted_image >= 0))
-        self.assertTrue(keras.ops.numpy.all(adjusted_image <= 255))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image >= 0))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image <= 255))
 
     def test_random_hue_no_change_with_zero_factor(self):
         data_format = backend.config.image_data_format()
         if data_format == "channels_last":
-            inputs = keras.random.randint((224, 224, 3), 0, 255)
+            inputs = ncps.mini_keras.random.randint((224, 224, 3), 0, 255)
         else:
-            inputs = keras.random.randint((3, 224, 224), 0, 255)
+            inputs = ncps.mini_keras.random.randint((3, 224, 224), 0, 255)
 
         layer = layers.RandomHue(0, (0, 255), data_format=data_format)
         output = layer(inputs, training=False)
         self.assertAllClose(inputs, output, atol=1e-3, rtol=1e-5)
 
     def test_random_hue_randomness(self):
-        image = keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)[:5]
+        image = ncps.mini_keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)[:5]
 
         layer = layers.RandomHue(0.2, (0, 255))
         adjusted_images = layer(image)

@@ -24,10 +24,10 @@ class MixUp(BaseImagePreprocessingLayer):
 
     Example:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = ncps.mini_keras.datasets.cifar10.load_data()
     images, labels = images[:8], labels[:8]
-    labels = keras.ops.cast(keras.ops.one_hot(labels.flatten(), 10), "float32")
-    mix_up = keras.layers.MixUp(alpha=0.2)
+    labels = ncps.mini_keras.ops.cast(keras.ops.one_hot(labels.flatten(), 10), "float32")
+    mix_up = ncps.mini_keras.layers.MixUp(alpha=0.2)
     output = mix_up({"images": images, "labels": labels})
     ```
     """

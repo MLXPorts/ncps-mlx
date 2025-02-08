@@ -1,8 +1,11 @@
-import numpy as np
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 from tensorflow import data as tf_data
 
-import keras
+import ncps.mini_keras
 from ncps.mini_keras import backend
 from ncps.mini_keras import layers
 from ncps.mini_keras import testing
@@ -24,13 +27,13 @@ class RandomColorDegenerationTest(testing.TestCase):
         )
 
     def test_random_color_degeneration_value_range(self):
-        image = keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)
+        image = ncps.mini_keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)
 
         layer = layers.RandomColorDegeneration(0.2, value_range=(0, 1))
         adjusted_image = layer(image)
 
-        self.assertTrue(keras.ops.numpy.all(adjusted_image >= 0))
-        self.assertTrue(keras.ops.numpy.all(adjusted_image <= 1))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image >= 0))
+        self.assertTrue(ncps.mini_keras.ops.numpy.all(adjusted_image <= 1))
 
     def test_random_color_degeneration_no_op(self):
         data_format = backend.config.image_data_format()
@@ -55,7 +58,7 @@ class RandomColorDegenerationTest(testing.TestCase):
         self.assertAllClose(inputs, result, atol=1e-3, rtol=1e-5)
 
     def test_random_color_degeneration_randomness(self):
-        image = keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)[:5]
+        image = ncps.mini_keras.random.uniform(shape=(3, 3, 3), minval=0, maxval=1)[:5]
 
         layer = layers.RandomColorDegeneration(0.2)
         adjusted_images = layer(image)

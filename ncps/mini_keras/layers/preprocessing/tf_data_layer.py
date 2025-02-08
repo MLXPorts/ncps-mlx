@@ -23,7 +23,7 @@ class TFDataLayer(Layer):
     def __call__(self, inputs, **kwargs):
         sample_input = tree.flatten(inputs)[0]
         if (
-            not isinstance(sample_input, keras.KerasTensor)
+            not isinstance(sample_input, ncps.mini_keras.KerasTensor)
             and backend_utils.in_tf_graph()
             and not jax_utils.is_in_jax_tracing_scope(sample_input)
         ):
@@ -50,7 +50,7 @@ class TFDataLayer(Layer):
 
     @tracking.no_automatic_dependency_tracking
     def _get_seed_generator(self, backend=None):
-        if backend is None or backend == keras.backend.backend():
+        if backend is None or backend == ncps.mini_keras.backend.backend():
             return self.generator
         if not hasattr(self, "_backend_generators"):
             self._backend_generators = {}
@@ -62,8 +62,8 @@ class TFDataLayer(Layer):
 
     def convert_weight(self, weight):
         """Convert the weight if it is from the a different backend."""
-        if self.backend.name == keras.backend.backend():
+        if self.backend.name == ncps.mini_keras.backend.backend():
             return weight
         else:
-            weight = keras.ops.convert_to_numpy(weight)
+            weight = ncps.mini_keras.ops.convert_to_numpy(weight)
             return self.backend.convert_to_tensor(weight)

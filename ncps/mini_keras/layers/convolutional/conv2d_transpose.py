@@ -88,7 +88,7 @@ class Conv2DTranspose(BaseConvTranspose):
     Example:
 
     >>> x = np.random.rand(4, 10, 8, 128)
-    >>> y = keras.layers.Conv2DTranspose(32, 2, 2, activation='relu')(x)
+    >>> y = ncps.mini_keras.layers.Conv2DTranspose(32, 2, 2, activation='relu')(x)
     >>> print(y.shape)
     (4, 20, 16, 32)
     """

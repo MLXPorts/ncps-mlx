@@ -32,7 +32,7 @@ class Metric(KerasSaveable):
     Usage with `compile()` API:
 
     ```python
-    model = keras.Sequential()
+    model = ncps.mini_keras.Sequential()
     model.add(keras.layers.Dense(64, activation='relu'))
     model.add(keras.layers.Dense(64, activation='relu'))
     model.add(keras.layers.Dense(10, activation='softmax'))

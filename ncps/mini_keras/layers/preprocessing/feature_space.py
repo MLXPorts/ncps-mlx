@@ -184,8 +184,8 @@ class FeatureSpace(Layer):
     # Retrieve the corresponding encoded Keras tensors
     encoded_features = feature_space.get_encoded_features()
     # Build a Functional model
-    outputs = keras.layers.Dense(1, activation="sigmoid")(encoded_features)
-    model = keras.Model(inputs, outputs)
+    outputs = ncps.mini_keras.layers.Dense(1, activation="sigmoid")(encoded_features)
+    model = ncps.mini_keras.Model(inputs, outputs)
     ```
 
     **Customizing each feature or feature cross:**
@@ -256,7 +256,7 @@ class FeatureSpace(Layer):
     preprocessing_layer = feature_space.preprocessors["feature1"]
 
     # The crossing layer of each feature cross is available in `.crossers`.
-    # It's an instance of keras.layers.HashedCrossing.
+    # It's an instance of ncps.mini_keras.layers.HashedCrossing.
     crossing_layer = feature_space.crossers["feature1_X_feature2"]
     ```
 
@@ -264,7 +264,7 @@ class FeatureSpace(Layer):
 
     ```python
     feature_space.save("featurespace.keras")
-    reloaded_feature_space = keras.models.load_model("featurespace.keras")
+    reloaded_feature_space = ncps.mini_keras.models.load_model("featurespace.keras")
     ```
     """
 
@@ -789,7 +789,7 @@ class FeatureSpace(Layer):
 
         ```python
         feature_space.save("featurespace.keras")
-        reloaded_fs = keras.models.load_model("featurespace.keras")
+        reloaded_fs = ncps.mini_keras.models.load_model("featurespace.keras")
         ```
         """
         saving_lib.save_model(self, filepath)

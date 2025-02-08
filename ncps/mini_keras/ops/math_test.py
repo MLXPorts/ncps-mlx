@@ -1,7 +1,10 @@
 import math
 
-import mlx.core as jnp
-import numpy as np
+import jax.numpy as jnp # type: ignore
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
 import pytest
 import scipy.signal
 from absl.testing import parameterized
@@ -979,7 +982,7 @@ class MathDtypeTest(testing.TestCase):
     """Test the floating dtype to verify that the behavior matches JAX."""
 
     # TODO: Using uint64 will lead to weak type promotion (`float`),
-    # resulting in different behavior between JAX and Keras. Currently, we
+    # resulting in different behavior between JAX and ncps.mini_keras. Currently, we
     # are skipping the test for uint64
     ALL_DTYPES = [
         x for x in dtypes.ALLOWED_DTYPES if x not in ["string", "uint64"]

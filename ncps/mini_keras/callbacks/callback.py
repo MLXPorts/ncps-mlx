@@ -38,7 +38,7 @@ class Callback:
     Example:
 
     ```python
-    callbacks =  keras.callbacks.CallbackList([...])
+    callbacks =  ncps.mini_keras.callbacks.CallbackList([...])
     callbacks.append(...)
     callbacks.on_train_begin(...)
     for epoch in range(EPOCHS):

@@ -1,71 +1,39 @@
 # Copyright (2017-2021)
 # The Wormnet project
 # Mathias Lechner (mlechner@ist.ac.at)
-import numpy as np
-import torch.nn as nn
-import kerasncp as kncp
-import pytorch_lightning as pl
-import torch
-import torch.utils.data as data
 
-from kerasncp.torch.experimental import CfC, WiredCfC
+from ncps import mini_keras as mini_keras
+from ncps.mini_keras import ops
+from ncps import wirings
+from ncps.mlx import CfC, WiredCfCCell
+from ncps.mini_keras.models import Sequential, Model
+# Define the sequence model using mini_keras Model API 
 
-
-# LightningModule for training a RNNSequence module
-class SequenceLearner(pl.LightningModule):
-    def __init__(self, model, lr=0.005):
-        super().__init__()
-        self.model = model
-        self.lr = lr
-
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.model.forward(x)
-        # y_hat = y_hat.view_as(y)
-        loss = nn.MSELoss()(y_hat, y)
-        self.log("train_loss", loss, prog_bar=True)
-        return {"loss": loss}
-
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.model.forward(x)
-        y_hat = y_hat.view_as(y)
-        loss = nn.MSELoss()(y_hat, y)
-
-        self.log("val_loss", loss, prog_bar=True)
-        return loss
-
-    def test_step(self, batch, batch_idx):
-        # Here we just reuse the validation_step for testing
-        return self.validation_step(batch, batch_idx)
-
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=self.lr)
-
-
+# Data preparation using Keras ops
+N = 48  # Length of the time-series
 in_features = 2
 out_features = 1
-N = 48  # Length of the time-series
-# Input feature is a sine and a cosine wave
-data_x = np.stack(
-    [np.sin(np.linspace(0, 3 * np.pi, N)), np.cos(np.linspace(0, 3 * np.pi, N))], axis=1
-)
-data_x = np.expand_dims(data_x, axis=0).astype(np.float32)  # Add batch dimension
-# Target output is a sine with double the frequency of the input signal
-data_y = np.sin(np.linspace(0, 6 * np.pi, N)).reshape([1, N, 1]).astype(np.float32)
-data_x = torch.Tensor(data_x)
-data_y = torch.Tensor(data_y)
-print("data_y.shape: ", str(data_y.shape))
 
-# Example usage of the CfC model with PyTorch
-for model in [
-    CfC(in_features=in_features, hidden_size=32, out_features=out_features),
-    WiredCfC(
-        in_features=in_features, wiring=kncp.wirings.FullyConnected(8, out_features)
+# Input feature is a sine and a cosine wave using Keras ops
+t = ops.linspace(0, 3 * ops.pi(), N)
+sin_wave = ops.sin(t)
+cos_wave = ops.cos(t)
+data_x = ops.stack([sin_wave, cos_wave], axis=1)
+data_x = ops.expand_dims(data_x, axis=0)  # Add batch dimension
+
+# Target output is a sine with double the frequency
+t_out = ops.linspace(0, 6 * ops.pi(), N)  
+data_y = ops.sin(t_out)
+data_y = ops.reshape(data_y, [1, N, 1])
+
+# List of models to test
+model_configs = [
+    CfC(units=32),
+    WiredCfCCell(
+        wiring=wirings.FullyConnected(8, out_features)
     ),
-    WiredCfC(
-        in_features=in_features,
-        wiring=kncp.wirings.NCP(
+    WiredCfCCell(
+        wiring=wirings.NCP(
             inter_neurons=16,
             command_neurons=8,
             motor_neurons=out_features,
@@ -73,22 +41,18 @@ for model in [
             inter_fanout=4,
             recurrent_command_synapses=5,
             motor_fanin=8,
-        ),
+        )
     ),
     CfC(
-        in_features=in_features,
-        hidden_size=32,
-        out_features=out_features,
-        use_mm_rnn=True,
+        units=32,
+        mode="pure"
     ),
-    WiredCfC(
-        in_features=in_features,
-        wiring=kncp.wirings.FullyConnected(8, out_features),
-        use_mm_rnn=True,
+    WiredCfCCell(
+        wiring=wirings.FullyConnected(8, out_features),
+        mode="pure"
     ),
-    WiredCfC(
-        in_features=in_features,
-        wiring=kncp.wirings.NCP(
+    WiredCfCCell(
+        wiring=wirings.NCP(
             inter_neurons=16,
             command_neurons=8,
             motor_neurons=out_features,
@@ -97,16 +61,30 @@ for model in [
             recurrent_command_synapses=5,
             motor_fanin=8,
         ),
-        use_mm_rnn=True,
+        mode="pure"
     ),
-]:
-    dataloader = data.DataLoader(
-        data.TensorDataset(data_x, data_y), batch_size=1, shuffle=True, num_workers=4
-    )
-    learn = SequenceLearner(model, lr=0.01)
-    trainer = pl.Trainer(
-        max_epochs=10,
-        gradient_clip_val=1,  # Clip gradient to stabilize training
-        gpus=1,
-    )
-    trainer.fit(learn, dataloader)
+]
+
+
+# Approach 2: Using standard Keras training (model.compile and model.fit)
+# Comment out or remove the SupervisedTrainer related code above
+for rnn_cell in model_configs:
+    # Use proper Keras model building pattern
+    
+    inputs = mini_keras.Input(shape=(N, in_features))
+    x = mini_keras.layers.RNN(rnn_cell, return_sequences=True)(inputs)
+    model = mini_keras.Model(inputs=inputs, outputs=x)
+
+    model.compile(optimizer=mini_keras.optimizers.Adam(learning_rate=0.01),
+                 loss='mse',
+                 metrics=['mse'])
+    
+    print(f"\nTraining model: {rnn_cell.__class__.__name__}")
+
+    history = model.fit(data_x.astype("float32"), data_y.astype("float32"), 
+                            batch_size=1, epochs=10, verbose=1)
+    
+    loss, mse = model.evaluate(data_x, data_y)
+    print(f"\nFinal training metrics for {rnn_cell.__class__.__name__}:")
+    print(f"loss: {loss}")
+    print(f"mse: {mse}")

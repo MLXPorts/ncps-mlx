@@ -11,7 +11,7 @@ class Orthogonal(Operation):
         self.gain = gain
 
     def call(self):
-        return backend.mlx.orthogonal(self.shape, self.gain)
+        return backend.common.orthogonal(self.shape, self.gain)
 
     def compute_output_spec(self):
         return KerasTensor(self.shape, dtype=backend.floatx())

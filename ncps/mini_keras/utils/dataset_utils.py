@@ -4,8 +4,11 @@ import time
 import warnings
 from multiprocessing.pool import ThreadPool
 
-import mlx.core as np
-
+try:
+    import mlx.core as np
+except ImportError:
+    import numpy as np
+    
 from ncps.mini_keras import tree
 from ncps.mini_keras.api_export import keras_mini_export
 from ncps.mini_keras.utils import io_utils
@@ -43,7 +46,7 @@ def split_dataset(
     Example:
 
     >>> data = np.random.random(size=(1000, 4))
-    >>> left_ds, right_ds = keras.utils.split_dataset(data, left_size=0.8)
+    >>> left_ds, right_ds = ncps.mini_keras.utils.split_dataset(data, left_size=0.8)
     >>> int(left_ds.cardinality())
     800
     >>> int(right_ds.cardinality())

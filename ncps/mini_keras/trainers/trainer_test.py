@@ -1,10 +1,16 @@
 from unittest import mock
 
-import mlx.core as np
+try:
+    import mlx.core as np
+    BackendArray = np.array
+except ImportError:
+    import numpy as np
+    BackendArray = np.ndarray
+
 import pytest
 from absl.testing import parameterized
 
-import keras
+import ncps.mini_keras
 from ncps.mini_keras import backend
 from ncps.mini_keras import initializers
 from ncps.mini_keras import layers
@@ -32,6 +38,8 @@ elif backend.backend() == "numpy":
     from ncps.mini_keras.backend.numpy.trainer import NumpyTrainer as Trainer
 elif backend.backend() == "openvino":
     from ncps.mini_keras.backend.openvino.trainer import OpenVINOTrainer as Trainer
+elif backend.backend() == "mlx":
+    from ncps.mini_keras.backend.mlx.trainer import MLXTrainer as Trainer
 else:
     raise ImportError(f"Invalid backend: {backend.backend()}")
 
@@ -237,8 +245,8 @@ def sparse_generator(generator_type):
             y = tf.random.uniform((2, 3), dtype="float32")
             yield x, y
     elif generator_type == "jax":
-        import jax
-        import jax.experimental.sparse as jax_sparse
+        import jax # type: ignore
+        import jax.experimental.sparse as jax_sparse # type: ignore
 
         for _ in range(4):
             seed = jax.random.PRNGKey(0)
@@ -379,7 +387,7 @@ class TestTrainer(testing.TestCase):
         self.assertEqual(model.metrics[0], model._loss_tracker)
         self.assertEqual(model.metrics[1], model._compile_metrics)
 
-        inputs = keras.Input((4,))
+        inputs = ncps.mini_keras.Input((4,))
         outputs = model(inputs)
         outputs = layers.Dense(8)(outputs)
         new_model = models.Model(inputs, outputs)
@@ -396,7 +404,7 @@ class TestTrainer(testing.TestCase):
         model = ExampleModel(units=3)
         self.assertLen(model.metrics, 0)
 
-        inputs = keras.Input((4,))
+        inputs = ncps.mini_keras.Input((4,))
         outputs = model(inputs)
         outputs = layers.Dense(8)(outputs)
         new_model = models.Model(inputs, outputs)
@@ -420,7 +428,7 @@ class TestTrainer(testing.TestCase):
         )
 
         # Combine these 2 models into `combined`.
-        inputs = keras.Input(shape=(4,))
+        inputs = ncps.mini_keras.Input(shape=(4,))
         x = model1(inputs)
         outputs = model2(x)
         combined = models.Model(inputs, outputs)
@@ -1132,9 +1140,9 @@ class TestTrainer(testing.TestCase):
             generate_uneven_batches,
             output_signature=tf.TensorSpec((None,), dtype=tf.int32),
         )
-        x = keras.layers.Input(shape=())
-        y = keras.layers.Identity()(x)
-        model = keras.Model(x, y)
+        x = ncps.mini_keras.layers.Input(shape=())
+        y = ncps.mini_keras.layers.Identity()(x)
+        model = ncps.mini_keras.Model(x, y)
         model.compile(
             loss="mse",
             optimizer="sgd",
@@ -1175,8 +1183,8 @@ class TestTrainer(testing.TestCase):
                 j += 1
                 yield (batch,)
 
-        model = keras.Sequential(
-            [keras.layers.InputLayer(shape=()), keras.layers.Identity()]
+        model = ncps.mini_keras.Sequential(
+            [ncps.mini_keras.layers.InputLayer(shape=()), ncps.mini_keras.layers.Identity()]
         )
         model.compile(
             loss="mse",
@@ -1812,7 +1820,7 @@ class TestTrainer(testing.TestCase):
         self.assertAlmostEqual(logs["loss"], 14.97)
 
         output = model.predict_on_batch(x)
-        self.assertIsInstance(output, np.ndarray)
+        self.assertIsInstance(output, BackendArray)
         self.assertAllClose(output[0], np.array([3.789511, 3.789511, 3.789511]))
 
         # With sample weights
@@ -1846,7 +1854,7 @@ class TestTrainer(testing.TestCase):
             jit_compile=jit_compile,
         )
         output = model.predict_on_batch(x)
-        self.assertIsInstance(output, np.ndarray)
+        self.assertIsInstance(output, BackendArray)
         self.assertAllClose(output[0], np.array([4.0, 4.0, 4.0]))
 
         logs = model.test_on_batch(x, y)
@@ -1862,7 +1870,7 @@ class TestTrainer(testing.TestCase):
     def test_nested_input_predict(self):
         # https://github.com/keras-team/keras/issues/325
 
-        class TupleInputModel(keras.Model):
+        class TupleInputModel(ncps.mini_keras.Model):
             def call(self, inputs):
                 a, b = inputs
                 return a + b
@@ -1872,7 +1880,7 @@ class TestTrainer(testing.TestCase):
         out = model.predict((x1, x2))
         self.assertEqual(out.shape, (3, 4))
 
-        class DictInputModel(keras.Model):
+        class DictInputModel(ncps.mini_keras.Model):
             def call(self, inputs):
                 return inputs["a"] + inputs["b"]
 
@@ -2018,7 +2026,7 @@ class TestTrainer(testing.TestCase):
                 self.add_loss(ops.sum(x))
                 return x
 
-        model = keras.Sequential(
+        model = ncps.mini_keras.Sequential(
             [
                 layers.Dense(2),
                 LossLayer(),
@@ -2031,14 +2039,14 @@ class TestTrainer(testing.TestCase):
         model.fit(x, y, batch_size=4)
 
     def get_layer(self):
-        class ExampleLayer(keras.Layer):
+        class ExampleLayer(ncps.mini_keras.Layer):
             def call(self, x):
                 return x * 2
 
         return ExampleLayer
 
     def get_model(self):
-        class ExampleModel(keras.Model):
+        class ExampleModel(ncps.mini_keras.Model):
             def call(self, x):
                 return x * 2
 
@@ -2049,7 +2057,7 @@ class TestTrainer(testing.TestCase):
 
         class ExampleFunctional(ncps.mini_keras.Functional):
             def __init__(self, input_shape=(None,)):
-                inputs = keras.Input(input_shape)
+                inputs = ncps.mini_keras.Input(input_shape)
                 outputs = ExampleLayer()(inputs)
                 super().__init__(inputs=inputs, outputs=outputs)
 
@@ -2073,7 +2081,7 @@ class TestTrainer(testing.TestCase):
     )
     @pytest.mark.requires_trainable_backend
     @pytest.mark.skipif(
-        keras.backend.backend() != "tensorflow",
+        ncps.mini_keras.backend.backend() != "tensorflow",
         reason="Only tensorflow supports raggeds",
     )
     def test_trainer_with_raggeds(self, model_class):
@@ -2097,7 +2105,7 @@ class TestTrainer(testing.TestCase):
             self.assertEqual(type(y), tf.RaggedTensor)
 
         # test if everything works with the sequential model
-        model = keras.Sequential([model])
+        model = ncps.mini_keras.Sequential([model])
         model.compile(optimizer="adam", loss=loss_fn)
         model.fit(x, x)
         y = model.predict(x)
@@ -2109,7 +2117,7 @@ class TestTrainer(testing.TestCase):
 
         inputs = layers.Input((20,))
         outputs = layers.Dropout(0.5, seed=1337)(inputs, training=True)
-        model = keras.Model(inputs, outputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
         out1 = model.predict(np.ones((4, 20)), batch_size=2)
         self.assertGreater(5, np.sum(np.abs(out1[:2, :] - out1[2:4, :])))
 
@@ -2206,7 +2214,7 @@ class TestTrainer(testing.TestCase):
         model = ExampleModel(units=3)
         model.compile(optimizer="sgd", loss="mse", metrics=["mse"])
 
-        class Recorder(keras.callbacks.Callback):
+        class Recorder(ncps.mini_keras.callbacks.Callback):
             def __init__(self):
                 self.train_counter = 0
                 self.val_counter = 0
@@ -2247,7 +2255,7 @@ class TestTrainer(testing.TestCase):
         model = ExampleModel(units=3)
         model.compile(optimizer="sgd", loss="mse", metrics=["mse"])
 
-        class Stopper(keras.callbacks.Callback):
+        class Stopper(ncps.mini_keras.callbacks.Callback):
             def __init__(self, stop_count):
                 self.stop_count = stop_count
                 self.counter = 0
@@ -2291,16 +2299,16 @@ class TestTrainer(testing.TestCase):
         class TestTimeDropout(layers.Layer):
             def __init__(self):
                 super().__init__()
-                self.random_generator = keras.random.SeedGenerator()
+                self.random_generator = ncps.mini_keras.random.SeedGenerator()
 
             def call(self, x):
-                return keras.random.dropout(
+                return ncps.mini_keras.random.dropout(
                     x, rate=0.5, seed=self.random_generator
                 )
 
         inputs = layers.Input((20,))
         outputs = TestTimeDropout()(inputs)
-        model = keras.Model(inputs, outputs)
+        model = ncps.mini_keras.Model(inputs, outputs)
         model.compile(optimizer="rmsprop", loss="mse")
 
         x = np.ones((32, 20))
@@ -2310,7 +2318,7 @@ class TestTrainer(testing.TestCase):
 
     @pytest.mark.requires_trainable_backend
     def test_callbacks_can_update_state_at_batch_boundary(self):
-        class CounterModel(keras.Model):
+        class CounterModel(ncps.mini_keras.Model):
             def __init__(self):
                 super().__init__()
                 self.train_counter = self.add_weight(
@@ -2330,7 +2338,7 @@ class TestTrainer(testing.TestCase):
             def call(self, x):
                 return self.dense(x)
 
-        class CounterCallback(keras.callbacks.Callback):
+        class CounterCallback(ncps.mini_keras.callbacks.Callback):
             def __init__(self):
                 self.eager_call_counter_train = 0
                 self.eager_call_counter_test = 0
@@ -2378,11 +2386,11 @@ class TestTrainer(testing.TestCase):
     def test_metric_update_in_compute_loss(self):
         test_self = self
 
-        class MyModel(keras.Model):
+        class MyModel(ncps.mini_keras.Model):
             def __init__(self):
                 super().__init__()
-                self.custom_metric = keras.metrics.Mean(name="custom")
-                self.dense = keras.layers.Dense(2)
+                self.custom_metric = ncps.mini_keras.metrics.Mean(name="custom")
+                self.dense = ncps.mini_keras.layers.Dense(2)
 
             def call(self, x):
                 return self.dense(x)
@@ -2416,11 +2424,11 @@ class TestTrainer(testing.TestCase):
     def test_fwd_pass_loss_presence_in_compute_loss(self):
         test_self = self
 
-        class MyModel(keras.Model):
+        class MyModel(ncps.mini_keras.Model):
             def __init__(self):
                 super().__init__()
-                self.custom_metric = keras.metrics.Mean(name="custom")
-                self.dense = keras.layers.Dense(2, activity_regularizer="l2")
+                self.custom_metric = ncps.mini_keras.metrics.Mean(name="custom")
+                self.dense = ncps.mini_keras.layers.Dense(2, activity_regularizer="l2")
 
             def call(self, x):
                 return self.dense(x)
@@ -2452,11 +2460,11 @@ class TestTrainer(testing.TestCase):
     def test_evaluate_with_custom_compute_loss(self):
         test_self = self
 
-        class MyModel(keras.Model):
+        class MyModel(ncps.mini_keras.Model):
             def __init__(self):
                 super().__init__()
-                self.custom_metric = keras.metrics.Mean(name="custom")
-                self.dense = keras.layers.Dense(2, activity_regularizer="l2")
+                self.custom_metric = ncps.mini_keras.metrics.Mean(name="custom")
+                self.dense = ncps.mini_keras.layers.Dense(2, activity_regularizer="l2")
 
             def call(self, x):
                 return self.dense(x)
@@ -2486,11 +2494,11 @@ class TestTrainer(testing.TestCase):
 
     @pytest.mark.requires_trainable_backend
     def test_compute_loss_no_training_backwards_compatibility(self):
-        class MyModel(keras.Model):
+        class MyModel(ncps.mini_keras.Model):
             def __init__(self):
                 super().__init__()
-                self.custom_metric = keras.metrics.Mean(name="custom")
-                self.dense = keras.layers.Dense(2, activity_regularizer="l2")
+                self.custom_metric = ncps.mini_keras.metrics.Mean(name="custom")
+                self.dense = ncps.mini_keras.layers.Dense(2, activity_regularizer="l2")
 
             def call(self, x):
                 return self.dense(x)
@@ -2606,11 +2614,11 @@ class TestTrainer(testing.TestCase):
 
     @pytest.mark.requires_trainable_backend
     def test_partial_loss_partial_label(self):
-        inputs = keras.Input((2,))
-        x = keras.layers.Dense(3, kernel_initializer="ones")(inputs)
-        partial_model = keras.Model(inputs, [x, x, x])
+        inputs = ncps.mini_keras.Input((2,))
+        x = ncps.mini_keras.layers.Dense(3, kernel_initializer="ones")(inputs)
+        partial_model = ncps.mini_keras.Model(inputs, [x, x, x])
         partial_model.compile(loss=["mse", None, None])
-        full_model = keras.Model(inputs, [x, x, x])
+        full_model = ncps.mini_keras.Model(inputs, [x, x, x])
         full_model.compile(loss=["mse", "mse", "mse"])
 
         eval_x = np.ones((32, 2))
@@ -2710,12 +2718,12 @@ class TestTrainer(testing.TestCase):
         x = np.ones((100, 4))
         y = np.ones((100, 1))
 
-        input = keras.Input(shape=[4])
-        output = keras.layers.Dense(1, activation="relu")(input)
+        input = ncps.mini_keras.Input(shape=[4])
+        output = ncps.mini_keras.layers.Dense(1, activation="relu")(input)
 
         tracing_count = [0]
 
-        class TracingCounterModel(keras.Model):
+        class TracingCounterModel(ncps.mini_keras.Model):
             def train_step(self, *args):
                 tracing_count[0] = tracing_count[0] + 1
                 return super().train_step(*args)
@@ -2750,12 +2758,12 @@ class TestTrainer(testing.TestCase):
     def test_retracing_predict(self):
         x = np.ones((100, 4))
 
-        input = keras.Input(shape=[4])
-        output = keras.layers.Dense(1, activation="relu")(input)
+        input = ncps.mini_keras.Input(shape=[4])
+        output = ncps.mini_keras.layers.Dense(1, activation="relu")(input)
 
         tracing_count = [0]
 
-        class TracingCounterModel(keras.Model):
+        class TracingCounterModel(ncps.mini_keras.Model):
             def predict_step(self, *args):
                 tracing_count[0] = tracing_count[0] + 1
                 return super().predict_step(*args)

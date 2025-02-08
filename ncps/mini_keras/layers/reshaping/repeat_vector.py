@@ -10,8 +10,8 @@ class RepeatVector(Layer):
 
     Example:
 
-    >>> x = keras.Input(shape=(32,))
-    >>> y = keras.layers.RepeatVector(3)(x)
+    >>> x = ncps.mini_keras.Input(shape=(32,))
+    >>> y = ncps.mini_keras.layers.RepeatVector(3)(x)
     >>> y.shape
     (None, 3, 32)
 
