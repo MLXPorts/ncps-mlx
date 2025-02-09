@@ -214,10 +214,13 @@ class RNN(Layer):
         self.input_spec = None
         self.states = None
 
-        state_size = getattr(self.cell, "state_size", None)
-        if state_size is None:
+        try:
+            state_size = self.cell.state_size
+        except AttributeError:
             raise ValueError(
-                "state_size must be specified as property on the RNN cell."
+                f"Cell {self.cell.__class__.__name__} is missing required "
+                "'state_size' attribute. The state_size must be specified as "
+                "an integer or tuple/list of integers."
             )
         if not isinstance(state_size, (list, tuple, int)):
             raise ValueError(
@@ -473,3 +476,5 @@ class RNN(Layer):
         )
         layer = cls(cell, **config)
         return layer
+
+

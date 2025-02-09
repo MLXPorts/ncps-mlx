@@ -15,9 +15,9 @@
 # limitations under the License.
 
 
+from typing import Union
 import ncps
 from ncps.mlx import CfCCell, MixedMemoryRNN, WiredCfCCell  # Importing custom cell implementations
-from typing import Union
 
 
 @ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="CfC")

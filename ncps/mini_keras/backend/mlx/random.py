@@ -1,123 +1,119 @@
-try:
-    import mlx.core as np
-except ImportError:
-    import numpy as np
-
-from ncps.mini_keras.backend.config import floatx
-from ncps.mini_keras.backend.numpy.nn import softmax
-from ncps.mini_keras.random.seed_generator import SeedGenerator
 from ncps.mini_keras.random.seed_generator import draw_seed
-from ncps.mini_keras.random.seed_generator import make_default_seed
 
+import mlx.core as mx
+from mlx.utils import tree_map
+
+def draw_seed(seed=None):
+    return mx.random.key(seed if seed is not None else mx.random.generate_seed())
 
 def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
-    dtype = dtype or floatx()
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-    return rng.normal(size=shape, loc=mean, scale=stddev).astype(dtype)
-
+    key = draw_seed(seed)
+    return mx.random.normal(shape, mean, stddev, key=key).astype(dtype or mx.float32)
 
 def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
-    dtype = dtype or floatx()
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-    return rng.uniform(size=shape, low=minval, high=maxval).astype(dtype)
-
+    key = draw_seed(seed)
+    return mx.random.uniform(shape, minval, maxval, key=key).astype(dtype or mx.float32)
 
 def categorical(logits, num_samples, dtype="int64", seed=None):
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-    output = []
-    for logits_instance in logits:
-        probabilities = softmax(logits_instance)
-        classes = np.arange(logits_instance.shape[-1])
-        samples = rng.choice(classes, size=num_samples, p=probabilities)
-        output.append(samples)
-    return np.array(output).astype(dtype)
-
+    key = draw_seed(seed)
+    return mx.random.categorical(logits, num_samples, key=key).astype(dtype)
 
 def randint(shape, minval, maxval, dtype="int32", seed=None):
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-    output = rng.integers(low=minval, high=maxval, size=shape, dtype=dtype)
-    return output
-
+    key = draw_seed(seed)
+    return mx.random.randint(shape, minval, maxval, key=key).astype(dtype)
 
 def truncated_normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
-    dtype = dtype or floatx()
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-
-    lower_bound = mean - 2 * stddev
-    upper_bound = mean + 2 * stddev
-
-    flat_shape = np.prod(shape)
-    random_numbers = np.empty(0)
-
-    # loop until we have enough valid numbers to fill our desired shape
-    while random_numbers.shape[0] < flat_shape:
-        # Generate a batch of random numbers from a normal distribution
-        batch = rng.normal(loc=mean, scale=stddev, size=flat_shape)
-
-        # Filter the numbers to keep only those within the specified bounds
-        valid = batch[(batch >= lower_bound) & (batch <= upper_bound)]
-
-        # Append the valid numbers to the result array
-        random_numbers = np.append(random_numbers, valid)
-
-    # Truncate the result array to the desired size and reshape it
-    return random_numbers[:flat_shape].astype(dtype).reshape(shape)
-
+    key = draw_seed(seed)
+    samples = mx.random.normal(shape, mean, stddev, key=key)
+    samples = mx.clip(samples, mean - 2*stddev, mean + 2*stddev)
+    return samples.astype(dtype or mx.float32)
 
 def dropout(inputs, rate, noise_shape=None, seed=None):
-    dtype = inputs.dtype
-    seed = draw_seed(seed)
-
-    keep_prob = 1.0 - rate
-
-    # If noise_shape is not provided, use the shape of inputs
-    if noise_shape is None:
-        noise_shape = inputs.shape
-    else:
-        # If noise_shape is provided, replace None with corresponding
-        # input shape
-        noise_shape = [
-            n if n is not None else inputs.shape[i]
-            for i, n in enumerate(noise_shape)
-        ]
-
-    rng = np.random.default_rng(seed)
-    mask = rng.uniform(size=noise_shape) < keep_prob
-    mask = np.broadcast_to(mask, inputs.shape)
-    return np.where(
-        mask, (inputs / keep_prob).astype(dtype), np.zeros_like(inputs)
-    )
-
+    key = draw_seed(seed)
+    return mx.nn.dropout(inputs, rate, key=key)
 
 def shuffle(x, axis=0, seed=None):
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-    return rng.permuted(x, axis=axis)
+    key = draw_seed(seed)
+    return mx.random.permutation(x, axis, key=key)
 
+#########################
+### Gamma Distribution ##
+#########################
 
+def gamma(shape, scale=1.0, num_candidates=10, key=None):
+    """
+    Gamma distribution sampler using Marsaglia-Tsang algorithm
+    with shape >= 1 and auxiliary uniform sampling for shape < 1
+    """
+    key = key if key is not None else mx.random.key(0)
+    shape = mx.array(shape)
+    
+    def _gamma_ge1(shape, scale, key):
+        """Marsaglia-Tsang algorithm for shape >= 1"""
+        d = shape - 1/3
+        v = 1 / mx.sqrt(9 * d)
+        
+        key, ukey, zkey = mx.random.split(key, 3)
+        U = mx.random.uniform(shape=(num_candidates,), key=ukey)
+        Z = mx.random.normal(shape=(num_candidates,), key=zkey)
+        
+        t = (1 + v * Z)**3
+        X = d * t
+        log_accept = 0.5 * Z**2 + d * (1 - t + mx.log(t))
+        accept_mask = mx.log(U) < log_accept
+        
+        valid = mx.argmax(accept_mask, axis=0)
+        return X[valid] * scale
+
+    def _gamma_lt1(shape, scale, key):
+        """Auxiliary uniform method for shape < 1"""
+        key, gkey, ukey = mx.random.split(key, 3)
+        g = gamma(shape + 1, 1.0, num_candidates, gkey)
+        u = mx.random.uniform(key=ukey)
+        return g * u ** (1 / shape) * scale
+
+    return mx.cond(
+        shape >= 1,
+        lambda k: _gamma_ge1(shape, scale, k),
+        lambda k: _gamma_lt1(shape, scale, k),
+        key
+    )
+
+##########################
+### Binomial Distribution #
+##########################
+
+def binomial(n, p, shape=(), key=None):
+    """
+    Binomial distribution using vectorized Bernoulli trials
+    Args:
+        n: number of trials per sample
+        p: probability of success
+        shape: output shape (samples,)
+    """
+    key = key if key is not None else mx.random.key(0)
+    trials = mx.random.bernoulli(p, shape + (n,), key=key)
+    return mx.sum(trials.astype(mx.int32), axis=-1)
+
+#######################
+### Beta Distribution #
+#######################
+
+def beta(a, b, key=None):
+    """Beta distribution using gamma variates"""
+    key = key if key is not None else mx.random.key(0)
+    key, gkey1, gkey2 = mx.random.split(key, 3)
+    
+    ga = gamma(a, 1.0, key=gkey1)
+    gb = gamma(b, 1.0, key=gkey2)
+    
+    return ga / (ga + gb)
 def gamma(shape, alpha, dtype=None, seed=None):
-    dtype = dtype or floatx()
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-    return rng.gamma(alpha, scale=1.0, size=shape).astype(dtype)
-
+    raise NotImplementedError("Gamma distribution not directly implemented in MLX")
 
 def binomial(shape, counts, probabilities, dtype=None, seed=None):
-    dtype = dtype or floatx()
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-    sample = rng.binomial(n=counts, p=probabilities, size=shape).astype(dtype)
-    return sample
-
+    key = draw_seed(seed)
+    return mx.random.bernoulli(probabilities, shape, key=key).astype(dtype or mx.float32)
 
 def beta(shape, alpha, beta, dtype=None, seed=None):
-    dtype = dtype or floatx()
-    seed = draw_seed(seed)
-    rng = np.random.default_rng(seed)
-    sample = rng.beta(a=alpha, b=beta, size=shape).astype(dtype)
-    return sample
+    raise NotImplementedError("Beta distribution not directly implemented in MLX")

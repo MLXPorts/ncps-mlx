@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import ncps
-from ncps.mlx import LTCCell, MixedMemoryRNN
+from . import LTCCell, MixedMemoryRNN
 # import tensorflow as tf
-# from typing import Optional, Union
+from typing import Union, Optional, Dict, Any
 
 @ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="LTC")
-class LTC(ncps.mini_keras.layers.RNN):  # Change from RNN to RNNBase
+class LTC(ncps.mini_keras.layers.RNN):
     """
     Applies a Liquid time-constant (LTC) RNN to an input sequence.
 
@@ -43,22 +43,22 @@ class LTC(ncps.mini_keras.layers.RNN):  # Change from RNN to RNNBase
     """
 
     def __init__(
-        self,
-        units,
-        mixed_memory: bool = False,
-        input_mapping="affine",
-        output_mapping="affine",
-        ode_unfolds=6,
-        epsilon=1e-8,
-        initialization_ranges=None,
-        return_sequences: bool = False,
-        return_state: bool = False,
-        go_backwards: bool = False,
-        stateful: bool = False,
-        unroll: bool = False,
-        time_major: bool = False,
-        **kwargs,
-    ):
+    self,
+    units: Union[int, ncps.wirings.Wiring],
+    input_mapping: str = "affine",
+    output_mapping: str = "affine",
+    ode_unfolds: int = 6,
+    epsilon: float = 1.0,
+    initialization_ranges: Optional[Dict[str, Any]] = None,
+    return_sequences: bool = False,
+    return_state: bool = False,
+    go_backwards: bool = False,
+    stateful: bool = False,
+    unroll: bool = False,
+    time_major: bool = False,
+    mixed_memory: bool = False,
+    **kwargs
+    ) -> None:
         """
         Initialize the LTC RNN.
 
@@ -79,10 +79,8 @@ class LTC(ncps.mini_keras.layers.RNN):  # Change from RNN to RNNBase
             kwargs: Additional arguments.
         """
 
-        if isinstance(units, ncps.wirings.Wiring):
-            wiring = units
-        else:
-            wiring = ncps.wirings.FullyConnected(units)
+        wiring = ncps.wirings.FullyConnected(units) if isinstance(units, int) else units
+
 
         cell = LTCCell(
             wiring=wiring,
@@ -95,6 +93,8 @@ class LTC(ncps.mini_keras.layers.RNN):  # Change from RNN to RNNBase
         )
         if mixed_memory:
             cell = MixedMemoryRNN(cell)
+        import mlx.core as mx
+
         super(LTC, self).__init__(
             cell,
             return_sequences,

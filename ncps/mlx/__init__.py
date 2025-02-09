@@ -23,6 +23,5 @@ from .eltc_cell import EnhancedLTCCell
 # Move these imports after mx is imported
 from .ltc_cell import LTCCell
 from .ltc import LTC
-
 __all__ = ["CfC", "CfCCell", "LTC", "LTCCell", "MixedMemoryRNN", "WiredCfCCell",
            "mx", "EnhancedLTCCell"]

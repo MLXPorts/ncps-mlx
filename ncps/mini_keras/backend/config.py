@@ -331,4 +331,4 @@ def backend():
 
     """
 
-    return _BACKEND
+    return 'mlx'

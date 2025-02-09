@@ -1,16 +1,17 @@
 try:
     import mlx.core as np
     BackendArray = np.array
+    from ncps.mini_keras.backend.mlx.core import is_tensor
 except ImportError:
     import numpy as np
     BackendArray = np.ndarray
-    
+    from ncps.mini_keras.backend.numpy.core import is_tensor
+
 from ncps.mini_keras import backend
 from ncps.mini_keras import callbacks as callbacks_module
 from ncps.mini_keras import tree
 from ncps.mini_keras.backend.common import standardize_dtype
 from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
-from ncps.mini_keras.backend.numpy.core import is_tensor
 from ncps.mini_keras.trainers import trainer as base_trainer
 from ncps.mini_keras.trainers.data_adapters import data_adapter_utils
 from ncps.mini_keras.trainers.epoch_iterator import EpochIterator

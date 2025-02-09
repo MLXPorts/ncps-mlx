@@ -4,8 +4,6 @@ from .cfc_cell import CfCCell
 import mlx.core as mx
 import ncps
 from ncps.wirings import wirings
-from ncps.mini_keras.activations import lecun_tanh
-
 @ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="WiredCfCCell")
 class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
     def __init__(
@@ -16,9 +14,8 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
         activation="lecun_tanh",
         **kwargs,
     ):
-        self._wiring = wiring  # Set wiring before super().__init__
         super().__init__(**kwargs)
-        self.mode = mode
+        self._wiring = wiring
         allowed_modes = ["default", "pure", "no_gate"]
         if mode not in allowed_modes:
             raise ValueError(
@@ -26,6 +23,7 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
                     mode, str(allowed_modes)
                 )
             )
+        self.mode = mode
         self.fully_recurrent = fully_recurrent
         if activation == "lecun_tanh":
             activation = lecun_tanh
@@ -35,10 +33,6 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
     @property
     def state_size(self):
         return self._wiring.units
-
-    @property
-    def output_size(self):
-        return self._wiring.output_dim
 
     @property
     def input_size(self):
@@ -53,8 +47,40 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
 
         self._wiring.build(input_dim)
         for i in range(self._wiring.num_layers):
-            # ...existing build logic...
-            pass
+            layer_i_neurons = self._wiring.get_neurons_of_layer(i)
+            if i == 0:
+                input_sparsity = self._wiring.sensory_adjacency_matrix[
+                    :, layer_i_neurons
+                ]
+            else:
+                prev_layer_neurons = self._wiring.get_neurons_of_layer(i - 1)
+                input_sparsity = self._wiring.adjacency_matrix[:, layer_i_neurons]
+                input_sparsity = input_sparsity[prev_layer_neurons, :]
+            if self.fully_recurrent:
+                recurrent_sparsity = np.ones(
+                    (len(layer_i_neurons), len(layer_i_neurons)), dtype=np.int32
+                )
+            else:
+                recurrent_sparsity = self._wiring.adjacency_matrix[
+                    layer_i_neurons, layer_i_neurons
+                ]
+            cell = CfCCell(
+                len(layer_i_neurons),
+                input_sparsity,
+                recurrent_sparsity,
+                mode=self.mode,
+                activation=self._activation,
+                backbone_units=0,
+                backbone_layers=0,
+                backbone_dropout=0,
+            )
+
+            cell_in_shape = (None, input_sparsity.shape[0])
+            # cell.build(cell_in_shape)
+            self._cfc_layers.append(cell)
+
+        self._layer_sizes = [l.units for l in self._cfc_layers]
+        self.built = True
 
     def call(self, inputs, states, **kwargs):
         if isinstance(inputs, (tuple, list)):
