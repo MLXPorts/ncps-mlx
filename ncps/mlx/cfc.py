@@ -21,7 +21,7 @@ from ncps.mlx import CfCCell, MixedMemoryRNN, WiredCfCCell  # Importing custom c
 
 
 @ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="CfC")
-class CfC(ncps.mini_keras.layers.RNN):  # Now inherits from CfCCell instead of EnhancedLTCCell
+class CfC(ncps.mini_keras.layers.Layer):  # Now inherits from Layer instead of RNN
     def __init__(
         self,
         units: Union[int, ncps.wirings.Wiring],
@@ -65,6 +65,22 @@ class CfC(ncps.mini_keras.layers.RNN):  # Now inherits from CfCCell instead of E
         :param kwargs:
         """
         
+        super().__init__(name=kwargs.get("name", None))  # Only pass name to Layer superclass
+        
+        self.units = units
+        self.mixed_memory = mixed_memory
+        self.mode = mode
+        self.activation = activation
+        self.backbone_units = backbone_units
+        self.backbone_layers = backbone_layers
+        self.backbone_dropout = backbone_dropout
+        self.return_sequences = return_sequences
+        self.return_state = return_state
+        self.go_backwards = go_backwards
+        self.stateful = stateful
+        self.unroll = unroll
+        self.time_major = time_major
+
         if isinstance(units, ncps.wirings.Wiring):
             if backbone_units is not None:
                 raise ValueError("Cannot use backbone_units in wired mode")
@@ -87,13 +103,4 @@ class CfC(ncps.mini_keras.layers.RNN):  # Now inherits from CfCCell instead of E
             )
         if mixed_memory:
                 cell = MixedMemoryRNN(cell)
-        super(CfC, self).__init__(
-            cell,
-            return_sequences,
-            return_state,
-            go_backwards,
-            stateful,
-            unroll,
-            time_major,
-            **kwargs,
-        )
+        self.cell = cell

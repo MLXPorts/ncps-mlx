@@ -14,8 +14,7 @@ class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
         sparsity_mask=None,
         **kwargs,
     ):
-        self._units = units  # Set units before super().__init__
-        super().__init__(**kwargs)
+        super().__init__(units=units, **kwargs)  # Pass units to parent AbstractRNNCell
         self.sparsity_mask = sparsity_mask
         if sparsity_mask is not None:
             # No backbone is allowed
@@ -35,11 +34,11 @@ class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
 
     @property
     def state_size(self):
-        return self._units
+        return self.units  # Use self.units from parent class
 
     @property
     def output_size(self):
-        return self._units
+        return self.units  # Use self.units from parent class
 
     def build(self, input_shape):
         if isinstance(input_shape[0], tuple) or isinstance(input_shape[0], ncps.mini_keras.KerasTensor):
@@ -146,7 +145,7 @@ class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
 
     def get_config(self):
         config = {
-            "units": self.units,
+            "units": self.units,  # Use self.units from parent class
             "mode": self.mode,
             "activation": self._activation,
             "backbone_units": self._backbone_units,

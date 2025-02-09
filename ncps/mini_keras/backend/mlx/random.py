@@ -2,6 +2,38 @@ from ncps.mini_keras.random.seed_generator import draw_seed
 
 import mlx.core as mx
 from mlx.utils import tree_map
+import numpy as np
+
+class SeedGenerator:
+    """MLX implementation of SeedGenerator.
+    
+    Since MLX uses numpy for random number generation under the hood,
+    we'll implement a simple wrapper around numpy's random state.
+    """
+    def __init__(self, seed=None):
+        self._np_rng = np.random.RandomState(seed)
+        self.state = mx.array(seed if seed is not None else 0)
+        
+    def __call__(self):
+        """Generate a new random seed."""
+        return self._np_rng.randint(0, 2**31 - 1)
+    
+    def get_state(self):
+        """Get the current state."""
+        return self.state
+        
+    def set_state(self, state):
+        """Set the current state."""
+        self.state = state
+        self._np_rng = np.random.RandomState(int(state))
+
+def linear_transpose(key, rows, cols):
+    """Generate transposed linear indices for MLX."""
+    return mx.array(np.arange(rows * cols).reshape(rows, cols).T)
+
+def make_rng(seed=None):
+    """Create a new SeedGenerator instance."""
+    return SeedGenerator(seed)
 
 def draw_seed(seed=None):
     return mx.random.key(seed if seed is not None else mx.random.generate_seed())

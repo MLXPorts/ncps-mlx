@@ -12,10 +12,12 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
         fully_recurrent=True,
         mode="default",
         activation="lecun_tanh",
+        return_sequences=False,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self._wiring = wiring
+        self.return_sequences = return_sequences
         allowed_modes = ["default", "pure", "no_gate"]
         if mode not in allowed_modes:
             raise ValueError(
@@ -25,9 +27,6 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
             )
         self.mode = mode
         self.fully_recurrent = fully_recurrent
-        if activation == "lecun_tanh":
-            activation = lecun_tanh
-        self._activation = activation
         self._cfc_layers = []
 
     @property
@@ -37,6 +36,10 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
     @property
     def input_size(self):
         return self._wiring.input_dim
+
+    @property
+    def output_size(self):
+        return self._wiring.output_dim
 
     def build(self, input_shape):
         if isinstance(input_shape[0], tuple):
@@ -57,8 +60,8 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
                 input_sparsity = self._wiring.adjacency_matrix[:, layer_i_neurons]
                 input_sparsity = input_sparsity[prev_layer_neurons, :]
             if self.fully_recurrent:
-                recurrent_sparsity = np.ones(
-                    (len(layer_i_neurons), len(layer_i_neurons)), dtype=np.int32
+                recurrent_sparsity = mx.ones(
+                    (len(layer_i_neurons), len(layer_i_neurons)), dtype=mx.int32
                 )
             else:
                 recurrent_sparsity = self._wiring.adjacency_matrix[
@@ -105,7 +108,10 @@ class WiredCfCCell(ncps.mini_keras.layers.AbstractRNNCell):
             output = output[:, 0 : self._wiring.output_dim]
 
         new_hiddens = mx.concat(new_hiddens, axis=-1)
-        return output, new_hiddens
+        if self.return_sequences:
+            return output, new_hiddens
+        else:
+            return output[:, -1, :], new_hiddens
 
     def get_config(self):
         seralized = self._wiring.get_config()

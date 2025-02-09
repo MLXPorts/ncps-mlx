@@ -13,13 +13,18 @@
 # limitations under the License.
 
 from ncps import wirings
-import ncps.mini_keras
+from ncps.mini_keras import (
+    layers,
+    initializers,
+    constraints,
+    saving
+)
 import mlx.core as mx
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Tuple
 
 
-@ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="LTCCell")
-class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
+@saving.register_keras_serializable(package="ncps", name="LTCCell")
+class LTCCell(layers.AbstractRNNCell):
     def __init__(
         self,
         wiring,
@@ -62,7 +67,18 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
         """
 
         super().__init__(**kwargs)
-        self._init_ranges = {
+        self._init_ranges = self._get_default_init_ranges()
+        if initialization_ranges:
+            self._validate_and_update_ranges(initialization_ranges)
+
+        self._wiring = wiring
+        self._input_mapping = input_mapping
+        self._output_mapping = output_mapping
+        self._ode_unfolds = ode_unfolds
+        self._epsilon = epsilon
+
+    def _get_default_init_ranges(self) -> Dict[str, Tuple[float, float]]:
+        return {
             "gleak": (0.001, 1.0),
             "vleak": (-0.2, 0.2),
             "cm": (0.4, 0.6),
@@ -73,33 +89,25 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
             "sensory_sigma": (3, 8),
             "sensory_mu": (0.3, 0.8),
         }
-        if not initialization_ranges is None:
-            for k, v in initialization_ranges.items():
-                if k not in self._init_ranges.keys():
-                    raise ValueError(
-                        "Unknown parameter '{}' in initialization range dictionary! (Expected only {})".format(
-                            k, str(list(self._init_range.keys()))
-                        )
-                    )
-                if k in ["gleak", "cm", "w", "sensory_w"] and v[0] < 0:
-                    raise ValueError(
-                        "Initialization range of parameter '{}' must be non-negative!".format(
-                            k
-                        )
-                    )
-                if v[0] > v[1]:
-                    raise ValueError(
-                        "Initialization range of parameter '{}' is not a valid range".format(
-                            k
-                        )
-                    )
-                self._init_ranges[k] = v
 
-        self._wiring = wiring
-        self._input_mapping = input_mapping
-        self._output_mapping = output_mapping
-        self._ode_unfolds = ode_unfolds
-        self._epsilon = epsilon
+    def _validate_and_update_ranges(self, ranges: Dict[str, Tuple[float, float]]) -> None:
+        for k, v in ranges.items():
+            if k not in self._init_ranges:
+                raise ValueError(
+                    f"Unknown parameter '{k}' in initialization range dictionary! "
+                    f"(Expected only {list(self._init_ranges.keys())})"
+                )
+            if k in ["gleak", "cm", "w", "sensory_w"] and v[0] < 0:
+                raise ValueError(f"Initialization range of parameter '{k}' must be non-negative!")
+            if v[0] > v[1]:
+                raise ValueError(f"Initialization range of parameter '{k}' is not a valid range")
+            self._init_ranges[k] = v
+
+    def _get_initializer(self, param_name: str) -> initializers.Initializer:
+        minval, maxval = self._init_ranges[param_name]
+        if minval == maxval:
+            return initializers.Constant(minval)
+        return initializers.RandomUniform(minval, maxval)
 
     @property
     def state_size(self):
@@ -127,13 +135,6 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
     def output_size(self):
         return self.motor_size
 
-    def _get_initializer(self, param_name):
-        minval, maxval = self._init_ranges[param_name]
-        if minval == maxval:
-            return ncps.mini_keras.initializers.Constant(minval)
-        else:
-            return ncps.mini_keras.initializers.RandomUniform(minval, maxval)
-
     def build(self, input_shape):
 
         # Check if input_shape is nested tuple/list
@@ -148,46 +149,26 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
         # Ensure the wiring object has a build method
         self._wiring.build(input_dim)
 
-        self._params = {}
-        self._params["gleak"] = self.add_weight(
-            name="gleak",
-            shape=(self.state_size,),
-            dtype=mx.float32,
-            constraint=ncps.mini_keras.constraints.NonNeg(),
-            initializer=self._get_initializer("gleak"),
-        )
-        self._params["vleak"] = self.add_weight(
-            name="vleak",
-            shape=(self.state_size,),
-            dtype=mx.float32,
-            initializer=self._get_initializer("vleak"),
-        )
-        self._params["cm"] = self.add_weight(
-            name="cm",
-            shape=(self.state_size,),
-            dtype=mx.float32,
-            constraint=ncps.mini_keras.constraints.NonNeg(),
-            initializer=self._get_initializer("cm"),
-        )
-        self._params["sigma"] = self.add_weight(
-            name="sigma",
-            shape=(self.state_size, self.state_size),
-            dtype=mx.float32,
-            initializer=self._get_initializer("sigma"),
-        )
-        self._params["mu"] = self.add_weight(
-            name="mu",
-            shape=(self.state_size, self.state_size),
-            dtype=mx.float32,
-            initializer=self._get_initializer("mu"),
-        )
-        self._params["w"] = self.add_weight(
-            name="w",
-            shape=(self.state_size, self.state_size),
-            dtype=mx.float32,
-            constraint=ncps.mini_keras.constraints.NonNeg(),
-            initializer=self._get_initializer("w"),
-        )
+        param_configs = {
+            "gleak": ((self.state_size,), constraints.NonNeg(), "gleak"),
+            "vleak": ((self.state_size,), None, "vleak"),
+            "cm": ((self.state_size,), constraints.NonNeg(), "cm"),
+            "sigma": ((self.state_size, self.state_size), None, "sigma"),
+            "mu": ((self.state_size, self.state_size), None, "mu"),
+            "w": ((self.state_size, self.state_size), constraints.NonNeg(), "w"),
+        }
+
+        self._params = {
+            name: self.add_weight(
+                name=name,
+                shape=shape,
+                dtype=mx.float32,
+                constraint=constraint,
+                initializer=self._get_initializer(init_key)
+            )
+            for name, (shape, constraint, init_key) in param_configs.items()
+        }
+
         self._params["erev"] = self.add_weight(
             name="erev",
             shape=(self.state_size, self.state_size),
@@ -211,7 +192,7 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
             name="sensory_w",
             shape=(self.sensory_size, self.state_size),
             dtype=mx.float32,
-            constraint=ncps.mini_keras.constraints.NonNeg(),
+            constraint=constraints.NonNeg(),
             initializer=self._get_initializer("sensory_w"),
         )
         self._params["sensory_erev"] = self.add_weight(
@@ -233,14 +214,14 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
                 name="input_w",
                 shape=(self.sensory_size,),
                 dtype=mx.float32,
-                initializer=ncps.mini_keras.initializers.Constant(1),
+                initializer=initializers.Constant(1),
             )
         if self._input_mapping == "affine":
             self._params["input_b"] = self.add_weight(
                 name="input_b",
                 shape=(self.sensory_size,),
                 dtype=mx.float32,
-                initializer=ncps.mini_keras.initializers.Constant(0),
+                initializer=initializers.Constant(0),
             )
 
         if self._output_mapping in ["affine", "linear"]:
@@ -248,14 +229,14 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
                 name="output_w",
                 shape=(self.motor_size,),
                 dtype=mx.float32,
-                initializer=ncps.mini_keras.initializers.Constant(1),
+                initializer=initializers.Constant(1),
             )
         if self._output_mapping == "affine":
             self._params["output_b"] = self.add_weight(
                 name="output_b",
                 shape=(self.motor_size,),
                 dtype=mx.float32,
-                initializer=ncps.mini_keras.initializers.Constant(0),
+                initializer=initializers.Constant(0),
             )
         self.built = True
 
@@ -268,11 +249,16 @@ class LTCCell(ncps.mini_keras.layers.AbstractRNNCell):
     def _ode_solver(self, inputs, state, elapsed_time):
         v_pre = state
 
-        # We can pre-compute the effects of the sensory neurons here
-        sensory_w_activation = self._params["sensory_w"] * self._sigmoid(
-            inputs, self._params["sensory_mu"], self._params["sensory_sigma"]
+        # Pre-compute activations using mini_keras operations
+        sensory_acts = layers.activation.sigmoid(
+            (mx.expand_dims(inputs, -1) - self._params["sensory_mu"]) 
+            * self._params["sensory_sigma"]
         )
-        sensory_w_activation *= self._params["sensory_sparsity_mask"]
+        sensory_w_activation = (
+            self._params["sensory_w"] 
+            * sensory_acts 
+            * self._params["sensory_sparsity_mask"]
+        )
 
         sensory_rev_activation = sensory_w_activation * self._params["sensory_erev"]
 
