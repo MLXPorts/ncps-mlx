@@ -12,35 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ncps_mlx/wirings.py
-import mlx.core as mx
-from mlx import nn
-import mlx
-from typing import Dict, List
-from mlx.core import zeros
 
-class Wiring(nn.Module):
-    """Base wiring class for neural circuit policies"""
-    
-    def __init__(self, units: int):
-        super().__init__()
+import numpy as np
+
+
+class Wiring:
+    def __init__(self, units):
         self.units = units
-        self.adjacency_matrix = zeros((units, units), dtype=mlx.core.int32)
+        self.adjacency_matrix = np.zeros([units, units], dtype=np.int32)
         self.sensory_adjacency_matrix = None
         self.input_dim = None
         self.output_dim = None
+        self.state_size = units
 
     @property
-    def num_layers(self) -> int:
-        """Number of neural layers (default 1)"""
+    def num_layers(self):
         return 1
 
-    def get_neurons_of_layer(self, layer_id: int) -> List[int]:
-        """Get neuron IDs for specified layer"""
+    def get_neurons_of_layer(self, layer_id):
         return list(range(self.units))
 
-    def is_built(self) -> bool:
-        """Check if wiring configuration is complete"""
+    def is_built(self):
         return self.input_dim is not None
 
     def build(self, input_dim):
@@ -54,19 +46,18 @@ class Wiring(nn.Module):
             self.set_input_dim(input_dim)
 
     def erev_initializer(self, shape=None, dtype=None):
-        return mx.copy(self.adjacency_matrix)
+        return np.copy(self.adjacency_matrix)
 
     def sensory_erev_initializer(self, shape=None, dtype=None):
-        return mx.copy(self.sensory_adjacency_matrix)
+        return np.copy(self.sensory_adjacency_matrix)
 
     def set_input_dim(self, input_dim):
         self.input_dim = input_dim
-        self.sensory_adjacency_matrix = mx.zeros(
-            [input_dim, self.units], dtype=mx.int32
+        self.sensory_adjacency_matrix = np.zeros(
+            [input_dim, self.units], dtype=np.int32
         )
 
-    def set_output_dim(self, output_dim: int):
-        """Set number of output (motor) neurons"""
+    def set_output_dim(self, output_dim):
         self.output_dim = output_dim
 
     # May be overwritten by child class
@@ -119,8 +110,7 @@ class Wiring(nn.Module):
             )
         self.sensory_adjacency_matrix[src, dest] = polarity
 
-    def get_config(self) -> Dict:
-        """Serialize wiring configuration"""
+    def get_config(self):
         return {
             "units": self.units,
             "adjacency_matrix": self.adjacency_matrix.tolist() if self.adjacency_matrix is not None else None,
@@ -134,9 +124,9 @@ class Wiring(nn.Module):
         # There might be a cleaner solution but it will work
         wiring = Wiring(config["units"])
         if config["adjacency_matrix"] is not None:
-            wiring.adjacency_matrix = mx.array(config["adjacency_matrix"])
+            wiring.adjacency_matrix = np.array(config["adjacency_matrix"])
         if config["sensory_adjacency_matrix"] is not None:
-            wiring.sensory_adjacency_matrix = mx.array(config["sensory_adjacency_matrix"])
+            wiring.sensory_adjacency_matrix = np.array(config["sensory_adjacency_matrix"])
         wiring.input_dim = config["input_dim"]
         wiring.output_dim = config["output_dim"]
 
@@ -192,12 +182,12 @@ class Wiring(nn.Module):
     @property
     def synapse_count(self):
         """Counts the number of synapses between internal neurons of the model"""
-        return mx.sum(mx.abs(self.adjacency_matrix))
+        return np.sum(np.abs(self.adjacency_matrix))
 
     @property
     def sensory_synapse_count(self):
         """Counts the number of synapses from the inputs (sensory neurons) to the internal neurons of the model"""
-        return mx.sum(mx.abs(self.sensory_adjacency_matrix))
+        return np.sum(np.abs(self.sensory_adjacency_matrix))
 
     def draw_graph(
         self,
@@ -312,21 +302,21 @@ class FullyConnected(Wiring):
             output_dim = units
         self.self_connections = self_connections
         self.set_output_dim(output_dim)
-        self._rng = mx.random.key(erev_init_seed)  # Use MLX key instead of default_rng
+        self._rng = np.random.default_rng(erev_init_seed)
         self._erev_init_seed = erev_init_seed
         for src in range(self.units):
             for dest in range(self.units):
                 if src == dest and not self_connections:
                     continue
-                polarity = (mx.random.bernoulli(0.5, (units, units)) * 2 - 1)  # -1 or 1
-                self.add_synapse(src, dest, int(polarity[src, dest]))
+                polarity = self._rng.choice([-1, 1, 1])
+                self.add_synapse(src, dest, polarity)
 
     def build(self, input_shape):
         super().build(input_shape)
         for src in range(self.input_dim):
             for dest in range(self.units):
-                polarity = (mx.random.bernoulli(0.5, (self.input_dim, self.units)) * 2 - 1)
-                self.add_sensory_synapse(src, dest, int(polarity[src, dest]))
+                polarity = self._rng.choice([-1, 1, 1])
+                self.add_sensory_synapse(src, dest, polarity)
 
     def get_config(self):
         return {
@@ -348,29 +338,33 @@ class Random(Wiring):
             output_dim = units
         self.set_output_dim(output_dim)
         self.sparsity_level = sparsity_level
-        self._key = mx.random.key(random_seed)
 
-        # Generate random connections using permutation
-        total_synapses = units * units
-        num_synapses = int(mx.round(total_synapses * (1 - sparsity_level)))
-        
-        # Create indices using permutation
-        all_indices = mx.arange(total_synapses)
-        chosen_indices = mx.random.permutation(all_indices, key=self._key)[:num_synapses]
-        
-        # Convert to src/dest pairs
-        src = chosen_indices // units
-        dest = chosen_indices % units
-        
-        # Generate polarities
-        polarities = (mx.random.bernoulli(0.5, (num_synapses,)) * 2 - 1)
-        for s, d, p in zip(src.tolist(), dest.tolist(), polarities.tolist()):
-            self.add_synapse(int(s), int(d), int(p))
+        if sparsity_level < 0.0 or sparsity_level >= 1.0:
+            raise ValueError(
+                "Invalid sparsity level '{}', expected value in range [0,1)".format(
+                    sparsity_level
+                )
+            )
+        self._rng = np.random.default_rng(random_seed)
+        self._random_seed = random_seed
+
+        number_of_synapses = int(np.round(units * units * (1 - sparsity_level)))
+        all_synapses = []
+        for src in range(self.units):
+            for dest in range(self.units):
+                all_synapses.append((src, dest))
+
+        used_synapses = self._rng.choice(
+            all_synapses, size=number_of_synapses, replace=False
+        )
+        for src, dest in used_synapses:
+            polarity = self._rng.choice([-1, 1, 1])
+            self.add_synapse(src, dest, polarity)
 
     def build(self, input_shape):
         super().build(input_shape)
         number_of_sensory_synapses = int(
-            mx.round(self.input_dim * self.units * (1 - self.sparsity_level))
+            np.round(self.input_dim * self.units * (1 - self.sparsity_level))
         )
         all_sensory_synapses = []
         for src in range(self.input_dim):
@@ -428,7 +422,7 @@ class NCP(Wiring):
 
         super(NCP, self).__init__(inter_neurons + command_neurons + motor_neurons)
         self.set_output_dim(motor_neurons)
-        self._key = mx.random.key(seed)  # Store random key
+        self._rng = np.random.RandomState(seed)
         self._num_inter_neurons = inter_neurons
         self._num_command_neurons = command_neurons
         self._num_motor_neurons = motor_neurons
@@ -438,119 +432,87 @@ class NCP(Wiring):
         self._motor_fanin = motor_fanin
 
         # Neuron IDs: [0..motor ... command ... inter]
-        self._motor_neurons = mx.arange(0, self._num_motor_neurons)
-        command_start = self._num_motor_neurons
-        command_end = command_start + self._num_command_neurons
-        self._command_neurons = mx.arange(command_start, command_end)
-        
-        inter_start = command_end  
-        inter_end = inter_start + self._num_inter_neurons
-        self._inter_neurons = mx.arange(inter_start, inter_end)
+        self._motor_neurons = list(range(0, self._num_motor_neurons))
+        self._command_neurons = list(
+            range(
+                self._num_motor_neurons,
+                self._num_motor_neurons + self._num_command_neurons,
+            )
+        )
+        self._inter_neurons = list(
+            range(
+                self._num_motor_neurons + self._num_command_neurons,
+                self._num_motor_neurons
+                + self._num_command_neurons
+                + self._num_inter_neurons,
+            )
+        )
 
-        # Convert scalars to MLX arrays for comparison
-        motor_fanin = mx.array(self._motor_fanin)
-        command_neurons = mx.array(self._num_command_neurons)
-        sensory_fanout = mx.array(self._sensory_fanout)
-        inter_neurons = mx.array(self._num_inter_neurons)
-
-        # Use MLX array operations for validation checks
-        # Basic parameter validation (using scalar comparisons)
         if self._motor_fanin > self._num_command_neurons:
             raise ValueError(
-                f"Error: Motor fanin parameter {self._motor_fanin} exceeds command neurons {self._num_command_neurons}"
+                "Error: Motor fanin parameter is {} but there are only {} command neurons".format(
+                    self._motor_fanin, self._num_command_neurons
+                )
             )
-            
         if self._sensory_fanout > self._num_inter_neurons:
             raise ValueError(
-                f"Error: Sensory fanout parameter {self._sensory_fanout} exceeds inter neurons {self._num_inter_neurons}"
+                "Error: Sensory fanout parameter is {} but there are only {} inter neurons".format(
+                    self._sensory_fanout, self._num_inter_neurons
+                )
             )
-
-        # Create GPU arrays once with consistent dtype
-        self._motor_neurons = mx.array(self._motor_neurons, dtype=mx.int32)
-        self._command_neurons = mx.array(self._command_neurons, dtype=mx.int32) 
-        self._inter_neurons = mx.array(self._inter_neurons, dtype=mx.int32)
-        
-        # Pre-compute boundaries with consistent dtype
-        self._motor_bound = mx.array(self._num_motor_neurons, dtype=mx.int32)
-        self._command_bound = mx.array(self._num_motor_neurons + self._num_command_neurons, dtype=mx.int32)
-        
-        # Use existing arrays for layers (correct order: motor -> command -> inter)
-        self._layers = [
-            self._motor_neurons,
-            self._command_neurons, 
-            self._inter_neurons
-        ]
-    # Modified helper function
-    def _random_choice(self, arr, size, replace=False):
-        """MLX-compatible random choice implementation"""
-        if replace or size > len(arr):
-            raise NotImplementedError("Only non-replace sampling for size <= len(arr)")
-            
-        indices = mx.random.permutation(len(arr), key=self._key)[:size]
-        return arr[indices]
+        if self._inter_fanout > self._num_command_neurons:
+            raise ValueError(
+                "Error:: Inter fanout parameter is {} but there are only {} command neurons".format(
+                    self._inter_fanout, self._num_command_neurons
+                )
+            )
 
     @property
     def num_layers(self):
         return 3
 
-    def get_neurons_of_layer(self, layer_id: int) -> mx.array:
-        """Get neurons for a layer using pre-computed GPU arrays"""
-        if not 0 <= layer_id < self.num_layers:
-            raise ValueError(f"Invalid layer_id {layer_id}")
-        return self._layers[layer_id]
+    def get_neurons_of_layer(self, layer_id):
+        if layer_id == 0:
+            return self._inter_neurons
+        elif layer_id == 1:
+            return self._command_neurons
+        elif layer_id == 2:
+            return self._motor_neurons
+        raise ValueError("Unknown layer {}".format(layer_id))
 
-    def get_type_of_neuron(self, neuron_id: int) -> str:
-        """Get neuron type using GPU-accelerated comparisons"""
-        neuron = mx.array(neuron_id)
-        if mx.all(neuron < self._motor_bound):
+    def get_type_of_neuron(self, neuron_id):
+        if neuron_id < self._num_motor_neurons:
             return "motor"
-        if mx.all(neuron < self._command_bound):
-            return "command" 
+        if neuron_id < self._num_motor_neurons + self._num_command_neurons:
+            return "command"
         return "inter"
 
     def _build_sensory_to_inter_layer(self):
-        """MLX-compatible implementation of sensory to inter layer connections"""
-        key, self._key = mx.random.split(self._key)
-        
-        # Convert to MLX arrays
-        sensory_neurons = mx.array(self._sensory_neurons)
-        inter_neurons = mx.array(self._inter_neurons)
-        
-        # Create initial connections
-        connected = mx.zeros(len(inter_neurons), dtype=mx.bool_)
-        for src in sensory_neurons:
-            # Randomly choose interneurons using permutation
-            perm = mx.random.permutation(len(inter_neurons), key=key)
-            dests = inter_neurons[perm[:self._sensory_fanout]]
-            
-            # Create polarities using Bernoulli distribution
-            polarities = (mx.random.bernoulli(0.5, dests.shape, key=key) * 2 - 1)
-            
-            for dest, polarity in zip(dests.tolist(), polarities.tolist()):
-                self.add_sensory_synapse(int(src), int(dest), int(polarity))
-                connected = mx.index_update(
-                    connected,
-                    mx.index[inter_neurons == dest],
-                    True
-                )
+        unreachable_inter_neurons = [l for l in self._inter_neurons]
+        # Randomly connects each sensory neuron to exactly _sensory_fanout number of interneurons
+        for src in self._sensory_neurons:
+            for dest in self._rng.choice(
+                self._inter_neurons, size=self._sensory_fanout, replace=False
+            ):
+                if dest in unreachable_inter_neurons:
+                    unreachable_inter_neurons.remove(dest)
+                polarity = self._rng.choice([-1, 1])
+                self.add_sensory_synapse(src, dest, polarity)
 
-        # Handle unconnected interneurons
-        unconnected = inter_neurons[~connected]
-        if len(unconnected) > 0:
-            # Calculate mean fanin using MLX operations
-            mean_fanin = mx.clip(
-                int(self._num_sensory_neurons * self._sensory_fanout / self._num_inter_neurons),
-                1,
-                self._num_sensory_neurons
-            )
-            
-            # Connect remaining interneurons
-            for dest in unconnected.tolist():
-                srcs = mx.random.permutation(sensory_neurons, key=key)[:mean_fanin]
-                polarities = (mx.random.bernoulli(0.5, srcs.shape, key=key) * 2 - 1)
-                
-                for src, polarity in zip(srcs.tolist(), polarities.tolist()):
-                    self.add_sensory_synapse(int(src), int(dest), int(polarity))
+        # If it happens that some interneurons are not connected, connect them now
+        mean_inter_neuron_fanin = int(
+            self._num_sensory_neurons * self._sensory_fanout / self._num_inter_neurons
+        )
+        # Connect "forgotten" inter neuron by at least 1 and at most all sensory neuron
+        mean_inter_neuron_fanin = np.clip(
+            mean_inter_neuron_fanin, 1, self._num_sensory_neurons
+        )
+        for dest in unreachable_inter_neurons:
+            for src in self._rng.choice(
+                self._sensory_neurons, size=mean_inter_neuron_fanin, replace=False
+            ):
+                polarity = self._rng.choice([-1, 1])
+                self.add_sensory_synapse(src, dest, polarity)
 
     def _build_inter_to_command_layer(self):
         # Randomly connect interneurons to command neurons
@@ -569,7 +531,7 @@ class NCP(Wiring):
             self._num_inter_neurons * self._inter_fanout / self._num_command_neurons
         )
         # Connect "forgotten" command neuron by at least 1 and at most all inter neuron
-        mean_command_neurons_fanin = mx.clip(
+        mean_command_neurons_fanin = np.clip(
             mean_command_neurons_fanin, 1, self._num_command_neurons
         )
         for dest in unreachable_command_neurons:
@@ -604,7 +566,7 @@ class NCP(Wiring):
             self._num_motor_neurons * self._motor_fanin / self._num_command_neurons
         )
         # Connect "forgotten" command neuron to at least 1 and at most all motor neuron
-        mean_command_fanout = mx.clip(mean_command_fanout, 1, self._num_motor_neurons)
+        mean_command_fanout = np.clip(mean_command_fanout, 1, self._num_motor_neurons)
         for src in unreachable_command_neurons:
             for dest in self._rng.choice(
                 self._motor_neurons, size=mean_command_fanout, replace=False
@@ -623,7 +585,7 @@ class NCP(Wiring):
         self._build_command__to_motor_layer()
 
     def get_config(self):
-         return {
+        return {
             "inter_neurons": self._inter_neurons,
             "command_neurons": self._command_neurons,
             "motor_neurons": self._motor_neurons,
@@ -641,12 +603,12 @@ class NCP(Wiring):
 
 class AutoNCP(NCP):
     def __init__(
-            self,
-            units,
-            output_size,
-            sparsity_level=0.5,
-            seed=22222,
-        ):
+        self,
+        units,
+        output_size,
+        sparsity_level=0.5,
+        seed=22222,
+    ):
         """Instantiate an NCP wiring with only needing to specify the number of units and the number of outputs
 
         :param units: The total number of neurons
@@ -654,7 +616,6 @@ class AutoNCP(NCP):
         :param sparsity_level: A hyperparameter between 0.0 (very dense) and 0.9 (very sparse) NCP.
         :param seed: Random seed for generating the wiring
         """
-
         self._output_size = output_size
         self._sparsity_level = sparsity_level
         self._seed = seed
@@ -675,7 +636,7 @@ class AutoNCP(NCP):
         inter_fanout = max(int(command_neurons * density_level), 1)
         recurrent_command_synapses = max(int(command_neurons * density_level * 2), 1)
         motor_fanin = max(int(command_neurons * density_level), 1)
-        super().__init__(
+        super(AutoNCP, self).__init__(
             inter_neurons,
             command_neurons,
             output_size,
@@ -697,5 +658,3 @@ class AutoNCP(NCP):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
-
-

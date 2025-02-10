@@ -21,7 +21,7 @@ def split_tensor(input_tensor, num_or_size_splits, axis=0):
     Returns:
         A list of tensors resulting from splitting the input tensor.
     """
-    input_shape = ncps.mini_keras.ops.shape(input_tensor)
+    input_shape = keras.ops.shape(input_tensor)
     tensor_shape = input_shape[:axis] + (-1,) + input_shape[axis + 1:]
 
     if isinstance(num_or_size_splits, int):
@@ -33,7 +33,7 @@ def split_tensor(input_tensor, num_or_size_splits, axis=0):
     start = 0
     for size in split_sizes:
         end = start + size
-        tensor = ncps.mini_keras.layers.Lambda(lambda x: x[:, start:end], output_shape=tensor_shape)(input_tensor)
+        tensor = keras.layers.Lambda(lambda x: x[:, start:end], output_shape=tensor_shape)(input_tensor)
         split_tensors.append(tensor)
         start = end
 
@@ -98,7 +98,7 @@ class WiredCfCCell(keras.layers.Layer):
                 recurrent_sparsity = np.ones((len(layer_i_neurons), len(layer_i_neurons)), dtype=np.int32)
             else:
                 recurrent_sparsity = self.wiring.adjacency_matrix[layer_i_neurons, layer_i_neurons]
-            sparsity_mask = ncps.mini_keras.ops.convert_to_tensor(
+            sparsity_mask = keras.ops.convert_to_tensor(
                 np.concatenate([input_sparsity, recurrent_sparsity], axis=0),
                 dtype="float32",
             )
@@ -123,7 +123,7 @@ class WiredCfCCell(keras.layers.Layer):
         if isinstance(inputs, (tuple, list)):
             # Irregularly sampled mode
             inputs, t = inputs
-            t = ncps.mini_keras.ops.reshape(t, [-1, 1])
+            t = keras.ops.reshape(t, [-1, 1])
         else:
             # Regularly sampled mode (elapsed time = 1 second)
             t = 1.0
@@ -146,7 +146,7 @@ class WiredCfCCell(keras.layers.Layer):
         if self.wiring.output_dim != output.shape[-1]:
             output = output[:, 0: self.wiring.output_dim]
 
-        new_hiddens = ncps.mini_keras.ops.concatenate(new_hiddens, axis=-1)
+        new_hiddens = keras.ops.concatenate(new_hiddens, axis=-1)
         return output, new_hiddens
 
     def get_config(self):

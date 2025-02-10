@@ -200,7 +200,6 @@ from ncps.mini_keras.layers.rnn.simple_rnn import SimpleRNNCell
 from ncps.mini_keras.layers.rnn.stacked_rnn_cells import StackedRNNCells
 from ncps.mini_keras.layers.rnn.time_distributed import TimeDistributed
 from ncps.mini_keras.saving import serialization_lib
-from ncps.mini_keras.layers.rnn.abstract_rnn_cell import AbstractRNNCell
 
 
 @keras_mini_export("ncps.mini_keras.layers.serialize")

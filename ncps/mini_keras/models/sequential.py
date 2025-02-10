@@ -64,7 +64,7 @@ class Sequential(Model):
     """
 
     def __new__(cls, *args, **kwargs):
-        return typing.cast(cls, super().__new__(cls))
+        return typing.cast(cls, super().__new__(cls)) # type: ignore
 
     def __init__(self, layers=None, trainable=True, name=None):
         super().__init__(trainable=trainable, name=name)

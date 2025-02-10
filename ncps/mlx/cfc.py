@@ -21,7 +21,7 @@ from ncps.mlx import CfCCell, MixedMemoryRNN, WiredCfCCell  # Importing custom c
 
 
 @ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="CfC")
-class CfC(ncps.mini_keras.layers.Layer):  # Now inherits from Layer instead of RNN
+class CfC(ncps.mini_keras.layers.RNN):  # Now inherits from Layer instead of RNN
     def __init__(
         self,
         units: Union[int, ncps.wirings.Wiring],

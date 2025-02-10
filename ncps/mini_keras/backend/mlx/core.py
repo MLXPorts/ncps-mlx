@@ -1,94 +1,77 @@
+"""MLX backend implementation."""
 import builtins
 import contextlib
 import functools
 import warnings
 
-import mlx.core as mx
+try:
+    import mlx.core as mx
+    import mlx.nn as nn
+except ImportError:
+    raise ImportError(
+        "Failed to import MLX backend. Make sure mlx is installed."
+    )
 
 from ncps.mini_keras import tree
-from ncps.mini_keras.backend.common import KerasVariable
+from ncps.mini_keras.backend.common import dtypes
 from ncps.mini_keras.backend.common import standardize_dtype
 from ncps.mini_keras.backend.common.backend_utils import slice_along_axis
 from ncps.mini_keras.backend.common.dtypes import result_type
 from ncps.mini_keras.backend.common.keras_tensor import KerasTensor
 from ncps.mini_keras.backend.common.stateless_scope import StatelessScope
 from ncps.mini_keras.backend.common.symbolic_scope import SymbolicScope
+from ncps.mini_keras.backend.common.variables import Variable
 
+# Backend capabilities
 SUPPORTS_SPARSE_TENSORS = False
 SUPPORTS_RAGGED_TENSORS = False
 IS_THREAD_SAFE = True
 
 
-class Variable(KerasVariable):
-    def _initialize(self, value):
-        if isinstance(value, mx.array):
-            self._value = value
-        else:
-            self._value = mx.array(value)
-
-    def _direct_assign(self, value):
-        self._value = mx.array(value, dtype=self._dtype)
-
-    def _convert_to_tensor(self, value, dtype=None):
-        return convert_to_tensor(value, dtype=dtype)
-
-    # Overload native accessor.
-    def __array__(self):
-        return self.value
+def cast(x, dtype):
+    """Cast x to dtype."""
+    dtype = standardize_dtype(dtype)
+    return mx.array(x, dtype=dtype)
 
 
 def convert_to_tensor(x, dtype=None, sparse=None, ragged=None):
+    """Convert a value to an MLX tensor."""
     if sparse:
         raise ValueError("`sparse=True` is not supported with numpy backend")
     if ragged:
         raise ValueError("`ragged=True` is not supported with numpy backend")
     if dtype is not None:
         dtype = standardize_dtype(dtype)
-    if isinstance(x, Variable):
-        if dtype and dtype != x.dtype:
-            return x.value.astype(dtype)
-        return x.value
-    if not is_tensor(x) and standardize_dtype(dtype) == "bfloat16":
-        # Can't create bfloat16 arrays on the fly (e.g. from a h5 Dataset).
-        # Instead we convert "as is" (to stored dtype) and cast.
-        return mx.asarray(x).astype(dtype)
-    if dtype is None:
-        dtype = result_type(
-            *[getattr(item, "dtype", type(item)) for item in tree.flatten(x)]
-        )
+    if sparse:
+        raise ValueError("MLX backend does not support sparse tensors")
     return mx.array(x, dtype=dtype)
+
+
+def is_tensor(x):
+    """Returns whether x is an MLX tensor."""
+    return isinstance(x, mx.array)
+
+
+def shape(x):
+    """Return the shape of an MLX tensor or array."""
+    return x.shape
+
+
+def device_scope():
+    """Returns device scope for MLX."""
+    return mx.default_device()
+
+
+def compute_output_spec(x, dtype=None):
+    """Returns the output spec for x."""
+    if dtype is None:
+        dtype = standardize_dtype(x.dtype)
+    return shape(x), dtype
 
 
 def convert_to_numpy(x):
     return mx.array(x)
 
-
-def is_tensor(x):
-    if isinstance(x, mx.array):
-        return True
-    return False
-
-
-def shape(x):
-    return mx.shape(x)
-
-def cast(x, dtype):
-    """Cast tensor to specified dtype."""
-    if isinstance(dtype, str):
-        mlx_dtype = getattr(mx, dtype)
-    else:
-        mlx_dtype = dtype
-        
-    # Handle different types
-    if isinstance(x, KerasTensor):
-        # For KerasTensor, create a new one with updated dtype
-        return KerasTensor(x.shape, dtype=dtype)
-    elif isinstance(x, mx.array):
-        # For MLX arrays, use astype
-        return x.astype(mlx_dtype)
-    else:
-        # For other types, convert to array first
-        return mx.array(x, dtype=mlx_dtype)
 
 def cond(pred, true_fn, false_fn):
     if pred:

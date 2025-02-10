@@ -24,7 +24,7 @@ from typing import Optional, Union, Dict, Tuple
 
 
 @saving.register_keras_serializable(package="ncps", name="LTCCell")
-class LTCCell(layers.AbstractRNNCell):
+class LTCCell(layers.Layer):
     def __init__(
         self,
         wiring,

@@ -6,14 +6,15 @@ from ncps.mini_keras.initializers.initializer import Initializer
 from ncps.mini_keras.saving import serialization_lib
 try:
     import mlx.core as np
+    MLX = True
 except ImportError:
     import numpy as np
-
+    MLX = False
 class RandomInitializer(Initializer):
     def __init__(self, seed=None):
         self._init_seed = seed
         if seed is None:
-            seed = random.make_default_seed()
+            seed = random.SeedGenerator(seed)
         elif isinstance(seed, dict):
             seed = serialization_lib.deserialize_keras_object(seed)
         elif not isinstance(seed, (int, random.SeedGenerator)):
@@ -27,6 +28,8 @@ class RandomInitializer(Initializer):
     def get_config(self):
         seed_config = serialization_lib.serialize_keras_object(self._init_seed)
         return {"seed": seed_config}
+
+
 
 
 @keras_mini_export(

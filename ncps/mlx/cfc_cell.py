@@ -1,8 +1,9 @@
-import ncps.mini_keras
+from ncps.mini_keras.layers import Layer, Dense, Dropout
 from ncps.mini_keras.utils import register_mini_keras_serializable
-
+import ncps.mini_keras.activations as activations
+import ncps.mini_keras.models
 @register_mini_keras_serializable(package="ncps", name="CfCCell")
-class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
+class CfCCell(Layer):
     def __init__(
         self,
         units,
@@ -26,12 +27,12 @@ class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
             raise ValueError(f"Unknown mode '{mode}', valid options are {str(allowed_modes)}")
         self.mode = mode
         self.backbone_fn = None
-        self._activation = ncps.mini_keras.activations.get(activation)
+        self._activation = activations.get(activation)
         self._backbone_units = backbone_units
         self._backbone_layers = backbone_layers
         self._backbone_dropout = backbone_dropout
         self._cfc_layers = []
-
+        self.state_size = units
     @property
     def state_size(self):
         return self.units  # Use self.units from parent class
@@ -50,8 +51,8 @@ class CfCCell(ncps.mini_keras.layers.AbstractRNNCell):
         if self._backbone_layers > 0:
             backbone_layers = []
             for i in range(self._backbone_layers):
-                backbone_layers.append(ncps.mini_keras.layers.Dense(self._backbone_units, self._activation, name=f"backbone{i}"))
-                backbone_layers.append(ncps.mini_keras.layers.Dropout(self._backbone_dropout))
+                backbone_layers.append(Dense(self._backbone_units, self._activation, name=f"backbone{i}"))
+                backbone_layers.append(Dropout(self._backbone_dropout))
                 
             self.backbone_fn = ncps.mini_keras.models.Sequential(backbone_layers)
             self.backbone_fn.build((None, self.state_size + input_dim))
