@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from __future__ import absolute_import
+# from __future__ import absolute_import
 
 # TensorFlow or PyTorch implementation must be load separately
 from ncps import wirings
