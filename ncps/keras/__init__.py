@@ -1,42 +1,74 @@
-# Copyright 2020-2021 Mathias Lechner
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Neural Circuit Policies (NCPs) Keras implementation."""
 
+import keras
+from keras import activations
 
-from .ltc_cell import LTCCell
-from .mm_rnn import MixedMemoryRNN
+# Register custom activation function
+@keras.saving.register_keras_serializable(package="ncps")
+def lecun_tanh(x):
+    """LeCun improved tanh activation."""
+    return 1.7159 * activations.tanh(0.666 * x)
+
+# Add to Keras activations
+keras.utils.get_custom_objects()['lecun_tanh'] = lecun_tanh
+activations.lecun_tanh = lecun_tanh
+
+# Import base classes
+from .base import LiquidCell, LiquidRNN
+
+# Import wiring patterns
+from .wirings import (
+    Wiring,
+    FullyConnected,
+    Random,
+    NCP,
+    AutoNCP,
+)
+
+# Import cell implementations
 from .cfc_cell import CfCCell
-from .wired_cfc_cell import WiredCfCCell
+from .ltc_cell import LTCCell
+
+# Import RNN implementations
 from .cfc import CfC
 from .ltc import LTC
-from packaging.version import parse
 
-try:
-    import keras
-except:
-    raise ImportWarning(
-        "It seems like the Keras package is not installed\n"
-        "Please run"
-        "`$ pip install keras`. \n",
-    )
+# Register custom objects
+keras.saving.register_keras_serializable(package="ncps")(LiquidCell)
+keras.saving.register_keras_serializable(package="ncps")(LiquidRNN)
+keras.saving.register_keras_serializable(package="ncps")(Wiring)
+keras.saving.register_keras_serializable(package="ncps")(FullyConnected)
+keras.saving.register_keras_serializable(package="ncps")(Random)
+keras.saving.register_keras_serializable(package="ncps")(NCP)
+keras.saving.register_keras_serializable(package="ncps")(AutoNCP)
+keras.saving.register_keras_serializable(package="ncps")(CfCCell)
+keras.saving.register_keras_serializable(package="ncps")(LTCCell)
+keras.saving.register_keras_serializable(package="ncps")(CfC)
+keras.saving.register_keras_serializable(package="ncps")(LTC)
 
-if parse(keras.__version__) < parse("3.0.0"):
-    raise ImportError(
-        "The Keras package version needs to be at least 3.0.0 \n"
-        "for ncps-keras to run. Currently, your Keras version is \n"
-        "{version}. Please upgrade with \n"
-        "`$ pip install --upgrade keras`. \n"
-        "You can use `pip freeze` to check afterwards that everything is "
-        "ok.".format(version=keras.__version__)
-    )
-__all__ = ["CfC", "CfCCell", "LTC", "LTCCell", "MixedMemoryRNN", "WiredCfCCell"]
+# Version
+__version__ = "2.0.0"
+
+__all__ = [
+    # Base classes
+    "LiquidCell",
+    "LiquidRNN",
+    
+    # Wiring patterns
+    "Wiring",
+    "FullyConnected",
+    "Random",
+    "NCP",
+    "AutoNCP",
+    
+    # Cell implementations
+    "CfCCell",
+    "LTCCell",
+    
+    # RNN implementations
+    "CfC",
+    "LTC",
+    
+    # Utilities
+    "lecun_tanh",
+]

@@ -2,24 +2,33 @@
 
 import tensorflow as tf
 from .cfc_cell import lecun_tanh, CfCCell
-
+from .base import LiquidCell
 from ncps.wirings import wirings
 from typing import Optional, Union
 import numpy as np
 
 
 @tf.keras.utils.register_keras_serializable(package="ncps", name="WiredCfCCell")
-class WiredCfCCell(tf.keras.layers.AbstractRNNCell):
+class WiredCfCCell(LiquidCell):
     def __init__(
         self,
         wiring,
         fully_recurrent=True,
         mode="default",
         activation="lecun_tanh",
-        **kwargs,
+        backbone_units=None,
+        backbone_layers=0,
+        backbone_dropout=0.0,
+        **kwargs
     ):
-        super().__init__(**kwargs)
-        self._wiring = wiring
+        super().__init__(
+            wiring=wiring,
+            activation=activation,
+            backbone_units=backbone_units,
+            backbone_layers=backbone_layers,
+            backbone_dropout=backbone_dropout,
+            **kwargs
+        )
         allowed_modes = ["default", "pure", "no_gate"]
         if mode not in allowed_modes:
             raise ValueError(

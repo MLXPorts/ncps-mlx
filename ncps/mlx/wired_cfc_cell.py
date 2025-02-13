@@ -1,165 +1,177 @@
-# Copyright 2022 Mathias Lechner. All rights reserved
-import numpy
+"""Wired CfC cell implementation in MLX."""
 
-from ncps.mlx.cfc_cell import CfCCell
-
-import ncps.mini_keras
-from ncps.wirings import wirings
-import numpy as np
 import mlx.core as mx
+import mlx.nn as nn
+from typing import Optional, List, Tuple, Union
 
-def split_tensor(input_tensor, num_or_size_splits, axis=0):
+from .cfc_cell_mlx import CfCCell
+
+
+class WiredCfCCell(nn.Module):
     """
-    Splits the input tensor along the specified axis into multiple sub-tensors.
-
-    Args:
-        input_tensor (Tensor): The input tensor to be split.
-        num_or_size_splits (int or list/tuple): If an integer, the number of equal splits along the axis.
-                                                If a list/tuple, the sizes of each output tensor along the axis.
-        axis (int): The axis along which to split the tensor. Default is 0.
-
-    Returns:
-        A list of tensors resulting from splitting the input tensor.
+    Wired Closed-form Continuous-time (CfC) cell.
+    
+    This class implements a CfC cell with wiring constraints, allowing for
+    structured connectivity between neurons.
     """
-    input_shape = ncps.mini_keras.ops.shape(input_tensor)
-    tensor_shape = input_shape[:axis] + (-1,) + input_shape[axis + 1:]
-
-    if isinstance(num_or_size_splits, int):
-        split_sizes = [input_shape[axis] // num_or_size_splits] * num_or_size_splits
-    else:
-        split_sizes = num_or_size_splits
-
-    split_tensors = []
-    start = 0
-    for size in split_sizes:
-        end = start + size
-        tensor = ncps.mini_keras.layers.Lambda(lambda x: x[:, start:end], output_shape=tensor_shape)(input_tensor)
-        split_tensors.append(tensor)
-        start = end
-
-    return split_tensors
-
-
-@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="WiredCfCCell")
-class WiredCfCCell(ncps.mini_keras.layers.Layer):
+    
     def __init__(
         self,
         wiring,
-        fully_recurrent=True,
-        mode="default",
-        activation="lecun_tanh",
-        **kwargs,
+        fully_recurrent: bool = True,
+        mode: str = "default",
+        activation: str = "lecun_tanh",
+        **kwargs
     ):
-        super().__init__(**kwargs)
+        """
+        Initialize WiredCfCCell.
+        
+        Args:
+            wiring: Neural wiring pattern
+            fully_recurrent: Whether to use full recurrent connectivity
+            mode: Operation mode ("default", "pure", "no_gate")
+            activation: Activation function name
+            **kwargs: Additional arguments
+        """
+        super().__init__()
         self.wiring = wiring
+        
         allowed_modes = ["default", "pure", "no_gate"]
         if mode not in allowed_modes:
             raise ValueError(
-                "Unknown mode '{}', valid options are {}".format(
-                    mode, str(allowed_modes)
-                )
+                f"Unknown mode '{mode}', valid options are {str(allowed_modes)}"
             )
+            
         self.mode = mode
         self.fully_recurrent = fully_recurrent
-        self._activation = activation
-        self._cfc_layers = []
+        self.activation = activation
+        self._cfc_layers: List[CfCCell] = []
+        self._layer_sizes: List[int] = []
+        
+        # Build the wiring if input dimension is known
+        if self.wiring.input_dim is not None:
+            self.build()
 
     @property
-    def state_size(self):
+    def state_size(self) -> int:
+        """Get state size."""
         return self.wiring.units
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
+        """Get input size."""
         return self.wiring.input_dim
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
+        """Get output size."""
         return self.wiring.output_dim
 
-    def build(self, input_shape):
-        if isinstance(input_shape[0], tuple):
-            # Nested tuple -> First item represent feature dimension
-            input_dim = input_shape[0][-1]
-        else:
-            input_dim = input_shape[-1]
-
-        self.wiring.build(input_dim)
+    def build(self):
+        """Build the wired CfC cell."""
         for i in range(self.wiring.num_layers):
             layer_i_neurons = self.wiring.get_neurons_of_layer(i)
+            
+            # Get input sparsity mask
             if i == 0:
                 input_sparsity = self.wiring.sensory_adjacency_matrix[:, layer_i_neurons]
             else:
                 prev_layer_neurons = self.wiring.get_neurons_of_layer(i - 1)
                 input_sparsity = self.wiring.adjacency_matrix[:, layer_i_neurons]
                 input_sparsity = input_sparsity[prev_layer_neurons, :]
+            
+            # Get recurrent sparsity mask
             if self.fully_recurrent:
-                recurrent_sparsity = np.ones((len(layer_i_neurons), len(layer_i_neurons)), dtype=np.int32)
+                recurrent_sparsity = mx.ones((len(layer_i_neurons), len(layer_i_neurons)))
             else:
                 recurrent_sparsity = self.wiring.adjacency_matrix[layer_i_neurons, layer_i_neurons]
-            sparsity_mask = ncps.mini_keras.ops.convert_to_tensor(
-                np.concatenate([input_sparsity, recurrent_sparsity], axis=0),
-                dtype="float32",
-            )
+            
+            # Combine masks
+            sparsity_mask = mx.concatenate([input_sparsity, recurrent_sparsity], axis=0)
+            
+            # Create CfC cell
             cell = CfCCell(
                 len(layer_i_neurons),
                 mode=self.mode,
-                activation=self._activation,
+                activation=self.activation,
                 backbone_units=0,
                 backbone_layers=0,
                 backbone_dropout=0,
                 sparsity_mask=sparsity_mask,
             )
-            cell_in_shape = (None, input_sparsity.shape[0])
-            cell.build(cell_in_shape)
-
+            
             self._cfc_layers.append(cell)
-
+            
         self._layer_sizes = [l.units for l in self._cfc_layers]
-        self.built = True
 
-    def call(self, inputs, states, **kwargs):
+    def __call__(
+        self,
+        inputs: Union[mx.array, Tuple[mx.array, mx.array]],
+        states: List[mx.array],
+        **kwargs
+    ) -> Tuple[mx.array, mx.array]:
+        """
+        Process one time step.
+        
+        Args:
+            inputs: Input tensor or tuple of (inputs, time)
+            states: List of state tensors
+            **kwargs: Additional arguments
+            
+        Returns:
+            Tuple of (output, new_states)
+        """
+        # Handle time input
         if isinstance(inputs, (tuple, list)):
-            # Irregularly sampled mode
             inputs, t = inputs
-            t = ncps.mini_keras.ops.reshape(t, [-1, 1])
+            t = mx.reshape(t, [-1, 1])
         else:
-            # Regularly sampled mode (elapsed time = 1 second)
             t = 1.0
-
-        states = split_tensor(states[0], self._layer_sizes, axis=-1)
+            
+        # Split states for each layer
+        states = mx.split(states[0], self._layer_sizes, axis=-1)
         assert len(states) == self.wiring.num_layers, \
             f'Incompatible num of states [{len(states)}] and wiring layers [{self.wiring.num_layers}]'
+            
+        # Process each layer
         new_hiddens = []
         for i, cfc_layer in enumerate(self._cfc_layers):
             if t == 1.0:
-                output, new_hidden = cfc_layer(inputs, [states[i]], time=t)
+                output, new_hidden = cfc_layer(inputs, states[i], time=t)
             else:
-                output, new_hidden = cfc_layer((inputs, t), [states[i]])
-            cfc_layer._allow_non_tensor_positional_args = True
-            new_hiddens.append(new_hidden[0])
+                output, new_hidden = cfc_layer(inputs, states[i], time=t)
+            new_hiddens.append(new_hidden)
             inputs = output
-
+            
         assert len(new_hiddens) == self.wiring.num_layers, \
-            f'Internal error new_hiddens [{new_hiddens}] != num_layers [{self.wiring.num_layers}]'
+            f'Internal error new_hiddens [{len(new_hiddens)}] != num_layers [{self.wiring.num_layers}]'
+            
+        # Handle output dimension
         if self.wiring.output_dim != output.shape[-1]:
-            output = output[:, 0: self.wiring.output_dim]
-
-        new_hiddens = ncps.mini_keras.ops.concatenate(new_hiddens, axis=-1)
+            output = output[:, :self.wiring.output_dim]
+            
+        # Combine hidden states
+        new_hiddens = mx.concatenate(new_hiddens, axis=-1)
         return output, new_hiddens
 
-    def get_config(self):
-        config = {
+    def state_dict(self) -> dict:
+        """Get state dictionary."""
+        return {
             "wiring": self.wiring,
             "fully_recurrent": self.fully_recurrent,
             "mode": self.mode,
-            "activation": self._activation,
+            "activation": self.activation,
+            "cfc_layers": [layer.state_dict() for layer in self._cfc_layers],
+            "layer_sizes": self._layer_sizes,
         }
-        base_config = super().get_config()
-        return {**base_config, **config}
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(wiring=config["wiring"], 
-                   fully_recurrent=config["fully_recurrent"], 
-                   mode=config["mode"], 
-                   activation=config["activation"])
+    def load_state_dict(self, state_dict: dict):
+        """Load from state dictionary."""
+        self.wiring = state_dict["wiring"]
+        self.fully_recurrent = state_dict["fully_recurrent"]
+        self.mode = state_dict["mode"]
+        self.activation = state_dict["activation"]
+        self._layer_sizes = state_dict["layer_sizes"]
+        
+        for i, layer_state in enumerate(state_dict["cfc_layers"]):
+            self._cfc_layers[i].load_state_dict(layer_state)

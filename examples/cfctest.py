@@ -1,9 +1,6 @@
 import mlx.core as mx
 import mlx.nn as nn
 import numpy as np
-import ncps
-from ncps.mini_keras.models import Sequential
-from ncps.mini_keras.layers import InputLayer, RNN, Dense
 from ncps.mlx import WiredCfCCell  # Changed from CfCCell to WiredCfCCell
 from ncps.wirings.wirings import NCP
 
@@ -25,23 +22,32 @@ wiring = NCP(
     recurrent_command_synapses=3 # Feedback connections
 )
 
-# Ensure wiring is a valid Wiring instance
-if not isinstance(wiring, ncps.wirings.Wiring):
-    raise ValueError("The wiring argument must be a valid Wiring instance")
+# Build CfC-based model using MLX
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.rnn = WiredCfCCell(wiring=wiring)
+        self.dense = nn.Linear(wiring.units, 1)
+    
+    def __call__(self, x):
+        # Process sequence
+        h = None
+        outputs = []
+        for t in range(x.shape[1]):
+            y, h = self.rnn(x[:, t:t+1, :], h)
+            outputs.append(y)
+        
+        # Stack outputs and apply dense layer
+        outputs = mx.concatenate(outputs, axis=1)
+        return self.dense(outputs)
 
-# Build CfC-based model
-model = Sequential([
-    InputLayer(input_shape=(None, 1)),
-    RNN(WiredCfCCell(wiring=wiring), return_sequences=True),
-    Dense(1)
-])
+model = Model()
 
 # Training parameters
 optimizer = nn.optimizers.Adam(learning_rate=3e-4)
-loss_fn = nn.losses.mse
 
 # Training loop
-def train_step(x, y):
+def train_step(model, x, y):
     def loss_fn(model, x, y):
         return mx.mean(mx.square(model(x) - y))
     
@@ -53,7 +59,7 @@ def train_step(x, y):
 # Generate and train on synthetic data
 x_train, y_train = generate_sine_data()
 for epoch in range(10):
-    loss = train_step(x_train, y_train)
+    loss = train_step(model, x_train, y_train)
     mx.eval(loss)
     print(f"Epoch {epoch+1} | Loss: {loss.item():.4f}")
 

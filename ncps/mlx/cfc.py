@@ -1,106 +1,208 @@
-# MLX Port by Sydney Renee in 2025
-# -- Original license information below --
-# Copyright 2022 Mathias Lechner and Ramin Hasani
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Closed-form Continuous-time (CfC) RNN implementation."""
+
+import mlx.core as mx
+import mlx.nn as nn
+from typing import Optional, Tuple, List, Union, Dict, Any
+
+from .base import LiquidRNN
+from .liquid_utils import TimeAwareMixin
+from .cfc_cell_mlx import CfCCell
 
 
-from typing import Union
-import ncps
-from ncps.mlx import CfCCell, MixedMemoryRNN, WiredCfCCell  # Importing custom cell implementations
-
-
-@ncps.mini_keras.saving.register_keras_serializable(package="ncps", name="CfC")
-class CfC(ncps.mini_keras.layers.RNN):  # Now inherits from Layer instead of RNN
+class CfC(LiquidRNN):
+    """A Closed-form Continuous-time (CfC) RNN layer."""
+    
     def __init__(
         self,
-        units: Union[int, ncps.wirings.Wiring],
-        mixed_memory: bool = False,
+        input_size: Optional[int] = None,
+        hidden_size: Optional[int] = None,
+        wiring = None,
+        num_layers: int = 1,
+        bias: bool = True,
+        bidirectional: bool = False,
+        return_sequences: bool = True,  # Changed default to True to match test expectations
+        return_state: bool = False,
         mode: str = "default",
         activation: str = "lecun_tanh",
-        backbone_units: int = None,
-        backbone_layers: int = None,
-        backbone_dropout: float = None,
-        return_sequences: bool = False,
-        return_state: bool = False,
-        go_backwards: bool = False,
-        stateful: bool = False,
-        unroll: bool = False,
-        time_major: bool = False,
-        **kwargs,
+        backbone_units: Optional[Union[int, List[int]]] = None,
+        backbone_layers: int = 0,
+        backbone_dropout: float = 0.1,
+        sparsity_mask: Optional[mx.array] = None,
     ):
-        """Applies a `Closed-form Continuous-time <https://arxiv.org/abs/2106.13898>`_ RNN to an input sequence.
+        """Initialize the CfC layer."""
+        if wiring is not None:
+            if input_size is not None or hidden_size is not None:
+                raise ValueError("Cannot specify both wiring and input_size/hidden_size")
+            if wiring.input_dim is None:
+                if input_size is None:
+                    raise ValueError("Must specify input_size when wiring.input_dim is None")
+                wiring.build(input_size)
+            input_size = wiring.input_dim
+            hidden_size = wiring.units
+            sparsity_mask = wiring.adjacency_matrix
+        elif input_size is None or hidden_size is None:
+            raise ValueError("Must specify either wiring or both input_size and hidden_size")
 
-        Examples::
+        # Create wiring if not provided
+        if wiring is None:
+            from .wirings import FullyConnected
+            wiring = FullyConnected(units=hidden_size, output_dim=hidden_size)
+            wiring.build(input_size)
 
-            >>> from ncps.tf import CfC
-            >>>
-            >>> rnn = CfC(50)
-            >>> x = mlx.random.uniform((2, 10, 20))  # (B,L,C)
-            >>> y = rnn(x)
+        # Process backbone units
+        if backbone_units is None:
+            backbone_units = []
+        elif isinstance(backbone_units, int):
+            backbone_units = [backbone_units] * backbone_layers
+        elif len(backbone_units) == 1 and backbone_layers > 1:
+            backbone_units = backbone_units * backbone_layers
 
-        :param units: Number of hidden units
-        :param mixed_memory: Whether to augment the RNN by a `memory-cell <https://arxiv.org/abs/2006.04418>`_ to help learn long-term dependencies in the data (default False)
-        :param mode: Either "default", "pure" (direct solution approximation), or "no_gate" (without second gate). (default "default)
-        :param activation: Activation function used in the backbone layers (default "lecun_tanh")
-        :param backbone_units: Number of hidden units in the backbone layer (default 128)
-        :param backbone_layers: Number of backbone layers (default 1)
-        :param backbone_dropout: Dropout rate in the backbone layers (default 0)
-        :param return_sequences: Whether to return the full sequence or just the last output (default False)
-        :param return_state: Whether to return just the output of the RNN or a tuple (output, last_hidden_state) (default False)
-        :param go_backwards: If True, the input sequence will be process from back to the front (default False)
-        :param stateful: Whether to remember the last hidden state of the previous inference/training batch and use it as initial state for the next inference/training batch (default False)
-        :param unroll: Whether to unroll the graph, i.e., may increase speed at the cost of more memory (default False)
-        :param time_major: Whether the time or batch dimension is the first (0-th) dimension (default False)
-        :param kwargs:
-        """
+        # Create CfC cell
+        cell = CfCCell(
+            wiring=wiring,
+            mode=mode,
+            activation=activation,
+            backbone_units=backbone_units,
+            backbone_layers=backbone_layers,
+            backbone_dropout=backbone_dropout,
+        )
+
+        self.num_layers = num_layers
+        self.hidden_size = wiring.units
+        super().__init__(
+            cell=cell,
+            return_sequences=return_sequences,
+            return_state=return_state,
+            bidirectional=bidirectional,
+            merge_mode="concat" if bidirectional else None,
+        )
         
-        super().__init__(name=kwargs.get("name", None))  # Only pass name to Layer superclass
-        
-        self.units = units
-        self.mixed_memory = mixed_memory
-        self.mode = mode
-        self.activation = activation
-        self.backbone_units = backbone_units
-        self.backbone_layers = backbone_layers
-        self.backbone_dropout = backbone_dropout
-        self.return_sequences = return_sequences
-        self.return_state = return_state
-        self.go_backwards = go_backwards
-        self.stateful = stateful
-        self.unroll = unroll
-        self.time_major = time_major
-
-        if isinstance(units, ncps.wirings.Wiring):
-            if backbone_units is not None:
-                raise ValueError("Cannot use backbone_units in wired mode")
-            if backbone_layers is not None:
-                raise ValueError("Cannot use backbone_layers in wired mode")
-            if backbone_dropout is not None:
-                raise ValueError("Cannot use backbone_dropout in wired mode")
-            cell = WiredCfCCell(units, mode=mode, activation=activation)
-        else:
-            backbone_units = 128 if backbone_units is None else backbone_units
-            backbone_layers = 1 if backbone_layers is None else backbone_layers
-            backbone_dropout = 0.0 if backbone_dropout is None else backbone_dropout
-            cell = CfCCell(
-                units,
+        # Create forward layers
+        self.forward_layers = []
+        for _ in range(num_layers):
+            layer_cell = CfCCell(
+                wiring=type(wiring).from_config(wiring.get_config()),
                 mode=mode,
                 activation=activation,
                 backbone_units=backbone_units,
                 backbone_layers=backbone_layers,
                 backbone_dropout=backbone_dropout,
             )
-        if mixed_memory:
-                cell = MixedMemoryRNN(cell)
-        self.cell = cell
+            self.forward_layers.append(layer_cell)
+        
+        # Create backward layers if bidirectional
+        if bidirectional:
+            self.backward_layers = []
+            for _ in range(num_layers):
+                layer_cell = CfCCell(
+                    wiring=type(wiring).from_config(wiring.get_config()),
+                    mode=mode,
+                    activation=activation,
+                    backbone_units=backbone_units,
+                    backbone_layers=backbone_layers,
+                    backbone_dropout=backbone_dropout,
+                )
+                self.backward_layers.append(layer_cell)
+    
+    def __call__(
+        self,
+        x: mx.array,
+        initial_states: Optional[List[mx.array]] = None,
+        time_delta: Optional[Union[float, mx.array]] = None,
+    ) -> Union[mx.array, Tuple[mx.array, List[mx.array]]]:
+        """Process a sequence through the CfC network.
+        
+        Args:
+            x: Input tensor of shape [batch_size, seq_len, input_size]
+            initial_states: Optional list of initial states for each layer
+            time_delta: Optional time steps between sequence elements
+            
+        Returns:
+            If return_sequences is True, returns sequences of shape [batch_size, seq_len, hidden_size],
+            otherwise returns the last output of shape [batch_size, hidden_size].
+            If return_state is True, also returns the final states.
+        """
+        batch_size, seq_len, _ = x.shape
+        
+        # Process time delta
+        if time_delta is not None:
+            time_delta = self.process_time_delta(time_delta, batch_size, seq_len)
+        
+        # Initialize states if not provided
+        if initial_states is None:
+            initial_states = []
+            for _ in range(self.num_layers):
+                initial_states.append(mx.zeros((batch_size, self.hidden_size)))
+                if self.bidirectional:
+                    initial_states.append(mx.zeros((batch_size, self.hidden_size)))
+        
+        # Process each layer
+        current_input = x
+        final_states = []
+        
+        for layer in range(self.num_layers):
+            forward_cell = self.forward_layers[layer]
+            backward_cell = self.backward_layers[layer] if self.bidirectional else None
+            
+            # Forward pass
+            forward_states = []
+            state = initial_states[layer * (2 if self.bidirectional else 1)]
+            
+            for t in range(seq_len):
+                dt = time_delta[:, t] if time_delta is not None else 1.0
+                output, state = forward_cell(current_input[:, t], state, time=dt)
+                forward_states.append(output)
+            
+            forward_output = mx.stack(forward_states, axis=1)
+            final_states.append(state)
+            
+            # Backward pass if bidirectional
+            if self.bidirectional:
+                backward_states = []
+                state = initial_states[layer * 2 + 1]
+                
+                for t in range(seq_len - 1, -1, -1):
+                    dt = time_delta[:, t] if time_delta is not None else 1.0
+                    output, state = backward_cell(current_input[:, t], state, time=dt)
+                    backward_states.append(output)
+                
+                backward_output = mx.stack(backward_states[::-1], axis=1)
+                final_states.append(state)
+                
+                # Combine forward and backward outputs
+                current_input = mx.concatenate([forward_output, backward_output], axis=-1)
+            else:
+                current_input = forward_output
+        
+        # Prepare output
+        if not self.return_sequences:
+            current_input = current_input[:, -1]
+            
+        if self.return_state:
+            return current_input, final_states
+        return current_input
+    
+    def state_dict(self) -> Dict[str, Any]:
+        """Return the layer's state dictionary."""
+        state = super().state_dict()
+        state.update({
+            'return_sequences': self.return_sequences,
+            'return_state': self.return_state,
+            'forward_layers': [layer.state_dict() for layer in self.forward_layers],
+        })
+        if self.bidirectional:
+            state['backward_layers'] = [layer.state_dict() for layer in self.backward_layers]
+        return state
+    
+    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+        """Load the layer's state from a dictionary."""
+        super().load_state_dict(state_dict)
+        self.return_sequences = state_dict['return_sequences']
+        self.return_state = state_dict['return_state']
+        
+        # Load layer states
+        for layer, layer_state in zip(self.forward_layers, state_dict['forward_layers']):
+            layer.load_state_dict(layer_state)
+        if self.bidirectional:
+            for layer, layer_state in zip(self.backward_layers, state_dict['backward_layers']):
+                layer.load_state_dict(layer_state)

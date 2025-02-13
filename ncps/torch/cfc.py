@@ -1,17 +1,8 @@
-# Copyright 2022 Mathias Lechner and Ramin Hasani
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Closed-form Continuous-time (CfC) RNN implementation in PyTorch.
 
+This module implements the CfC model as described in the paper:
+"Liquid Time-Constant Networks".
+"""
 
 import torch
 from torch import nn
@@ -22,6 +13,37 @@ from .lstm import LSTMCell
 
 
 class CfC(nn.Module):
+    """Closed-form Continuous-time (CfC) RNN model.
+    
+    A neural network model that combines the expressivity of continuous-time dynamics
+    with the efficiency of closed-form solutions. Features:
+    
+    - Time-aware processing
+    - Mixed memory support
+    - Configurable backbone networks
+    - Multiple operation modes
+    
+    Args:
+        input_size: Input feature dimension or wiring pattern
+        units: Number of hidden units (if not using wiring)
+        proj_size: Optional projection size for output
+        return_sequences: Whether to return full sequence or just final output
+        batch_first: If True, batch dimension is first
+        mixed_memory: Whether to use mixed memory architecture
+        mode: Operating mode ('default', 'pure', or 'no_gate')
+        activation: Activation function
+        backbone_units: Number of units in backbone layers
+        backbone_layers: Number of backbone layers
+        backbone_dropout: Dropout rate for backbone
+        
+    Attributes:
+        rnn_cell: The core CfC cell
+        fc: Optional output projection layer
+        return_sequences: Whether to return sequences
+        batch_first: Batch dimension order flag
+        use_mixed: Mixed memory flag
+    """
+    
     def __init__(
         self,
         input_size: Union[int, ncps.wirings.Wiring],
@@ -110,12 +132,19 @@ class CfC(nn.Module):
             self.fc = nn.Linear(self.output_size, self.proj_size)
 
     def forward(self, input, hx=None, timespans=None):
-        """
-
-        :param input: Input tensor of shape (L,C) in batchless mode, or (B,L,C) if batch_first was set to True and (L,B,C) if batch_first is False
-        :param hx: Initial hidden state of the RNN of shape (B,H) if mixed_memory is False and a tuple ((B,H),(B,H)) if mixed_memory is True. If None, the hidden states are initialized with all zeros.
-        :param timespans:
-        :return: A pair (output, hx), where output and hx the final hidden state of the RNN
+        """Forward pass of the CfC model.
+        
+        Args:
+            input: Input tensor of shape [batch, seq, features] or [seq, batch, features]
+            hx: Optional initial hidden state
+            timespans: Optional tensor of time deltas between steps
+            
+        Returns:
+            output: Output tensor of shape matching input
+            hx: Final hidden state
+            
+        Raises:
+            RuntimeError: If input dimensions don't match expectations
         """
         device = input.device
         is_batched = input.dim() == 3

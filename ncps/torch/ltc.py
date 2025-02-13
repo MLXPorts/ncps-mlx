@@ -1,16 +1,9 @@
-# Copyright 2022 Mathias Lechner and Ramin Hasani
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Liquid Time-Constant (LTC) PyTorch implementation.
+
+This module implements the LTC model as described in the paper:
+"Long short-term memory and learning-to-learn in networks of spiking neurons"
+"""
+
 import numpy as np
 import torch
 from torch import nn
@@ -21,6 +14,35 @@ from .lstm import LSTMCell
 
 
 class LTC(nn.Module):
+    """Liquid Time-Constant (LTC) neural network model.
+    
+    A biologically-inspired recurrent neural network model that implements 
+    neuron dynamics using a system of differential equations. Features:
+    
+    - Continuous-time neuron dynamics
+    - Configurable input/output mappings
+    - ODE integration control
+    - Mixed memory support
+    
+    Args:
+        input_size: Size of input features
+        units: Number of hidden units or wiring specification
+        return_sequences: Whether to return full sequence or just final output
+        batch_first: If True, batch dimension is first
+        mixed_memory: Whether to use mixed memory architecture  
+        input_mapping: Type of input transformation ('affine' or 'identity')
+        output_mapping: Type of output transformation ('affine' or 'identity')
+        ode_unfolds: Number of ODE solver steps
+        epsilon: Small constant for numerical stability
+        implicit_param_constraints: Whether to enforce implicit parameter constraints
+        
+    Attributes:
+        rnn_cell: The core LTC cell
+        use_mixed: Mixed memory flag
+        return_sequences: Whether to return sequences
+        batch_first: Batch dimension order flag
+    """
+
     def __init__(
         self,
         input_size: int,
@@ -122,12 +144,19 @@ class LTC(nn.Module):
         return np.sum(np.abs(self._wiring.adjacency_matrix))
 
     def forward(self, input, hx=None, timespans=None):
-        """
-
-        :param input: Input tensor of shape (L,C) in batchless mode, or (B,L,C) if batch_first was set to True and (L,B,C) if batch_first is False
-        :param hx: Initial hidden state of the RNN of shape (B,H) if mixed_memory is False and a tuple ((B,H),(B,H)) if mixed_memory is True. If None, the hidden states are initialized with all zeros.
-        :param timespans:
-        :return: A pair (output, hx), where output and hx the final hidden state of the RNN
+        """Forward pass of the LTC model.
+        
+        Args:
+            input: Input tensor of shape [batch, seq, features] or [seq, batch, features]
+            hx: Optional initial hidden state
+            timespans: Optional tensor of time deltas between steps
+            
+        Returns:
+            output: Output tensor of shape matching input
+            hx: Final hidden state
+            
+        Raises:
+            RuntimeError: If input dimensions don't match expectations
         """
         device = input.device
         is_batched = input.dim() == 3

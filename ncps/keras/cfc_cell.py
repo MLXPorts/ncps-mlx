@@ -1,201 +1,270 @@
-# Copyright 2022 Mathias Lechner and Ramin Hasani
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Closed-form Continuous-time (CfC) cell implementation for Keras."""
+
 import keras
+from keras import ops, layers, activations
+from typing import Optional, List, Dict, Any, Union, Tuple
+
+from .activations import LeCunTanh
+from .base import LiquidCell
 
 
-# LeCun improved tanh activation
-# http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
-@keras.utils.register_keras_serializable(package="", name="lecun_tanh")
-def lecun_tanh(x):
-    return 1.7159 * ncps.mini_keras.activations.tanh(0.666 * x)
-
-
-# Register the custom activation function
-from ncps.mini_keras.src.activations import ALL_OBJECTS_DICT
-ALL_OBJECTS_DICT["lecun_tanh"] = lecun_tanh
-
-
-@keras.utils.register_keras_serializable(package="ncps", name="CfCCell")
-class CfCCell(keras.layers.Layer):
+@keras.saving.register_keras_serializable(package="ncps")
+class CfCCell(LiquidCell):
+    """A Closed-form Continuous-time (CfC) cell."""
+    
     def __init__(
         self,
-        units,
-        mode="default",
-        activation="lecun_tanh",
-        backbone_units=128,
-        backbone_layers=1,
-        backbone_dropout=0.1,
-        sparsity_mask=None,
-        **kwargs,
+        wiring,
+        mode: str = "default",
+        activation: Union[str, layers.Layer] = "tanh",
+        backbone_units: Optional[List[int]] = None,
+        backbone_layers: int = 0,
+        backbone_dropout: float = 0.0,
+        **kwargs
     ):
-        """A `Closed-form Continuous-time <https://arxiv.org/abs/2106.13898>`_ cell.
-
-        .. Note::
-            This is an RNNCell that process single time-steps.
-            To get a full RNN that can process sequences,
-            see `ncps.keras.CfC` or wrap the cell with a `keras.layers.RNN <https://www.tensorflow.org/api_docs/python/tf/keras/layers/RNN>`_.
-
-
-        :param units: Number of hidden units
-        :param input_sparsity:
-        :param recurrent_sparsity:
-        :param mode: Either "default", "pure" (direct solution approximation), or "no_gate" (without second gate).
-        :param activation: Activation function used in the backbone layers
-        :param backbone_units: Number of hidden units in the backbone layer (default 128)
-        :param backbone_layers: Number of backbone layers (default 1)
-        :param backbone_dropout: Dropout rate in the backbone layers (default 0)
-        :param kwargs:
-        """
         super().__init__(**kwargs)
-        self.units = units
-        self.sparsity_mask = sparsity_mask
-        if sparsity_mask is not None:
-            # No backbone is allowed
-            if backbone_units > 0:
-                raise ValueError("If sparsity of a CfC cell is set, then no backbone is allowed")
-
+        self.wiring = wiring
+        self.units = wiring.units
+        self.state_size = self.units
+        self.output_size = wiring.output_dim or wiring.units
+        self.input_size = wiring.input_dim if wiring.input_dim is not None else 0
+        
+        # Validate and store mode
         allowed_modes = ["default", "pure", "no_gate"]
         if mode not in allowed_modes:
             raise ValueError(f"Unknown mode '{mode}', valid options are {str(allowed_modes)}")
         self.mode = mode
-        self.backbone_fn = None
-        self._activation = ncps.mini_keras.activations.get(activation)
-        self._backbone_units = backbone_units
-        self._backbone_layers = backbone_layers
-        self._backbone_dropout = backbone_dropout
-        self._cfc_layers = []
-
-    @property
-    def state_size(self):
-        return self.units
-
+        
+        # Get activation function
+        if activation == "lecun_tanh":
+            self.activation = LeCunTanh()
+            self.activation_name = "lecun_tanh"
+        else:
+            self.activation = activations.get(activation)
+            self.activation_name = activation
+        
+        # Process backbone units
+        if backbone_units is None:
+            backbone_units = []
+        elif isinstance(backbone_units, int):
+            backbone_units = [backbone_units] * backbone_layers
+        elif len(backbone_units) == 1 and backbone_layers > 1:
+            backbone_units = backbone_units * backbone_layers
+            
+        # Store backbone configuration
+        self.backbone_units = backbone_units
+        self.backbone_layers = backbone_layers
+        self.backbone_dropout = backbone_dropout
+        self.backbone = None
+        
+        # Calculate backbone dimensions
+        self.backbone_input_dim = self.input_size + self.units
+        if backbone_layers > 0 and backbone_units:
+            self.backbone_output_dim = backbone_units[-1]
+        else:
+            self.backbone_output_dim = self.backbone_input_dim
+    
+    def build_backbone(self):
+        """Build backbone network layers."""
+        # Clear any existing backbone
+        self.backbone = None
+        
+        # Only build if needed
+        if not self.backbone_layers or not self.backbone_units:
+            return
+        
+        layers_list = []
+        current_dim = self.backbone_input_dim
+        
+        # Build layers
+        for i, units in enumerate(self.backbone_units):
+            # Add linear layer
+            layers_list.append(layers.Dense(units))
+            
+            # Add activation and dropout except for last layer
+            if i < len(self.backbone_units) - 1:
+                if isinstance(self.activation, layers.Layer):
+                    layers_list.append(self.activation)
+                else:
+                    layers_list.append(layers.Activation(self.activation))
+                if self.backbone_dropout > 0:
+                    layers_list.append(layers.Dropout(self.backbone_dropout))
+            
+            current_dim = units
+            
+        self.backbone = keras.Sequential(layers_list)
+        
+        # Build backbone with correct input shape
+        self.backbone.build((None, self.backbone_input_dim))
+    
     def build(self, input_shape):
-        if isinstance(input_shape[0], tuple) or isinstance(input_shape[0], ncps.mini_keras.KerasTensor):
-            # Nested tuple -> First item represent feature dimension
-            input_dim = input_shape[0][-1]
+        """Build cell parameters."""
+        # Set input dimension
+        input_dim = input_shape[-1]
+        self.input_size = input_dim
+        self.backbone_input_dim = self.input_size + self.units
+        
+        # Build backbone if needed
+        self.build_backbone()
+        
+        # Get effective input dimension
+        if self.backbone is not None:
+            input_dim = self.backbone_output_dim
         else:
-            input_dim = input_shape[-1]
-
-        if self._backbone_layers > 0:
-            backbone_layers = []
-            for i in range(self._backbone_layers):
-                backbone_layers.append(keras.layers.Dense(self._backbone_units, self._activation, name=f"backbone{i}"))
-                backbone_layers.append(keras.layers.Dropout(self._backbone_dropout))
-
-            self.backbone_fn = ncps.mini_keras.models.Sequential(backbone_layers)
-            self.backbone_fn.build((None, self.state_size + input_dim))
-            cat_shape = int(self._backbone_units)
-        else:
-            cat_shape = int(self.state_size + input_dim)
-
+            input_dim = self.input_size + self.units
+        
+        # Initialize main transformation weights
         self.ff1_kernel = self.add_weight(
-            shape=(cat_shape, self.state_size),
+            shape=(input_dim, self.units),
             initializer="glorot_uniform",
-            name="ff1_weight",
+            name="ff1_kernel"
         )
         self.ff1_bias = self.add_weight(
-            shape=(self.state_size,),
+            shape=(self.units,),
             initializer="zeros",
-            name="ff1_bias",
+            name="ff1_bias"
         )
-
+        
         if self.mode == "pure":
-            self.w_tau = self.add_weight(
-                shape=(1, self.state_size),
-                initializer=keras.initializers.Zeros(),
-                name="w_tau",
-            )
-            self.A = self.add_weight(
-                shape=(1, self.state_size),
-                initializer=keras.initializers.Ones(),
-                name="A",
-            )
+            self._build_pure_mode()
         else:
-            self.ff2_kernel = self.add_weight(
-                shape=(cat_shape, self.state_size),
+            self._build_gated_mode(input_dim)
+        
+        # Initialize output projection if needed
+        if self.output_size != self.units:
+            self.output_kernel = self.add_weight(
+                shape=(self.units, self.output_size),
                 initializer="glorot_uniform",
-                name="ff2_weight",
+                name="output_kernel"
             )
-            self.ff2_bias = self.add_weight(
-                shape=(self.state_size,),
+            self.output_bias = self.add_weight(
+                shape=(self.output_size,),
                 initializer="zeros",
-                name="ff2_bias",
+                name="output_bias"
             )
-
-            self.time_a = ncps.mini_keras.layers.Dense(self.state_size, name="time_a")
-            self.time_b = ncps.mini_keras.layers.Dense(self.state_size, name="time_b")
-            input_shape = (None, self.state_size + input_dim)
-            if self._backbone_layers > 0:
-                input_shape = self.backbone_fn.output_shape
-            self.time_a.build(input_shape)
-            self.time_b.build(input_shape)
+        
         self.built = True
-
-    def call(self, inputs, states, **kwargs):
-        if isinstance(inputs, (tuple, list)):
-            # Irregularly sampled mode
-            inputs, t = inputs
-            t = ncps.mini_keras.ops.reshape(t, [-1, 1])
-        else:
-            # Regularly sampled mode (elapsed time = 1 second)
-            t = kwargs.get("time") or 1.0
-        x = ncps.mini_keras.layers.Concatenate()([inputs, states[0]])
-        if self._backbone_layers > 0:
-            x = self.backbone_fn(x)
-        if self.sparsity_mask is not None:
-            ff1_kernel = self.ff1_kernel * self.sparsity_mask
-            ff1 = ncps.mini_keras.ops.matmul(x, ff1_kernel) + self.ff1_bias
-        else:
-            ff1 = ncps.mini_keras.ops.matmul(x, self.ff1_kernel) + self.ff1_bias
+    
+    def _build_pure_mode(self):
+        """Build pure mode parameters."""
+        self.w_tau = self.add_weight(
+            shape=(1, self.units),
+            initializer="zeros",
+            name="w_tau"
+        )
+        self.A = self.add_weight(
+            shape=(1, self.units),
+            initializer="ones",
+            name="A"
+        )
+    
+    def _build_gated_mode(self, input_dim: int):
+        """Build gated mode parameters."""
+        self.ff2_kernel = self.add_weight(
+            shape=(input_dim, self.units),
+            initializer="glorot_uniform",
+            name="ff2_kernel"
+        )
+        self.ff2_bias = self.add_weight(
+            shape=(self.units,),
+            initializer="zeros",
+            name="ff2_bias"
+        )
+        
+        # Initialize time projection layers
+        self.time_a = layers.Dense(self.units, name="time_a")
+        self.time_b = layers.Dense(self.units, name="time_b")
+        
+        # Build time projection layers
+        self.time_a.build((None, input_dim))
+        self.time_b.build((None, input_dim))
+    
+    def call(self, inputs, states, training=None):
+        """Process one step with the cell.
+        
+        Args:
+            inputs: Input tensor of shape [batch_size, input_size]
+            states: Previous state tensors
+            training: Whether in training mode
+            
+        Returns:
+            Tuple of (output, new_states)
+        """
+        # Get current state
+        state = states[0]
+        
+        # Process input
+        x = layers.concatenate([inputs, state])
+        if self.backbone is not None:
+            x = self.backbone(x, training=training)
+        
+        # Apply transformations
         if self.mode == "pure":
-            # Solution
-            new_hidden = (
-                -self.A
-                * ncps.mini_keras.ops.exp(-t * (keras.ops.abs(self.w_tau) + ncps.mini_keras.ops.abs(ff1)))
-                * ff1
-                + self.A
-            )
+            new_state = self._pure_step(x)
         else:
-            # Cfc
-            if self.sparsity_mask is not None:
-                ff2_kernel = self.ff2_kernel * self.sparsity_mask
-                ff2 = ncps.mini_keras.ops.matmul(x, ff2_kernel) + self.ff2_bias
-            else:
-                ff2 = ncps.mini_keras.ops.matmul(x, self.ff2_kernel) + self.ff2_bias
-            t_a = self.time_a(x)
-            t_b = self.time_b(x)
-            t_interp = ncps.mini_keras.activations.sigmoid(-t_a * t + t_b)
-            if self.mode == "no_gate":
-                new_hidden = ff1 + t_interp * ff2
-            else:
-                new_hidden = ff1 * (1.0 - t_interp) + t_interp * ff2
-
-        return new_hidden, [new_hidden]
-
-    def get_config(self):
-        config = {
-            "units": self.units,
-            "mode": self.mode,
-            "activation": self._activation,
-            "backbone_units": self._backbone_units,
-            "backbone_layers": self._backbone_layers,
-            "backbone_dropout": self._backbone_dropout,
-            "sparsity_mask": self.sparsity_mask,
-        }
-        base_config = super().get_config()
-        return {**base_config, **config}
-
+            new_state = self._gated_step(x)
+        
+        # Project output if needed
+        if self.output_size != self.units:
+            output = ops.matmul(new_state, self.output_kernel) + self.output_bias
+        else:
+            output = new_state
+        
+        return output, [new_state]
+    
+    def _pure_step(self, x):
+        """Execute pure mode step."""
+        ff1 = ops.matmul(x, self.ff1_kernel) + self.ff1_bias
+        new_state = (
+            -self.A 
+            * ops.exp(-(ops.abs(self.w_tau) + ops.abs(ff1))) 
+            * ff1 
+            + self.A
+        )
+        return new_state
+    
+    def _gated_step(self, x):
+        """Execute gated mode step."""
+        ff1 = ops.matmul(x, self.ff1_kernel) + self.ff1_bias
+        ff2 = ops.matmul(x, self.ff2_kernel) + self.ff2_bias
+        
+        t_a = self.time_a(x)
+        t_b = self.time_b(x)
+        t_interp = activations.sigmoid(-t_a + t_b)
+        
+        if self.mode == "no_gate":
+            new_state = ff1 + t_interp * ff2
+        else:
+            new_state = ff1 * (1.0 - t_interp) + t_interp * ff2
+        
+        return new_state
+    
+    def get_config(self) -> Dict[str, Any]:
+        """Get configuration for serialization."""
+        config = super().get_config()
+        config.update({
+            'wiring': self.wiring.get_config(),
+            'mode': self.mode,
+            'activation': self.activation_name,
+            'backbone_units': self.backbone_units,
+            'backbone_layers': self.backbone_layers,
+            'backbone_dropout': self.backbone_dropout,
+        })
+        return config
+    
     @classmethod
     def from_config(cls, config, custom_objects=None):
+        """Create from configuration."""
+        # Extract wiring configuration
+        wiring_config = config.pop('wiring')
+        
+        # Import wiring class dynamically
+        import importlib
+        wirings_module = importlib.import_module('ncps.keras.wirings')
+        wiring_class = getattr(wirings_module, wiring_config['class_name'])
+        
+        # Create wiring
+        wiring = wiring_class.from_config(wiring_config['config'])
+        config['wiring'] = wiring
+        
         return cls(**config)

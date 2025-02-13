@@ -25,15 +25,50 @@ from typing import Optional, Union
 
 
 class LeCun(nn.Module):
+    """LeCun tanh activation function.
+    
+    Implements the scaled tanh activation: f(x) = 1.7159 * tanh(0.666 * x)
+    """
+    
     def __init__(self):
         super(LeCun, self).__init__()
         self.tanh = nn.Tanh()
 
     def forward(self, x):
+        """Apply LeCun tanh activation.
+        
+        Args:
+            x: Input tensor
+            
+        Returns:
+            Tensor with activation applied
+        """
         return 1.7159 * self.tanh(0.666 * x)
 
 
 class CfCCell(nn.Module):
+    """Closed-form Continuous-time (CfC) cell.
+    
+    The core computational unit of CfC networks that combines the expressivity
+    of continuous-time dynamics with efficient closed-form solutions.
+    
+    Args:
+        input_size: Size of input features
+        hidden_size: Number of hidden units
+        mode: Operating mode ('default', 'pure', or 'no_gate')
+        backbone_activation: Activation function for backbone network
+        backbone_units: Number of units in backbone layers
+        backbone_layers: Number of backbone layers
+        backbone_dropout: Dropout rate for backbone
+        sparsity_mask: Optional mask for sparse connectivity
+        
+    Attributes:
+        mode: Current operating mode
+        hidden_size: Size of hidden state
+        backbone: Optional backbone network layers
+        sparsity_mask: Current sparsity mask if any
+    """
+
     def __init__(
         self,
         input_size,
@@ -129,11 +164,24 @@ class CfCCell(nn.Module):
         self.init_weights()
 
     def init_weights(self):
+        """Initialize network weights using Xavier uniform initialization."""
         for w in self.parameters():
             if w.dim() == 2 and w.requires_grad:
                 torch.nn.init.xavier_uniform_(w)
 
     def forward(self, input, hx, ts):
+        """Forward pass of CfC cell.
+        
+        Args:
+            input: Input tensor of shape [batch_size, input_size]
+            hx: Hidden state tensor of shape [batch_size, hidden_size]  
+            ts: Time delta for this step
+            
+        Returns:
+            Tuple containing:
+                - New hidden state
+                - Copy of new hidden state (for API compatibility)
+        """
         x = torch.cat([input, hx], 1)
         if self.backbone_layers > 0:
             x = self.backbone(x)

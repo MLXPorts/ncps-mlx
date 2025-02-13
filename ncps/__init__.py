@@ -15,10 +15,10 @@
 
 # from __future__ import absolute_import
 
-# TensorFlow or PyTorch implementation must be load separately
+# Framework implementations must be loaded separately
 from ncps import wirings
 from ncps import datasets
 
 __version__ = "0.0.2"
 
-__all__ = ["wirings", "datasets", "mini_keras", "__version__"]
+__all__ = ["wirings", "datasets", "mlx", "keras", "__version__"]

@@ -43,7 +43,7 @@ class MixedMemoryRNN(keras.layers.Layer):
 
     def build(self, sequences_shape, initial_state_shape=None):
         input_dim = sequences_shape[-1]
-        if isinstance(sequences_shape[0], tuple) or isinstance(sequences_shape[0], ncps.mini_keras.KerasTensor):
+        if isinstance(sequences_shape[0], tuple) or isinstance(sequences_shape[0], keras.layers.Input):
             # Nested tuple
             input_dim = sequences_shape[0][-1]
 
@@ -69,24 +69,24 @@ class MixedMemoryRNN(keras.layers.Layer):
     def call(self, sequences, initial_state=None, mask=None, training=False, **kwargs):
         memory_state, ct_state = initial_state
         if isinstance(ct_state, list):
-            flat_ct_state = ncps.mini_keras.ops.concatenate(ct_state, axis=-1)
+            flat_ct_state = keras.layers.Concatenate(axis=-1)(ct_state)
         else:
             flat_ct_state = ct_state
         z = (
-                ncps.mini_keras.ops.matmul(sequences, self.input_kernel)
-                + ncps.mini_keras.ops.matmul(flat_ct_state, self.recurrent_kernel)
+                keras.backend.dot(sequences, self.input_kernel)
+                + keras.backend.dot(flat_ct_state, self.recurrent_kernel)
                 + self.bias
         )
 
-        i, ig, fg, og = ncps.mini_keras.ops.split(z, 4, axis=-1)
+        i, ig, fg, og = keras.layers.Lambda(lambda x: keras.backend.split(x, 4, axis=-1))(z)
 
-        input_activation = ncps.mini_keras.activations.tanh(i)
-        input_gate = ncps.mini_keras.activations.sigmoid(ig)
-        forget_gate = ncps.mini_keras.activations.sigmoid(fg + self.forget_gate_bias)
-        output_gate = ncps.mini_keras.activations.sigmoid(og)
+        input_activation = keras.activations.tanh(i)
+        input_gate = keras.activations.sigmoid(ig)
+        forget_gate = keras.activations.sigmoid(fg + self.forget_gate_bias)
+        output_gate = keras.activations.sigmoid(og)
 
         new_memory_state = memory_state * forget_gate + input_activation * input_gate
-        ct_input = ncps.mini_keras.activations.tanh(new_memory_state) * output_gate  # LSTM output = ODE input
+        ct_input = keras.activations.tanh(new_memory_state) * output_gate  # LSTM output = ODE input
 
         if (isinstance(sequences, tuple) or isinstance(sequences, list)) and len(sequences) > 1:
             # Input is a tuple -> Ct cell input should also be a tuple
@@ -109,5 +109,5 @@ class MixedMemoryRNN(keras.layers.Layer):
 
     @classmethod
     def from_config(cls, config, custom_objects=None):
-        rnn_cell = ncps.mini_keras.layers.deserialize(config["rnn_cell"])
+        rnn_cell = keras.layers.deserialize(config["rnn_cell"])
         return cls(rnn_cell=rnn_cell, **config)

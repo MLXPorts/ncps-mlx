@@ -1,32 +1,26 @@
-# Copyright (2017-2021)
-# The Wormnet project
-# Mathias Lechner (mlechner@ist.ac.at)
-
-from ncps import mini_keras as mini_keras
-from ncps.mini_keras import ops
+import mlx.core as mx
+import mlx.nn as nn
 from ncps import wirings
 from ncps.mlx import CfC, WiredCfCCell
-from ncps.mini_keras.models import Sequential, Model
-# Define the sequence model using mini_keras Model API 
 
-# Data preparation using Keras ops
+# Data preparation using MLX ops
 N = 48  # Length of the time-series
 in_features = 2
 out_features = 1
 
-# Input feature is a sine and a cosine wave using Keras ops
-t = ops.linspace(0, 3 * ops.pi(), N)
-sin_wave = ops.sin(t)
-cos_wave = ops.cos(t)
-data_x = ops.stack([sin_wave, cos_wave], axis=1)
-data_x = ops.expand_dims(data_x, axis=0)  # Add batch dimension
+# Input feature is a sine and a cosine wave using MLX ops
+t = mx.linspace(0, 3 * mx.pi, N)
+sin_wave = mx.sin(t)
+cos_wave = mx.cos(t)
+data_x = mx.stack([sin_wave, cos_wave], axis=1)
+data_x = mx.expand_dims(data_x, axis=0)  # Add batch dimension
 
 # Target output is a sine with double the frequency
-t_out = ops.linspace(0, 6 * ops.pi(), N)  
-data_y = ops.sin(t_out)
-data_y = ops.reshape(data_y, [1, N, 1])
+t_out = mx.linspace(0, 6 * mx.pi, N)  
+data_y = mx.sin(t_out)
+data_y = mx.reshape(data_y, [1, N, 1])
 
-# List of models to test
+# List of model configurations
 model_configs = [
     CfC(units=32),
     WiredCfCCell(
@@ -65,26 +59,45 @@ model_configs = [
     ),
 ]
 
+# Training using MLX
+class Model(nn.Module):
+    def __init__(self, rnn_cell):
+        super().__init__()
+        self.rnn = rnn_cell
+        
+    def __call__(self, x, training=True):
+        # Process sequence
+        h = None
+        outputs = []
+        for t in range(x.shape[1]):
+            y, h = self.rnn(x[:, t:t+1, :], h)
+            outputs.append(y)
+        return mx.concatenate(outputs, axis=1)
 
-# Approach 2: Using standard Keras training (model.compile and model.fit)
-# Comment out or remove the SupervisedTrainer related code above
+# Training parameters
+optimizer = nn.optimizers.Adam(learning_rate=0.01)
+
+def train_step(model, x, y):
+    def loss_fn(model, x, y):
+        return mx.mean(mx.square(model(x) - y))
+    
+    loss_and_grad = nn.value_and_grad(model, loss_fn)
+    loss, grads = loss_and_grad(model, x, y)
+    optimizer.update(model, grads)
+    return loss
+
+# Train each model configuration
 for rnn_cell in model_configs:
-    # Use proper Keras model building pattern
-    
-    inputs = mini_keras.Input(shape=(N, in_features))
-    x = mini_keras.layers.RNN(rnn_cell, return_sequences=True)(inputs)
-    model = mini_keras.Model(inputs=inputs, outputs=x)
-
-    model.compile(optimizer=mini_keras.optimizers.Adam(learning_rate=0.01),
-                 loss='mse',
-                 metrics=['mse'])
-    
+    model = Model(rnn_cell)
     print(f"\nTraining model: {rnn_cell.__class__.__name__}")
-
-    history = model.fit(data_x.astype("float32"), data_y.astype("float32"), 
-                            batch_size=1, epochs=10, verbose=1)
     
-    loss, mse = model.evaluate(data_x, data_y)
-    print(f"\nFinal training metrics for {rnn_cell.__class__.__name__}:")
-    print(f"loss: {loss}")
-    print(f"mse: {mse}")
+    # Training loop
+    for epoch in range(10):
+        loss = train_step(model, data_x, data_y)
+        mx.eval(loss)
+        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f}")
+    
+    # Evaluate
+    with mx.eval_mode():
+        final_loss = mx.mean(mx.square(model(data_x) - data_y))
+        print(f"\nFinal MSE for {rnn_cell.__class__.__name__}: {final_loss.item():.4f}")

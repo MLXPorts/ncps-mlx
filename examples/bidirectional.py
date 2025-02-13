@@ -3,7 +3,7 @@
 # Mathias Lechner (mlechner@ist.ac.at)
 import numpy as np
 import mlx.core as mx
-from ncps.mini_keras import models, layers
+import mlx.nn as nn
 from ncps.mlx import LTC, EnhancedLTCCell
 from ncps import wirings
 
@@ -28,22 +28,61 @@ data_x, data_y = generate_data(N)
 # Use AutoNCP wiring
 auto_ncp = wirings.AutoNCP(32, 1)  # 32 neurons, 1 output
 
-# Create model using mini_keras bidirectional wrapper
-model = models.Sequential([
-    layers.InputLayer(input_shape=(None, 2)),
-    layers.Bidirectional(
-        layers.RNN(
-            LTC(auto_ncp, cell_class=EnhancedLTCCell, solver="rk4", ode_unfolds=6),
-            return_sequences=True
-        )
-    ),
-    layers.Dense(1)
-])
+# Create bidirectional model using MLX
+class BidirectionalRNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.forward_rnn = LTC(auto_ncp, cell_class=EnhancedLTCCell, solver="rk4", ode_unfolds=6)
+        self.backward_rnn = LTC(auto_ncp, cell_class=EnhancedLTCCell, solver="rk4", ode_unfolds=6)
+        self.dense = nn.Linear(auto_ncp.units * 2, 1)  # *2 for bidirectional
+    
+    def __call__(self, x):
+        # Forward pass
+        h_forward = None
+        forward_outputs = []
+        for t in range(x.shape[1]):
+            y, h_forward = self.forward_rnn(x[:, t:t+1, :], h_forward)
+            forward_outputs.append(y)
+        
+        # Backward pass
+        h_backward = None
+        backward_outputs = []
+        for t in range(x.shape[1]-1, -1, -1):
+            y, h_backward = self.backward_rnn(x[:, t:t+1, :], h_backward)
+            backward_outputs.insert(0, y)
+        
+        # Concatenate forward and backward outputs
+        forward_seq = mx.concatenate(forward_outputs, axis=1)
+        backward_seq = mx.concatenate(backward_outputs, axis=1)
+        combined = mx.concatenate([forward_seq, backward_seq], axis=-1)
+        
+        # Apply dense layer
+        return self.dense(combined)
 
-# Use mini_keras training
-model.compile(
-    optimizer='adam',
-    loss='mse',
-    learning_rate=0.01
-)
-model.fit(data_x, data_y, batch_size=1, epochs=200)
+model = BidirectionalRNN()
+
+# Training parameters
+optimizer = nn.optimizers.Adam(learning_rate=0.01)
+
+# Training loop
+def train_step(model, x, y):
+    def loss_fn(model, x, y):
+        return mx.mean(mx.square(model(x) - y))
+    
+    loss_and_grad = nn.value_and_grad(model, loss_fn)
+    loss, grads = loss_and_grad(model, x, y)
+    optimizer.update(model, grads)
+    return loss
+
+# Train the model
+for epoch in range(200):
+    loss = train_step(model, data_x, data_y)
+    mx.eval(loss)
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f}")
+
+# Test inference
+with mx.eval_mode():
+    prediction = model(data_x)
+    final_loss = mx.mean(mx.square(prediction - data_y))
+    print(f"\nFinal MSE: {final_loss.item():.4f}")
