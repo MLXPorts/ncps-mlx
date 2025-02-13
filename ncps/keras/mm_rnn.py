@@ -43,7 +43,7 @@ class MixedMemoryRNN(keras.layers.Layer):
 
     def build(self, sequences_shape, initial_state_shape=None):
         input_dim = sequences_shape[-1]
-        if isinstance(sequences_shape[0], tuple) or isinstance(sequences_shape[0], keras.KerasTensor):
+        if isinstance(sequences_shape[0], tuple) or isinstance(sequences_shape[0], keras.layers.Input):
             # Nested tuple
             input_dim = sequences_shape[0][-1]
 
@@ -69,16 +69,16 @@ class MixedMemoryRNN(keras.layers.Layer):
     def call(self, sequences, initial_state=None, mask=None, training=False, **kwargs):
         memory_state, ct_state = initial_state
         if isinstance(ct_state, list):
-            flat_ct_state = keras.ops.concatenate(ct_state, axis=-1)
+            flat_ct_state = keras.layers.Concatenate(axis=-1)(ct_state)
         else:
             flat_ct_state = ct_state
         z = (
-                keras.ops.matmul(sequences, self.input_kernel)
-                + keras.ops.matmul(flat_ct_state, self.recurrent_kernel)
+                keras.backend.dot(sequences, self.input_kernel)
+                + keras.backend.dot(flat_ct_state, self.recurrent_kernel)
                 + self.bias
         )
 
-        i, ig, fg, og = keras.ops.split(z, 4, axis=-1)
+        i, ig, fg, og = keras.layers.Lambda(lambda x: keras.backend.split(x, 4, axis=-1))(z)
 
         input_activation = keras.activations.tanh(i)
         input_gate = keras.activations.sigmoid(ig)

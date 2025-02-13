@@ -1,12 +1,12 @@
-.. torch-api-label:
+.. keras-api-label:
 
-Tensorflow (tf.keras Layers)
+Keras Layers
 ----------------------------
 
 .. toctree::
     :maxdepth: 2
 
-.. automodule:: ncps.tf
+.. automodule:: ncps.keras
 
 Sequence models
 ============================================
@@ -25,3 +25,6 @@ Single time-step models (RNN **cells**)
 
 .. autoclass:: LTCCell
    :members:
+
+.. note::
+   These layers are implemented using Keras 3.x and are backend-agnostic. They can work with TensorFlow, JAX, or PyTorch backends depending on your Keras configuration.

@@ -6,6 +6,7 @@ API Reference
 .. toctree::
     :titlesonly:
 
+    mlx
+    keras
     torch
-    tensorflow
     wirings

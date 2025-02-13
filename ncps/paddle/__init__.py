@@ -1,3 +1,9 @@
+"""PaddlePaddle implementation of Neural Circuit Policies."""
+
+from .base import LiquidCell
+from .ltc_cell import LTCCell
+
+__all__ = ["LiquidCell", "LTCCell"]
 # Copyright 2020-2021 Mathias Lechner
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

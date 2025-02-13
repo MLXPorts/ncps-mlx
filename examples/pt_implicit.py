@@ -1,20 +1,20 @@
 import numpy as np
-import mlx.core as mx
-from ncps.mini_keras import models, layers
-from ncps.mlx import LTC, EnhancedLTCCell
+import keras
+from ncps.keras import LTC, EnhancedLTCCell  # Changed to keras implementation
 from ncps import wirings
 
 def generate_data(N):
     in_features = 2
     out_features = 1
     # Input feature is a sine and a cosine wave
-    data_x = mx.stack(
-        [mx.sin(mx.linspace(0, 3 * mx.pi, N)), mx.cos(mx.linspace(0, 3 * mx.pi, N))], axis=1
+    time = np.linspace(0, 3 * np.pi, N)
+    data_x = np.stack(
+        [np.sin(time), np.cos(time)], axis=1
     )
-    data_x = mx.expand_dims(data_x, axis=0).astype(mx.float32)  # Add batch dimension
+    data_x = np.expand_dims(data_x, axis=0)  # Add batch dimension
     # Target output is a sine with double the frequency of the input signal
-    data_y = mx.sin(mx.linspace(0, 6 * mx.pi, N)).reshape([1, N, 1]).astype(mx.float32)
-    return data_x, data_y
+    data_y = np.sin(np.linspace(0, 6 * np.pi, N)).reshape([1, N, 1])
+    return data_x.astype(np.float32), data_y.astype(np.float32)
 
 N = 48
 data_x, data_y = generate_data(N)
@@ -30,19 +30,19 @@ ncp_wiring = wirings.NCP(
     motor_fanin=4,
 )
 
-# Create model using mini_keras
-model = models.Sequential([
-    layers.InputLayer(input_shape=(None, 2)),
-    layers.RNN(
+# Create model using Keras 3.x
+model = keras.Sequential([
+    keras.layers.Input(shape=(None, 2)),
+    keras.layers.RNN(
         LTC(ncp_wiring, cell_class=EnhancedLTCCell, solver="rk4", ode_unfolds=6),
         return_sequences=True
     )
 ])
 
-# Use mini_keras training
+# Use Keras 3.x training
 model.compile(
-    optimizer='adam',
-    loss='mse',
-    learning_rate=0.01
+    optimizer=keras.optimizers.Adam(learning_rate=0.01),
+    loss=keras.losses.MeanSquaredError()
 )
+
 model.fit(data_x, data_y, batch_size=1, epochs=400)

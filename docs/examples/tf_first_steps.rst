@@ -72,9 +72,9 @@ For the wiring we will use the ```AutoNCP`` class, which creates a NCP wiring di
 .. code-block:: python
 
     wiring = wirings.AutoNCP(8,1) # 8 neurons in total, 1 output (motor neuron)
-    model = keras.models.Sequential(
+    model = ncps.mini_keras.models.Sequential(
         [
-            keras.layers.InputLayer(input_shape=(None, 2)),
+            ncps.mini_keras.layers.InputLayer(input_shape=(None, 2)),
             # here we could potentially add layers before and after the LTC network
             LTC(wiring, return_sequences=True),
         ]

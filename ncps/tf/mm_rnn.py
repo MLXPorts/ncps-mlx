@@ -19,7 +19,7 @@ from typing import Optional, Union
 
 
 @tf.keras.utils.register_keras_serializable(package="ncps", name="MixedMemoryRNN")
-class MixedMemoryRNN(tf.keras.layers.AbstractRNNCell):
+class MixedMemoryRNN(tf.keras.layers.Layer):
     def __init__(self, rnn_cell, forget_gate_bias=1.0, **kwargs):
         super().__init__(**kwargs)
 
@@ -28,13 +28,25 @@ class MixedMemoryRNN(tf.keras.layers.AbstractRNNCell):
 
     @property
     def state_size(self):
+        """Return state size for RNN."""
         return [self.flat_size, self.rnn_cell.state_size]
 
     @property
+    def output_size(self):
+        """Return output size for RNN."""
+        return self.rnn_cell.output_size
+
+    @property
     def flat_size(self):
+        """Return flattened state size."""
         if isinstance(self.rnn_cell.state_size, int):
             return self.rnn_cell.state_size
         return sum(self.rnn_cell.state_size)
+
+    def compute_output_shape(self, input_shape):
+        """Compute output shape."""
+        batch_size = input_shape[0]
+        return (batch_size, self.output_size)
 
     def build(self, input_shape):
         input_dim = input_shape[-1]

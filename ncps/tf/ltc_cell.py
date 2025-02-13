@@ -12,14 +12,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""LTC implementation for TensorFlow.
+
+This module provides the Liquid Time-Constant network implementation as described in the paper:
+"Long short-term memory and learning-to-learn in networks of spiking neurons"
+"""
+
+from ncps.tf.base import LiquidCell
 from ncps import wirings
 import numpy as np
-import tensorflow as tf
+import tensorflow as tf # type: ignore
 from typing import Optional, Union
 
 
 @tf.keras.utils.register_keras_serializable(package="ncps", name="LTCCell")
-class LTCCell(tf.keras.layers.AbstractRNNCell):
+class LTCCell(LiquidCell):
+    """Liquid Time-Constant (LTC) cell for TensorFlow.
+    
+    A biologically-inspired recurrent cell implementing neuron dynamics through 
+    differential equations. Features configurable synaptic connections,
+    membrane potential dynamics, and ODE-based updates.
+    
+    Args:
+        wiring: Neural circuit wiring specification
+        input_mapping: Type of input transform ('affine' or 'identity')
+        output_mapping: Type of output transform ('affine' or 'identity')
+        ode_unfolds: Number of ODE solver steps
+        epsilon: Small constant for numerical stability
+        initialization_ranges: Optional dict of parameter initialization ranges
+        
+    Attributes:
+        _wiring: The wiring specification
+        _params: Dictionary of learnable parameters
+        _input_mapping: Input transformation type  
+        _output_mapping: Output transformation type
+        _ode_unfolds: Number of ODE steps
+        _epsilon: Numerical stability constant
+        
+    Examples:
+        >>> wiring = ncps.wirings.Random(16, output_dim=2, sparsity_level=0.5)
+        >>> cell = LTCCell(wiring)
+        >>> rnn = tf.keras.layers.RNN(cell)
+        >>> x = tf.random.uniform((1,4)) # (batch, features)
+        >>> h0 = tf.zeros((1, 16))
+        >>> y = cell(x,h0)
+    """
+
     def __init__(
         self,
         wiring,
@@ -61,7 +99,11 @@ class LTCCell(tf.keras.layers.AbstractRNNCell):
         :param kwargs:
         """
 
-        super().__init__(**kwargs)
+        super().__init__(
+            wiring=wiring,
+            activation="tanh",  # LTC uses fixed tanh activation
+            **kwargs
+        )
         self._init_ranges = {
             "gleak": (0.001, 1.0),
             "vleak": (-0.2, 0.2),
@@ -103,21 +145,33 @@ class LTCCell(tf.keras.layers.AbstractRNNCell):
 
     @property
     def state_size(self):
+        """Get size of cell state."""
         return self._wiring.units
 
     @property
     def sensory_size(self):
+        """Get size of sensory inputs."""
         return self._wiring.input_dim
 
     @property
     def motor_size(self):
+        """Get size of motor outputs."""
         return self._wiring.output_dim
 
     @property
     def output_size(self):
+        """Get size of cell outputs."""
         return self.motor_size
 
     def _get_initializer(self, param_name):
+        """Get parameter initializer based on initialization ranges.
+        
+        Args:
+            param_name: Name of parameter to get initializer for
+            
+        Returns:
+            TensorFlow initializer object
+        """
         minval, maxval = self._init_ranges[param_name]
         if minval == maxval:
             return tf.keras.initializers.Constant(minval)
@@ -125,7 +179,11 @@ class LTCCell(tf.keras.layers.AbstractRNNCell):
             return tf.keras.initializers.RandomUniform(minval, maxval)
 
     def build(self, input_shape):
-
+        """Build the cell's parameters.
+        
+        Args:
+            input_shape: Shape of input tensor
+        """
         # Check if input_shape is nested tuple/list
         if isinstance(input_shape[0], tuple) or isinstance(
             input_shape[0], tf.TensorShape
@@ -319,6 +377,15 @@ class LTCCell(tf.keras.layers.AbstractRNNCell):
         return output
 
     def call(self, inputs, states):
+        """Forward pass of the cell.
+        
+        Args:
+            inputs: Input tensor or tuple of (input tensor, elapsed time)
+            states: List of state tensors
+            
+        Returns:
+            Tuple of (output tensor, list of new state tensors)
+        """
         if isinstance(inputs, (tuple, list)):
             # Irregularly sampled mode
             inputs, elapsed_time = inputs

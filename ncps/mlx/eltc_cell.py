@@ -1,71 +1,52 @@
-# Copyright 2025 Sydney Renee
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Credits: This implementation builds upon the work of Mathias Lechner and Ramin Hasani,
-# incorporating improvements for flexibility, solver options, and sparsity constraints.
+"""Enhanced Liquid Time-Constant Cell implementation in MLX."""
 
 import mlx.core as mx
-from .ltc_cell import LTCCell
-import ncps
-import ncps.mini_keras.ops.ode as ode_ops
+import mlx.nn as nn
+from typing import Optional, Dict, Any, Callable
 
-@ncps.mini_keras.utils.register_keras_serializable(package="ncps", name="EnhancedLTCCell")
-class EnhancedLTCCell(ncps.mini_keras.layers.Layer, LTCCell):
+from .ltc_cell import LTCCell
+from .ode_solvers import rk4_solve, euler_solve, semi_implicit_solve
+
+
+class ELTCCell(LTCCell):
     """
-    Enhanced Liquid Time-Constant Cell (LTC-SE) for MLX.
+    Enhanced Liquid Time-Constant Cell (ELTC) for MLX.
 
     This class extends the LTCCell implementation by adding:
-    - Configurable solvers (e.g., RK4, Euler, Semi-Implicit).
-    - Sparsity constraints for adjacency matrices.
-    - Flexible activation functions.
-    - Modular serialization support.
-
-    Attributes:
-        solver (str): Type of solver to use for ODEs ("rk4", "euler", "semi_implicit").
-        sparsity (float): Sparsity level for adjacency matrices (default: 0.5).
-        activation (callable): Activation function to use (default: mx.tanh).
+    - Configurable solvers (e.g., RK4, Euler, Semi-Implicit)
+    - Sparsity constraints for adjacency matrices
+    - Flexible activation functions
     """
 
     def __init__(
         self,
         wiring,
-        input_mapping="affine",
-        output_mapping="affine",
-        solver="rk4",
-        ode_unfolds=6,
-        epsilon=1e-8,
-        initialization_ranges=None,
-        forget_gate_bias=1.0,
-        sparsity=0.5,
-        activation=mx.tanh,
+        input_mapping: str = "affine",
+        output_mapping: str = "affine",
+        solver: str = "rk4",
+        ode_unfolds: int = 6,
+        epsilon: float = 1e-8,
+        initialization_ranges: Optional[Dict[str, Any]] = None,
+        forget_gate_bias: float = 1.0,
+        sparsity: float = 0.5,
+        activation: Callable = mx.tanh,
         **kwargs,
     ):
         """
         Initialize the EnhancedLTCCell.
 
         Args:
-            wiring (ncps.wirings.Wiring): Wiring configuration for the LTC cell.
-            input_mapping (str): Input mapping type ("affine" or "linear"). Default: "affine".
-            output_mapping (str): Output mapping type ("affine" or "linear"). Default: "affine".
-            solver (str): Solver type for ODE solving ("rk4", "euler", "semi_implicit"). Default: "rk4".
-            ode_unfolds (int): Number of ODE unfolds per time step. Default: 6.
-            epsilon (float): Small constant to avoid division by zero. Default: 1e-8.
-            initialization_ranges (dict): Ranges for parameter initialization. Default: None.
-            forget_gate_bias (float): Bias for the forget gate. Default: 1.0.
-            sparsity (float): Sparsity level for adjacency matrices. Default: 0.5.
-            activation (callable): Activation function. Default: mx.tanh.
-            kwargs: Additional arguments passed to the base LTCCell.
+            wiring: Neural wiring pattern
+            input_mapping: Input mapping type ("affine" or "linear")
+            output_mapping: Output mapping type ("affine" or "linear")
+            solver: Solver type for ODE solving ("rk4", "euler", "semi_implicit")
+            ode_unfolds: Number of ODE unfolds per time step
+            epsilon: Small constant to avoid division by zero
+            initialization_ranges: Ranges for parameter initialization
+            forget_gate_bias: Bias for the forget gate
+            sparsity: Sparsity level for adjacency matrices
+            activation: Activation function
+            **kwargs: Additional arguments passed to the base LTCCell
         """
         super().__init__(
             wiring=wiring,
@@ -81,39 +62,43 @@ class EnhancedLTCCell(ncps.mini_keras.layers.Layer, LTCCell):
         self.sparsity = sparsity
         self.activation = activation
 
-        # Apply sparsity to the adjacency matrix
+    def build(self):
+        """Initialize parameters."""
+        super().build()
         self._apply_sparsity()
 
     def _apply_sparsity(self):
-        """
-        Apply sparsity constraints to the adjacency matrix.
-        """
-        if not hasattr(self, '_params'):
+        """Apply sparsity constraints to the adjacency matrix."""
+        if not hasattr(self, 'weight'):
             return  # Skip if params not yet initialized
             
-        # Use bernoulli instead of choice
-        mask = mx.random.bernoulli(1 - self.sparsity, self._params["w"].shape)
-        self._params["w"] = self._params["w"] * mask
+        # Use bernoulli for sparsity mask
+        mask = mx.random.bernoulli(1 - self.sparsity, self.weight.shape)
+        self.weight = self.weight * mask
+
+    def _sigmoid(self, v, mu, sigma):
+        """Compute sigmoid activation."""
+        return 1.0 / (1.0 + mx.exp(-(v - mu) / sigma))
 
     def ode_solver(self, f, y0, t0, dt):
         """
         Solve ODEs using the configured solver.
 
         Args:
-            f (callable): Function representing the ODE (dy/dt = f(y, t)).
-            y0 (mx.array): Initial state.
-            t0 (float): Initial time.
-            dt (float): Time step size.
+            f: Function representing the ODE (dy/dt = f(y, t))
+            y0: Initial state
+            t0: Initial time
+            dt: Time step size
 
         Returns:
-            mx.array: Updated state after one time step.
+            Updated state after one time step
         """
         if self.solver == "rk4":
-            return ode_ops.rk4_solve(f, y0, t0, dt)
+            return rk4_solve(f, y0, t0, dt)
         elif self.solver == "euler":
-            return ode_ops.euler_solve(f, y0, t0, dt)
+            return euler_solve(f, y0, dt)
         elif self.solver == "semi_implicit":
-            return ode_ops.semi_implicit_solve(f, y0, dt)
+            return semi_implicit_solve(f, y0, dt)
         else:
             raise ValueError(f"Unsupported solver type: {self.solver}")
 
@@ -122,85 +107,71 @@ class EnhancedLTCCell(ncps.mini_keras.layers.Layer, LTCCell):
         Solve the ODEs with enhanced solvers.
 
         Args:
-            inputs (mx.array): Input tensor.
-            state (mx.array): Current state tensor.
-            elapsed_time (float): Time elapsed since the last step.
+            inputs: Input tensor
+            state: Current state tensor
+            elapsed_time: Time elapsed since the last step
 
         Returns:
-            mx.array: Updated state tensor.
+            Updated state tensor
         """
         v_pre = state
 
         # Precompute sensory neuron effects
-        sensory_w_activation = self._params["sensory_w"] * self._sigmoid(
-            inputs, self._params["sensory_mu"], self._params["sensory_sigma"]
+        sensory_w_activation = self.sensory_weight * self._sigmoid(
+            inputs, self.sensory_mu, self.sensory_sigma
         )
-        sensory_w_activation *= self._params["sensory_sparsity_mask"]
 
-        sensory_rev_activation = sensory_w_activation * self._params["sensory_erev"]
+        sensory_rev_activation = sensory_w_activation * self.sensory_erev
 
         w_numerator_sensory = mx.sum(sensory_rev_activation, axis=1)
         w_denominator_sensory = mx.sum(sensory_w_activation, axis=1)
 
-        cm_t = self._params["cm"] / (elapsed_time / self._ode_unfolds)
+        cm_t = self.cm / (elapsed_time / self._ode_unfolds)
 
         # ODE unfolds
         for _ in range(self._ode_unfolds):
             def f(_, v_pre):
-                w_activation = self._params["w"] * self._sigmoid(v_pre, self._params["mu"], self._params["sigma"])
-                w_activation *= self._params["sparsity_mask"]
-
-                rev_activation = w_activation * self._params["erev"]
+                w_activation = self.weight * self._sigmoid(v_pre, self.mu, self.sigma)
+                rev_activation = w_activation * self.erev
+                
                 w_numerator = mx.sum(rev_activation, axis=1) + w_numerator_sensory
                 w_denominator = mx.sum(w_activation, axis=1) + w_denominator_sensory
 
-                numerator = cm_t * v_pre + self._params["gleak"] * self._params["vleak"] + w_numerator
-                denominator = cm_t + self._params["gleak"] + w_denominator
+                numerator = cm_t * v_pre + self.gleak * self.vleak + w_numerator
+                denominator = cm_t + self.gleak + w_denominator
 
-                return numerator / (denominator + self._epsilon)
+                return numerator / (denominator + self.epsilon)
 
             v_pre = self.ode_solver(f, v_pre, 0, 1.0 / self._ode_unfolds)
 
         return v_pre
 
-    def call(self, inputs, states):
+    def __call__(self, inputs, state=None, time=1.0):
         """
-        Call the EnhancedLTCCell with the given inputs and states.
+        Process one time step.
 
         Args:
-            inputs (mx.array): Input tensor.
-            states (list): List of state tensors.
+            inputs: Input tensor
+            state: Optional initial state
+            time: Time step size
 
         Returns:
-            tuple: Output tensor and updated states.
+            Tuple of (output, new_state)
         """
-        if self.solver == "rk4":
-            return self._solve_rk4(inputs, states)
-        elif self.solver == "euler":
-            return self._solve_euler(inputs, states)
-        else:
-            return self._solve_euler(inputs, states)
+        batch_size = inputs.shape[0]
+        if state is None:
+            state = mx.zeros((batch_size, self.units))
 
-    def __call__(self, inputs, states):
-        """
-        Make the cell callable.
+        new_state = self._ode_solver(inputs, state, time)
+        output = self.activation(new_state)
 
-        Args:
-            inputs (mx.array): Input tensor.
-            states (list): List of state tensors.
+        if self.output_dim != self.units:
+            output = output[:, :self.output_dim]
 
-        Returns:
-            tuple: Output tensor and updated states.
-        """
-        return self.call(inputs, states)
+        return output, new_state
 
     def get_config(self):
-        """
-        Returns a serialized configuration of the EnhancedLTCCell.
-
-        Returns:
-            dict: Serialized configuration.
-        """
+        """Get configuration for serialization."""
         config = super().get_config()
         config.update({
             "solver": self.solver,
@@ -211,15 +182,7 @@ class EnhancedLTCCell(ncps.mini_keras.layers.Layer, LTCCell):
 
     @classmethod
     def from_config(cls, config):
-        """
-        Reconstructs an EnhancedLTCCell from its serialized configuration.
-
-        Args:
-            config (dict): Serialized configuration.
-
-        Returns:
-            EnhancedLTCCell: Reconstructed EnhancedLTCCell instance.
-        """
+        """Create instance from configuration."""
         base_config = LTCCell.from_config(config)
         return cls(
             **base_config,

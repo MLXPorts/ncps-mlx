@@ -14,29 +14,64 @@
 
 
 import numpy as np
-import tensorflow as tf
+import tensorflow as tf # type: ignore
 from typing import Optional, Union
+from ncps.tf.base import LiquidCell
 
 
-# LeCun improved tanh activation
-# http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
 def lecun_tanh(x):
+    """LeCun improved tanh activation.
+    
+    Implementation from http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
+    
+    Args:
+        x: Input tensor
+        
+    Returns:
+        Scaled tanh activation: 1.7159 * tanh(0.666 * x)
+    """
     return 1.7159 * tf.nn.tanh(0.666 * x)
 
 
 @tf.keras.utils.register_keras_serializable(package="ncps", name="CfCCell")
-class CfCCell(tf.keras.layers.AbstractRNNCell):
+class CfCCell(LiquidCell):
+    """Closed-form Continuous-time (CfC) cell for TensorFlow.
+    
+    A neural network cell that combines the expressivity of continuous-time dynamics
+    with efficient closed-form solutions.
+    
+    Args:
+        units: Number of hidden units
+        input_sparsity: Optional mask for sparse input connectivity
+        recurrent_sparsity: Optional mask for sparse recurrent connectivity
+        mode: Operating mode ('default', 'pure', or 'no_gate')
+        activation: Activation function name or callable
+        backbone_units: Number of units in backbone layers
+        backbone_layers: Number of backbone layers
+        backbone_dropout: Dropout rate for backbone
+        
+    Attributes:
+        mode: Current operating mode 
+        backbone_fn: Backbone network if any
+        sparsity_mask: Combined sparsity mask if any
+        state_size: Size of hidden state
+        
+    Examples:
+        >>> cell = CfCCell(units=32, mode='pure')
+        >>> x = tf.random.normal([1, 10])
+        >>> h = tf.zeros([1, 32])
+        >>> y, new_h = cell(x, [h])
+    """
+
     def __init__(
         self,
-        units,
-        input_sparsity=None,
-        recurrent_sparsity=None,
+        wiring,
         mode="default",
         activation="lecun_tanh",
-        backbone_units=128,
-        backbone_layers=1,
-        backbone_dropout=0.1,
-        **kwargs,
+        backbone_units=None,
+        backbone_layers=0,
+        backbone_dropout=0.0,
+        **kwargs
     ):
         """A `Closed-form Continuous-time <https://arxiv.org/abs/2106.13898>`_ cell.
 
@@ -45,34 +80,30 @@ class CfCCell(tf.keras.layers.AbstractRNNCell):
             To get a full RNN that can process sequences,
             see `ncps.tf.CfC` or wrap the cell with a `tf.keras.layers.RNN <https://www.tensorflow.org/api_docs/python/tf/keras/layers/RNN>`_.
 
-
-        :param units: Number of hidden units
-        :param input_sparsity:
-        :param recurrent_sparsity:
-        :param mode: Either "default", "pure" (direct solution approximation), or "no_gate" (without second gate).
-        :param activation: Activation function used in the backbone layers
-        :param backbone_units: Number of hidden units in the backbone layer (default 128)
-        :param backbone_layers: Number of backbone layers (default 1)
-        :param backbone_dropout: Dropout rate in the backbone layers (default 0)
-        :param kwargs:
+        Args:
+            wiring: Neural circuit wiring specification
+            mode: Either "default", "pure" (direct solution approximation), or "no_gate"
+            activation: Activation function used in the backbone layers
+            backbone_units: Optional list of backbone layer sizes
+            backbone_layers: Number of backbone layers
+            backbone_dropout: Dropout rate in the backbone layers
+            **kwargs: Additional arguments to pass to parent
         """
-        super().__init__(**kwargs)
-        self.units = units
+        super().__init__(
+            wiring=wiring,
+            activation=activation,
+            backbone_units=backbone_units,
+            backbone_layers=backbone_layers,
+            backbone_dropout=backbone_dropout,
+            **kwargs
+        )
+        self.units = wiring.units
         self.sparsity_mask = None
-        if input_sparsity is not None or recurrent_sparsity is not None:
-            # No backbone is allowed
-            if backbone_units > 0:
-                raise ValueError(
-                    "If sparsity of a Cfc cell is set, then no backbone is allowed"
-                )
-            # Both need to be set
-            if input_sparsity is None or recurrent_sparsity is None:
-                raise ValueError(
-                    "If sparsity of a Cfc cell is set, then both input and recurrent sparsity needs to be defined"
-                )
+        if wiring.adjacency_matrix is not None:
+            # Use wiring's adjacency matrix for sparsity
             self.sparsity_mask = tf.constant(
-                np.concatenate([input_sparsity, recurrent_sparsity], axis=0),
-                dtype=tf.float32,
+                wiring.adjacency_matrix,
+                dtype=tf.float32
             )
 
         allowed_modes = ["default", "pure", "no_gate"]
@@ -94,9 +125,18 @@ class CfCCell(tf.keras.layers.AbstractRNNCell):
 
     @property
     def state_size(self):
+        """Get size of cell state."""
         return self.units
 
     def build(self, input_shape):
+        """Build the cell's parameters.
+        
+        Args:
+            input_shape: Shape of input tensor
+            
+        Raises:
+            ValueError: If sparsity masks are incompatible with backbone
+        """
         if isinstance(input_shape[0], tuple) or isinstance(
             input_shape[0], tf.TensorShape
         ):
@@ -177,6 +217,16 @@ class CfCCell(tf.keras.layers.AbstractRNNCell):
         self.built = True
 
     def call(self, inputs, states, **kwargs):
+        """Forward pass of the cell.
+        
+        Args:
+            inputs: Input tensor or tuple of (input tensor, elapsed time)
+            states: List of state tensors 
+            **kwargs: Optional keyword args including 'time' for timestep
+            
+        Returns:
+            Tuple of (output tensor, list of new state tensors)
+        """
         if isinstance(inputs, (tuple, list)):
             # Irregularly sampled mode
             inputs, t = inputs

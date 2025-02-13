@@ -2,7 +2,7 @@
 import numpy
 
 from .cfc_cell import lecun_tanh, CfCCell
-
+from .base import LiquidCell
 import keras
 from ncps.wirings import wirings
 import numpy as np
@@ -41,17 +41,26 @@ def split_tensor(input_tensor, num_or_size_splits, axis=0):
 
 
 @keras.utils.register_keras_serializable(package="ncps", name="WiredCfCCell")
-class WiredCfCCell(keras.layers.Layer):
+class WiredCfCCell(LiquidCell):
     def __init__(
             self,
             wiring: wirings.Wiring,
             fully_recurrent=True,
             mode="default",
             activation="lecun_tanh",
+            backbone_units=None,  # WiredCfCCell doesn't use backbone
+            backbone_layers=0,
+            backbone_dropout=0.0,
             **kwargs,
     ):
-        super().__init__(**kwargs)
-        self.wiring = wiring
+        super().__init__(
+            wiring=wiring,
+            activation=activation,
+            backbone_units=backbone_units,
+            backbone_layers=backbone_layers,
+            backbone_dropout=backbone_dropout,
+            **kwargs
+        )
         allowed_modes = ["default", "pure", "no_gate"]
         if mode not in allowed_modes:
             raise ValueError(
