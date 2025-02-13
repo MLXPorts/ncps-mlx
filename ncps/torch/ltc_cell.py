@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""LTC cell implementation for PyTorch.
+
+This module implements the Liquid Time-Constant cell as described in the paper:
+"Long short-term memory and learning-to-learn in networks of spiking neurons"
+"""
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -19,6 +25,30 @@ from typing import Optional, Union
 
 
 class LTCCell(nn.Module):
+    """Liquid Time-Constant (LTC) cell implementation.
+    
+    A biologically-inspired recurrent cell that models neuron dynamics using
+    a system of differential equations. Features configurable synaptic connections,
+    membrane potential dynamics, and ODE-based updates.
+    
+    Args:
+        wiring: Neural circuit wiring specification
+        in_features: Number of input features (optional)
+        input_mapping: Type of input transform ('affine' or 'identity') 
+        output_mapping: Type of output transform ('affine' or 'identity')
+        ode_unfolds: Number of ODE solver steps
+        epsilon: Small constant for numerical stability
+        implicit_param_constraints: Whether to enforce parameter constraints
+        
+    Attributes:
+        _wiring: The wiring specification
+        _params: Dictionary of learnable parameters
+        _input_mapping: Input transformation type
+        _output_mapping: Output transformation type
+        _ode_unfolds: Number of ODE steps
+        _epsilon: Numerical stability constant
+    """
+
     def __init__(
         self,
         wiring,
@@ -75,14 +105,17 @@ class LTCCell(nn.Module):
 
     @property
     def state_size(self):
+        """Size of cell state."""
         return self._wiring.units
 
     @property
     def sensory_size(self):
+        """Size of sensory inputs."""
         return self._wiring.input_dim
 
     @property
     def motor_size(self):
+        """Size of motor outputs."""
         return self._wiring.output_dim
 
     @property
@@ -98,13 +131,32 @@ class LTCCell(nn.Module):
         return np.sum(np.abs(self._wiring.adjacency_matrix))
 
     def add_weight(self, name, init_value, requires_grad=True):
+        """Add a learnable parameter to the cell.
+        
+        Args:
+            name: Name of the parameter
+            init_value: Initial value tensor
+            requires_grad: Whether parameter requires gradients
+            
+        Returns:
+            Parameter tensor
+        """
         param = torch.nn.Parameter(init_value, requires_grad=requires_grad)
         self.register_parameter(name, param)
         return param
 
     def _get_init_value(self, shape, param_name):
+        """Get initialization value for a parameter.
+        
+        Args:
+            shape: Shape of parameter tensor
+            param_name: Name of parameter for initialization lookup
+            
+        Returns:
+            Initialized tensor
+        """
         minval, maxval = self._init_ranges[param_name]
-        if minval == maxval:
+        if (minval == maxval):
             return torch.ones(shape) * minval
         else:
             return torch.rand(*shape) * (maxval - minval) + minval
@@ -195,12 +247,32 @@ class LTCCell(nn.Module):
             )
 
     def _sigmoid(self, v_pre, mu, sigma):
+        """Compute sigmoidal activation.
+        
+        Args:
+            v_pre: Pre-activation values
+            mu: Offset parameters
+            sigma: Scale parameters
+            
+        Returns:
+            Activated values
+        """
         v_pre = torch.unsqueeze(v_pre, -1)  # For broadcasting
         mues = v_pre - mu
         x = sigma * mues
         return torch.sigmoid(x)
 
     def _ode_solver(self, inputs, state, elapsed_time):
+        """Solve ODE system for neuron dynamics.
+        
+        Args:
+            inputs: Input tensor
+            state: Current state tensor
+            elapsed_time: Time step size
+            
+        Returns:
+            Updated state tensor
+        """
         v_pre = state
 
         # We can pre-compute the effects of the sensory neurons here

@@ -17,12 +17,110 @@ import numpy as np
 
 
 class Wiring:
-    def __init__(self, units):
+    """Base class for all wiring patterns.
+    
+    A wiring pattern defines the connectivity structure between neurons in the network.
+    It maintains adjacency matrices for internal and sensory connections and provides
+    methods for adding synapses and querying connectivity.
+    
+    Args:
+        units: Total number of neurons in the circuit
+        
+    Attributes:
+        units: Number of neurons
+        input_dim: Size of input features (set via build)
+        output_dim: Size of output features
+        adjacency_matrix: Internal connectivity matrix
+        sensory_adjacency_matrix: Input connectivity matrix
+    """
+
+    def __init__(self, units: int):
+        """Initialize wiring pattern.
+        
+        Args:
+            units: Total number of neurons
+        """
         self.units = units
-        self.adjacency_matrix = np.zeros([units, units], dtype=np.int32)
-        self.sensory_adjacency_matrix = None
         self.input_dim = None
         self.output_dim = None
+        self.adjacency_matrix = np.zeros((units, units))
+        self.sensory_adjacency_matrix = None  # Built after knowing input_dim
+
+    def is_built(self) -> bool:
+        """Check if wiring pattern is fully specified.
+        
+        Returns:
+            True if input dimension is set and pattern is built
+        """
+        return self.input_dim is not None
+
+    def build(self, input_dim: int):
+        """Build wiring pattern for given input dimension.
+        
+        Args:
+            input_dim: Size of input features
+            
+        Raises:
+            ValueError: If pattern is already built
+        """
+        if self.is_built():
+            raise ValueError("Wiring is already built!")
+        self.input_dim = input_dim
+        self.sensory_adjacency_matrix = np.zeros((input_dim, self.units))
+
+    def add_synapse(self, src: int, dest: int, polarity: int = 1):
+        """Add internal synapse between neurons.
+        
+        Args:
+            src: Source neuron index
+            dest: Destination neuron index
+            polarity: Sign of connection (+1/-1)
+        """
+        self.adjacency_matrix[src, dest] = polarity 
+
+    def add_sensory_synapse(self, src: int, dest: int, polarity: int = 1):
+        """Add synapse from input to neuron.
+        
+        Args:
+            src: Source input index
+            dest: Destination neuron index
+            polarity: Sign of connection (+1/-1)
+        """
+        self.sensory_adjacency_matrix[src, dest] = polarity
+
+    def get_config(self) -> dict:
+        """Get configuration for serialization.
+        
+        Returns:
+            Dictionary containing wiring configuration
+        """
+        return {
+            "units": self.units,
+            "input_dim": self.input_dim,
+            "output_dim": self.output_dim,
+            "adjacency_matrix": self.adjacency_matrix.tolist(),
+            "sensory_adjacency_matrix": 
+                None if self.sensory_adjacency_matrix is None 
+                else self.sensory_adjacency_matrix.tolist()
+        }
+
+    @classmethod
+    def from_config(cls, config: dict) -> 'Wiring':
+        """Create wiring pattern from configuration.
+        
+        Args:
+            config: Dictionary containing wiring configuration
+            
+        Returns:
+            New wiring pattern instance
+        """
+        wiring = cls(config["units"])
+        wiring.input_dim = config["input_dim"]
+        wiring.output_dim = config["output_dim"]
+        wiring.adjacency_matrix = np.array(config["adjacency_matrix"])
+        if config["sensory_adjacency_matrix"] is not None:
+            wiring.sensory_adjacency_matrix = np.array(config["sensory_adjacency_matrix"])
+        return wiring
 
     @property
     def num_layers(self):
@@ -30,19 +128,6 @@ class Wiring:
 
     def get_neurons_of_layer(self, layer_id):
         return list(range(self.units))
-
-    def is_built(self):
-        return self.input_dim is not None
-
-    def build(self, input_dim):
-        if not self.input_dim is None and self.input_dim != input_dim:
-            raise ValueError(
-                "Conflicting input dimensions provided. set_input_dim() was called with {} but actual input has dimension {}".format(
-                    self.input_dim, input_dim
-                )
-            )
-        if self.input_dim is None:
-            self.set_input_dim(input_dim)
 
     def erev_initializer(self, shape=None, dtype=None):
         return np.copy(self.adjacency_matrix)

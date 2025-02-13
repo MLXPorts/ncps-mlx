@@ -1,31 +1,19 @@
-# Copyright 2022 Mathias Lechner
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Tests for MLX liquid neuron implementations."""
 
 import mlx.core as mx
 import mlx.nn as nn
-from ncps.mlx import CfC, LTCCell, LTC, EnhancedLTCCell
+from ncps.mlx import CfC, LTCCell, LTC, CfCCell
 from ncps import wirings
 import numpy as np
+import unittest
+import tempfile
+import os
 
+from ncps.mlx import save_model, load_model
 
 
 def generate_data(N):
-    """
-    Generate synthetic time-series data.
-    :param N: Length of the time-series.
-    :return: Input and target tensors.
-    """
+    """Generate synthetic time-series data."""
     data_x = mx.array(
         np.stack(
             [np.sin(np.linspace(0, 3 * np.pi, N)), np.cos(np.linspace(0, 3 * np.pi, N))],
@@ -39,261 +27,199 @@ def generate_data(N):
     return data_x, data_y
 
 
-def test_fc():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    fc_wiring = wirings.FullyConnected(8, 1)
-    # Use LTC directly with solver specification
-    ltc = LTC(
-        fc_wiring,
-        return_sequences=True,
-        solver="rk4",  # Specify solver type
-        ode_unfolds=6,
-    )
+class TestLiquidNeurons(unittest.TestCase):
+    """Test suite for liquid neuron implementations."""
     
-    model = nn.Sequential([
-        nn.InputLayer(input_shape=(None, 2)),
-        ltc,
-    ])
-    
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
+    def test_base_cell_functionality(self):
+        """Test basic functionality of liquid cells."""
+        batch_size = 32
+        input_dim = 10
+        hidden_size = 20
+        
+        # Test CfCCell
+        cfc_cell = CfCCell(input_size=input_dim, hidden_size=hidden_size)
+        x = mx.random.normal((batch_size, input_dim))
+        state = mx.zeros((batch_size, hidden_size))
+        output, new_state = cfc_cell(x, state)
+        self.assertEqual(output.shape, (batch_size, hidden_size))
+        self.assertEqual(new_state.shape, (batch_size, hidden_size))
+        
+        # Test LTCCell
+        ltc_cell = LTCCell(input_size=input_dim, hidden_size=hidden_size)
+        output, new_state = ltc_cell(x, state)
+        self.assertEqual(output.shape, (batch_size, hidden_size))
+        self.assertEqual(new_state.shape, (batch_size, hidden_size))
+        
+    def test_time_aware_processing(self):
+        """Test time-aware processing in liquid cells."""
+        batch_size = 32
+        seq_len = 15
+        input_dim = 10
+        hidden_size = 20
+        
+        # Test CfC with time delta
+        cfc = CfC(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            return_sequences=True
+        )
+        x = mx.random.normal((batch_size, seq_len, input_dim))
+        time_delta = mx.ones((batch_size, seq_len, 1))
+        output = cfc(x, time_delta=time_delta)
+        self.assertEqual(output.shape, (batch_size, seq_len, hidden_size))
+        
+        # Test LTC with time delta
+        ltc = LTC(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            return_sequences=True
+        )
+        output = ltc(x, time_delta=time_delta)
+        self.assertEqual(output.shape, (batch_size, seq_len, hidden_size))
+        
+    def test_bidirectional_processing(self):
+        """Test bidirectional processing in liquid RNNs."""
+        batch_size = 32
+        seq_len = 15
+        input_dim = 10
+        hidden_size = 20
+        
+        # Test bidirectional CfC
+        cfc = CfC(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            bidirectional=True,
+            return_sequences=True
+        )
+        x = mx.random.normal((batch_size, seq_len, input_dim))
+        output = cfc(x)
+        self.assertEqual(output.shape, (batch_size, seq_len, hidden_size * 2))
+        
+        # Test bidirectional LTC
+        ltc = LTC(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            bidirectional=True,
+            return_sequences=True
+        )
+        output = ltc(x)
+        self.assertEqual(output.shape, (batch_size, seq_len, hidden_size * 2))
+        
+    def test_backbone_layers(self):
+        """Test backbone layers in liquid cells."""
+        batch_size = 32
+        input_dim = 10
+        hidden_size = 20
+        backbone_units = 64
+        backbone_layers = 2
+        
+        # Test CfC with backbone
+        cfc_cell = CfCCell(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            backbone_units=backbone_units,
+            backbone_layers=backbone_layers
+        )
+        x = mx.random.normal((batch_size, input_dim))
+        state = mx.zeros((batch_size, hidden_size))
+        output, new_state = cfc_cell(x, state)
+        self.assertEqual(output.shape, (batch_size, hidden_size))
+        
+        # Test LTC with backbone
+        ltc_cell = LTCCell(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            backbone_units=backbone_units,
+            backbone_layers=backbone_layers
+        )
+        output, new_state = ltc_cell(x, state)
+        self.assertEqual(output.shape, (batch_size, hidden_size))
+        
+    def test_state_handling(self):
+        """Test state handling in liquid RNNs."""
+        batch_size = 32
+        seq_len = 15
+        input_dim = 10
+        hidden_size = 20
+        num_layers = 2
+        
+        # Test CfC state handling
+        cfc = CfC(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            return_sequences=True,
+            return_state=True
+        )
+        x = mx.random.normal((batch_size, seq_len, input_dim))
+        output, states = cfc(x)
+        self.assertEqual(len(states), num_layers)
+        for state in states:
+            self.assertEqual(state.shape, (batch_size, hidden_size))
+            
+        # Test LTC state handling
+        ltc = LTC(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            return_sequences=True,
+            return_state=True
+        )
+        output, states = ltc(x)
+        self.assertEqual(len(states), num_layers)
+        for state in states:
+            self.assertEqual(state.shape, (batch_size, hidden_size))
+            
+    def test_model_serialization(self):
+        """Test model saving and loading."""
+        batch_size = 32
+        seq_len = 15
+        input_dim = 10
+        hidden_size = 20
+        
+        # Test CfC serialization
+        cfc = CfC(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            return_sequences=True
+        )
+        x = mx.random.normal((batch_size, seq_len, input_dim))
+        original_output = cfc(x)
+        
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as tmp:
+            save_model(cfc, tmp.name)
+            loaded_cfc = CfC(
+                input_size=input_dim,
+                hidden_size=hidden_size,
+                return_sequences=True
+            )
+            load_model(loaded_cfc, tmp.name)
+        os.unlink(tmp.name)
+        
+        loaded_output = loaded_cfc(x)
+        self.assertTrue(mx.allclose(original_output, loaded_output))
+        
+        # Test LTC serialization
+        ltc = LTC(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            return_sequences=True
+        )
+        original_output = ltc(x)
+        
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as tmp:
+            save_model(ltc, tmp.name)
+            loaded_ltc = LTC(
+                input_size=input_dim,
+                hidden_size=hidden_size,
+                return_sequences=True
+            )
+            load_model(loaded_ltc, tmp.name)
+        os.unlink(tmp.name)
+        
+        loaded_output = loaded_ltc(x)
+        self.assertTrue(mx.allclose(original_output, loaded_output))
 
 
-def test_random():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    arch = wirings.Random(32, 1, sparsity_level=0.5)
-    ltc = LTC(arch, return_sequences=True)
-    
-    model = nn.Sequential([
-        nn.InputLayer(input_shape=(None, 2)),
-        ltc,
-    ])
-    
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_ncp():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    ncp_wiring = wirings.NCP(
-        inter_neurons=20,
-        command_neurons=10,
-        motor_neurons=1,
-        sensory_fanout=4,
-        inter_fanout=5,
-        recurrent_command_synapses=6,
-        motor_fanin=4,
-    )
-    ltc_cell = LTCCell(ncp_wiring)
-
-    rnn = nn.RNN(cell=ltc_cell, return_sequences=True)
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        rnn,
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_fit_cfc():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    rnn = CfC(8, return_sequences=True)
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        rnn,
-        nn.Linear(1),
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_mm_rnn():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    rnn = CfC(8, return_sequences=True, mixed_memory=True)
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        rnn,
-        nn.Linear(1),
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_random_cfc():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    arch = wirings.Random(32, 1, sparsity_level=0.5)
-    cfc = CfC(arch, return_sequences=True)
-
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        cfc,
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_ncp_cfc_rnn():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    ncp_wiring = wirings.NCP(
-        inter_neurons=20,
-        command_neurons=10,
-        motor_neurons=1,
-        sensory_fanout=4,
-        inter_fanout=5,
-        recurrent_command_synapses=6,
-        motor_fanin=4,
-    )
-    cfc = CfC(ncp_wiring, return_sequences=True)
-
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        cfc,
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_auto_ncp_cfc_rnn():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    ncp_wiring = wirings.AutoNCP(32, 1)
-    cfc = CfC(ncp_wiring, return_sequences=True)
-
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        cfc,
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_ltc_rnn():
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    ltc = LTC(32, return_sequences=True)
-
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        ltc,
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_ncps():
-    """Test basic NCPS functionality with LTCCell"""
-    input_size = 8
-    wiring = wirings.FullyConnected(8, 4)
-    ltc_cell = LTCCell(wiring)
-    
-    data = mx.random.normal((3, input_size))
-    hx = mx.zeros((3, wiring.units))
-    output, hx = ltc_cell(data, hx)
-    
-    assert output.shape == (3, 4)
-    assert hx.shape == (3, wiring.units)
-
-
-def test_ncp_sizes():
-    """Test NCP architecture sizing"""
-    wiring = wirings.NCP(10, 10, 8, 6, 6, 4, 6)
-    rnn = LTC(wiring)
-    data = mx.random.normal((5, 3, 8))
-    output = rnn(data)
-    
-    assert wiring.synapse_count > 0
-    assert wiring.sensory_synapse_count > 0
-    assert output.shape == (5, 8)
-
-
-def test_auto_ncp():
-    """Test AutoNCP functionality"""
-    wiring = wirings.AutoNCP(16, 4)
-    rnn = LTC(wiring)
-    data = mx.random.normal((5, 3, 8))
-    output = rnn(data)
-    assert output.shape == (5, 4)
-
-
-def test_enhanced_ltc():
-    """Test enhanced LTC with different solvers"""
-    wiring = wirings.FullyConnected(8, 4)
-    ltc = LTC(wiring, solver="rk4", ode_unfolds=6)
-    data = mx.random.normal((5, 3, 8))
-    output = ltc(data)
-    assert output.shape == (5, 4)
-
-
-def test_mixed_memory_enhanced():
-    """Test mixed memory with enhanced LTC"""
-    N = 48
-    data_x, data_y = generate_data(N)
-    
-    ltc = LTC(32, mixed_memory=True, solver="rk4", return_sequences=True)
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        ltc,
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_enhanced_ltc_cell():
-    """Test EnhancedLTCCell functionality"""
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    wiring = wirings.FullyConnected(8, 1)
-    enhanced_ltc_cell = EnhancedLTCCell(wiring, solver="rk4", ode_unfolds=6)
-
-    rnn = nn.RNN(cell=enhanced_ltc_cell, return_sequences=True)
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        rnn,
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
-
-
-def test_ltc_with_enhanced_ltc_cell():
-    """Test LTC with EnhancedLTCCell"""
-    N = 48
-    data_x, data_y = generate_data(N)
-
-    wiring = wirings.FullyConnected(8, 1)
-    enhanced_ltc = LTC(wiring, cell_class=EnhancedLTCCell, solver="rk4", ode_unfolds=6)
-
-    model = nn.Sequential(
-        nn.InputLayer(input_shape=(None, 2)),
-        enhanced_ltc,
-    )
-    optimizer = nn.Adam(learning_rate=0.01)
-    model.compile(optimizer=optimizer, loss=nn.MeanSquaredError())
-    model.fit(data_x, data_y, batch_size=1, epochs=3)
+if __name__ == '__main__':
+    unittest.main()

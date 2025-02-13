@@ -1,71 +1,33 @@
-# Copyright (2017-2021)
-# The Wormnet project
-# Mathias Lechner (mlechner@ist.ac.at)
-import numpy as np
-import torch.nn as nn
-import kerasncp as kncp
-import pytorch_lightning as pl
-import torch
-import torch.utils.data as data
+import mlx.core as mx
+import mlx.nn as nn
+from ncps import wirings
+from ncps.mlx import CfC, WiredCfCCell
 
-from kerasncp.torch.experimental import CfC, WiredCfC
-
-
-# LightningModule for training a RNNSequence module
-class SequenceLearner(pl.LightningModule):
-    def __init__(self, model, lr=0.005):
-        super().__init__()
-        self.model = model
-        self.lr = lr
-
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.model.forward(x)
-        # y_hat = y_hat.view_as(y)
-        loss = nn.MSELoss()(y_hat, y)
-        self.log("train_loss", loss, prog_bar=True)
-        return {"loss": loss}
-
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.model.forward(x)
-        y_hat = y_hat.view_as(y)
-        loss = nn.MSELoss()(y_hat, y)
-
-        self.log("val_loss", loss, prog_bar=True)
-        return loss
-
-    def test_step(self, batch, batch_idx):
-        # Here we just reuse the validation_step for testing
-        return self.validation_step(batch, batch_idx)
-
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=self.lr)
-
-
+# Data preparation using MLX ops
+N = 48  # Length of the time-series
 in_features = 2
 out_features = 1
-N = 48  # Length of the time-series
-# Input feature is a sine and a cosine wave
-data_x = np.stack(
-    [np.sin(np.linspace(0, 3 * np.pi, N)), np.cos(np.linspace(0, 3 * np.pi, N))], axis=1
-)
-data_x = np.expand_dims(data_x, axis=0).astype(np.float32)  # Add batch dimension
-# Target output is a sine with double the frequency of the input signal
-data_y = np.sin(np.linspace(0, 6 * np.pi, N)).reshape([1, N, 1]).astype(np.float32)
-data_x = torch.Tensor(data_x)
-data_y = torch.Tensor(data_y)
-print("data_y.shape: ", str(data_y.shape))
 
-# Example usage of the CfC model with PyTorch
-for model in [
-    CfC(in_features=in_features, hidden_size=32, out_features=out_features),
-    WiredCfC(
-        in_features=in_features, wiring=kncp.wirings.FullyConnected(8, out_features)
+# Input feature is a sine and a cosine wave using MLX ops
+t = mx.linspace(0, 3 * mx.pi, N)
+sin_wave = mx.sin(t)
+cos_wave = mx.cos(t)
+data_x = mx.stack([sin_wave, cos_wave], axis=1)
+data_x = mx.expand_dims(data_x, axis=0)  # Add batch dimension
+
+# Target output is a sine with double the frequency
+t_out = mx.linspace(0, 6 * mx.pi, N)  
+data_y = mx.sin(t_out)
+data_y = mx.reshape(data_y, [1, N, 1])
+
+# List of model configurations
+model_configs = [
+    CfC(units=32),
+    WiredCfCCell(
+        wiring=wirings.FullyConnected(8, out_features)
     ),
-    WiredCfC(
-        in_features=in_features,
-        wiring=kncp.wirings.NCP(
+    WiredCfCCell(
+        wiring=wirings.NCP(
             inter_neurons=16,
             command_neurons=8,
             motor_neurons=out_features,
@@ -73,22 +35,18 @@ for model in [
             inter_fanout=4,
             recurrent_command_synapses=5,
             motor_fanin=8,
-        ),
+        )
     ),
     CfC(
-        in_features=in_features,
-        hidden_size=32,
-        out_features=out_features,
-        use_mm_rnn=True,
+        units=32,
+        mode="pure"
     ),
-    WiredCfC(
-        in_features=in_features,
-        wiring=kncp.wirings.FullyConnected(8, out_features),
-        use_mm_rnn=True,
+    WiredCfCCell(
+        wiring=wirings.FullyConnected(8, out_features),
+        mode="pure"
     ),
-    WiredCfC(
-        in_features=in_features,
-        wiring=kncp.wirings.NCP(
+    WiredCfCCell(
+        wiring=wirings.NCP(
             inter_neurons=16,
             command_neurons=8,
             motor_neurons=out_features,
@@ -97,16 +55,49 @@ for model in [
             recurrent_command_synapses=5,
             motor_fanin=8,
         ),
-        use_mm_rnn=True,
+        mode="pure"
     ),
-]:
-    dataloader = data.DataLoader(
-        data.TensorDataset(data_x, data_y), batch_size=1, shuffle=True, num_workers=4
-    )
-    learn = SequenceLearner(model, lr=0.01)
-    trainer = pl.Trainer(
-        max_epochs=10,
-        gradient_clip_val=1,  # Clip gradient to stabilize training
-        gpus=1,
-    )
-    trainer.fit(learn, dataloader)
+]
+
+# Training using MLX
+class Model(nn.Module):
+    def __init__(self, rnn_cell):
+        super().__init__()
+        self.rnn = rnn_cell
+        
+    def __call__(self, x, training=True):
+        # Process sequence
+        h = None
+        outputs = []
+        for t in range(x.shape[1]):
+            y, h = self.rnn(x[:, t:t+1, :], h)
+            outputs.append(y)
+        return mx.concatenate(outputs, axis=1)
+
+# Training parameters
+optimizer = nn.optimizers.Adam(learning_rate=0.01)
+
+def train_step(model, x, y):
+    def loss_fn(model, x, y):
+        return mx.mean(mx.square(model(x) - y))
+    
+    loss_and_grad = nn.value_and_grad(model, loss_fn)
+    loss, grads = loss_and_grad(model, x, y)
+    optimizer.update(model, grads)
+    return loss
+
+# Train each model configuration
+for rnn_cell in model_configs:
+    model = Model(rnn_cell)
+    print(f"\nTraining model: {rnn_cell.__class__.__name__}")
+    
+    # Training loop
+    for epoch in range(10):
+        loss = train_step(model, data_x, data_y)
+        mx.eval(loss)
+        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f}")
+    
+    # Evaluate
+    with mx.eval_mode():
+        final_loss = mx.mean(mx.square(model(data_x) - data_y))
+        print(f"\nFinal MSE for {rnn_cell.__class__.__name__}: {final_loss.item():.4f}")
