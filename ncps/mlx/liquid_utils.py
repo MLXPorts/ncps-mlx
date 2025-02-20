@@ -120,6 +120,18 @@ def lecun_tanh(x: mx.array) -> mx.array:
     return 1.7159 * mx.tanh(0.666 * x)
 
 
+def sigmoid(x: mx.array) -> mx.array:
+    """Sigmoid activation function.
+    
+    Args:
+        x: Input tensor
+        
+    Returns:
+        Activated tensor
+    """
+    return 1.0 / (1.0 + mx.exp(-x))
+
+
 def get_activation(name: str) -> Callable:
     """Get activation function by name.
     
@@ -137,6 +149,7 @@ def get_activation(name: str) -> Callable:
         "tanh": mx.tanh,
         "relu": nn.relu,
         "gelu": nn.gelu,
+        "sigmoid": sigmoid,
     }
     
     if name not in activations:

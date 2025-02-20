@@ -6,10 +6,12 @@
 nn.Module
 ├── LiquidCell (base.py)
 │   ├── CfCCell (cfc_cell_mlx.py)
-│   └── LTCCell (ltc_cell.py)
-├── LiquidRNN (base.py)
-│   ├── CfC (cfc.py)
-│   └── LTC (ltc.py)
+│   ├── LTCCell (ltc_cell.py)
+│   │   └── ELTCCell (eltc_cell.py)
+└── LiquidRNN (base.py)
+    ├── CfC (cfc.py)
+    ├── LTC (ltc.py)
+    └── ELTC (eltc.py)
 └── Wiring (wirings.py)
     ├── FullyConnected
     ├── Random
@@ -85,6 +87,19 @@ nn.Module
   * Dimension validation
   * Proper initialization
 
+### 3. ELTCCell
+- Extends LTCCell with enhanced features
+- Key features:
+  * Configurable ODE solvers (RK4, Euler, Semi-Implicit)
+  * Sparsity constraints for adjacency matrices
+  * Flexible activation functions
+  * Enhanced state management
+- Core components:
+  * Multiple solver implementations
+  * Sparsity control
+  * Advanced ODE solving strategies
+  * Improved initialization
+
 ## RNN Implementations
 
 ### 1. CfC
@@ -112,6 +127,19 @@ nn.Module
   * Sequence processing
   * Proper dimension tracking
   * State propagation
+
+### 3. ELTC
+- High-level Enhanced Liquid Time-Constant network
+- Key features:
+  * Inherits LiquidRNN functionality
+  * Enhanced ODE solving capabilities
+  * Advanced state management
+  * Flexible configuration
+- Core capabilities:
+  * Batched sequence processing
+  * Time-aware state updates
+  * Multiple solver options
+  * Sparsity control
 
 ## Wiring Implementations
 

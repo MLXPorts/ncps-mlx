@@ -2,20 +2,49 @@
 
 import mlx.core as mx
 import mlx.nn as nn
-from typing import Optional, Dict, Any, Callable
+from enum import Enum
+from typing import Optional, Dict, Any, Callable, Union
 
 from .ltc_cell import LTCCell
 from .ode_solvers import rk4_solve, euler_solve, semi_implicit_solve
 
 
-class ELTCCell(LTCCell):
+class ODESolver(Enum):
+    """ODE solver types for continuous-time neural networks.
+    
+    Available solvers:
+    - SEMI_IMPLICIT: Semi-implicit Euler method, good balance of stability and speed
+    - EXPLICIT: Explicit Euler method, fastest but less stable
+    - RUNGE_KUTTA: 4th order Runge-Kutta method, most accurate but computationally intensive
     """
-    Enhanced Liquid Time-Constant Cell (ELTC) for MLX.
+    SEMI_IMPLICIT = "semi_implicit"
+    EXPLICIT = "explicit"
+    RUNGE_KUTTA = "rk4"
+
+
+class ELTCCell(LTCCell):
+    """Enhanced Liquid Time-Constant Cell (ELTC) for MLX.
 
     This class extends the LTCCell implementation by adding:
-    - Configurable solvers (e.g., RK4, Euler, Semi-Implicit)
+    - Configurable ODE solvers (Semi-implicit, Explicit, Runge-Kutta)
     - Sparsity constraints for adjacency matrices
     - Flexible activation functions
+    - Dense layer transformations for input and recurrent connections
+
+    The cell implements the following ODE:
+        dy/dt = σ(Wx + Uh + b) - y
+    where:
+        - y is the cell state
+        - x is the input
+        - W is the input weight matrix
+        - U is the recurrent weight matrix
+        - b is the bias vector
+        - σ is the activation function
+
+    The ODE is solved using one of three methods:
+    1. Semi-implicit Euler: Provides good stability and accuracy balance
+    2. Explicit Euler: Fastest but may be unstable for stiff equations
+    3. Runge-Kutta (RK4): Most accurate but computationally expensive
     """
 
     def __init__(
@@ -23,29 +52,33 @@ class ELTCCell(LTCCell):
         wiring,
         input_mapping: str = "affine",
         output_mapping: str = "affine",
-        solver: str = "rk4",
+        solver: Union[str, ODESolver] = ODESolver.RUNGE_KUTTA,
         ode_unfolds: int = 6,
         epsilon: float = 1e-8,
         initialization_ranges: Optional[Dict[str, Any]] = None,
         forget_gate_bias: float = 1.0,
         sparsity: float = 0.5,
         activation: Callable = mx.tanh,
+        hidden_size: Optional[int] = None,
         **kwargs,
     ):
-        """
-        Initialize the EnhancedLTCCell.
+        """Initialize the EnhancedLTCCell.
 
         Args:
             wiring: Neural wiring pattern
             input_mapping: Input mapping type ("affine" or "linear")
             output_mapping: Output mapping type ("affine" or "linear")
-            solver: Solver type for ODE solving ("rk4", "euler", "semi_implicit")
-            ode_unfolds: Number of ODE unfolds per time step
+            solver: ODE solver type (ODESolver enum or string)
+                - "semi_implicit": Semi-implicit Euler method
+                - "explicit": Explicit Euler method
+                - "rk4": 4th order Runge-Kutta method
+            ode_unfolds: Number of ODE solver steps per time step
             epsilon: Small constant to avoid division by zero
             initialization_ranges: Ranges for parameter initialization
             forget_gate_bias: Bias for the forget gate
-            sparsity: Sparsity level for adjacency matrices
-            activation: Activation function
+            sparsity: Sparsity level for adjacency matrices (0.0 to 1.0)
+            activation: Activation function (default: tanh)
+            hidden_size: Size of hidden state (optional, defaults to wiring units)
             **kwargs: Additional arguments passed to the base LTCCell
         """
         super().__init__(
@@ -58,17 +91,29 @@ class ELTCCell(LTCCell):
             forget_gate_bias=forget_gate_bias,
             **kwargs,
         )
-        self.solver = solver
+        # Convert string solver type to enum if needed
+        self.solver = solver if isinstance(solver, ODESolver) else ODESolver(solver)
         self.sparsity = sparsity
         self.activation = activation
+        self.hidden_size = hidden_size or self.units
+
+        # Initialize dense layers
+        self.input_dense = nn.Linear(self.input_size, self.hidden_size)
+        self.recurrent_dense = nn.Linear(self.hidden_size, self.hidden_size)
 
     def build(self):
-        """Initialize parameters."""
+        """Initialize parameters and apply sparsity."""
         super().build()
         self._apply_sparsity()
 
     def _apply_sparsity(self):
-        """Apply sparsity constraints to the adjacency matrix."""
+        """Apply sparsity constraints to the adjacency matrix.
+        
+        Creates a binary mask using Bernoulli distribution where:
+        - 1 indicates a connection is kept
+        - 0 indicates a connection is dropped
+        The sparsity parameter controls the probability of dropping connections.
+        """
         if not hasattr(self, 'weight'):
             return  # Skip if params not yet initialized
             
@@ -76,107 +121,83 @@ class ELTCCell(LTCCell):
         mask = mx.random.bernoulli(1 - self.sparsity, self.weight.shape)
         self.weight = self.weight * mask
 
-    def _sigmoid(self, v, mu, sigma):
-        """Compute sigmoid activation."""
-        return 1.0 / (1.0 + mx.exp(-(v - mu) / sigma))
-
-    def ode_solver(self, f, y0, t0, dt):
-        """
-        Solve ODEs using the configured solver.
-
-        Args:
-            f: Function representing the ODE (dy/dt = f(y, t))
-            y0: Initial state
-            t0: Initial time
-            dt: Time step size
-
-        Returns:
-            Updated state after one time step
-        """
-        if self.solver == "rk4":
-            return rk4_solve(f, y0, t0, dt)
-        elif self.solver == "euler":
-            return euler_solve(f, y0, dt)
-        elif self.solver == "semi_implicit":
-            return semi_implicit_solve(f, y0, dt)
-        else:
-            raise ValueError(f"Unsupported solver type: {self.solver}")
-
     def _ode_solver(self, inputs, state, elapsed_time):
-        """
-        Solve the ODEs with enhanced solvers.
+        """Solve the ODEs with enhanced solvers.
 
+        The ODE being solved is:
+            dy/dt = σ(Wx + Uh + b) - y
+
+        The solution process:
+        1. Compute dense transformations for input and recurrent connections
+        2. Define the ODE function f(t, y) = σ(net_input) - y
+        3. Apply the selected solver with proper time stepping
+        
         Args:
-            inputs: Input tensor
-            state: Current state tensor
-            elapsed_time: Time elapsed since the last step
+            inputs: Input tensor of shape [batch_size, input_size]
+            state: Current state tensor of shape [batch_size, hidden_size]
+            elapsed_time: Time elapsed since last update
 
         Returns:
-            Updated state tensor
+            Updated state tensor of shape [batch_size, hidden_size]
         """
+        # Apply dense transformations
+        input_proj = self.input_dense(inputs)
+        recurrent_proj = self.recurrent_dense(state)
+        net_input = input_proj + recurrent_proj
+
+        # Define ODE function
+        def f(t, y):
+            return self.activation(net_input) - y
+
+        # Apply selected solver
+        dt = elapsed_time / self._ode_unfolds
         v_pre = state
 
-        # Precompute sensory neuron effects
-        sensory_w_activation = self.sensory_weight * self._sigmoid(
-            inputs, self.sensory_mu, self.sensory_sigma
-        )
-
-        sensory_rev_activation = sensory_w_activation * self.sensory_erev
-
-        w_numerator_sensory = mx.sum(sensory_rev_activation, axis=1)
-        w_denominator_sensory = mx.sum(sensory_w_activation, axis=1)
-
-        cm_t = self.cm / (elapsed_time / self._ode_unfolds)
-
-        # ODE unfolds
         for _ in range(self._ode_unfolds):
-            def f(_, v_pre):
-                w_activation = self.weight * self._sigmoid(v_pre, self.mu, self.sigma)
-                rev_activation = w_activation * self.erev
-                
-                w_numerator = mx.sum(rev_activation, axis=1) + w_numerator_sensory
-                w_denominator = mx.sum(w_activation, axis=1) + w_denominator_sensory
-
-                numerator = cm_t * v_pre + self.gleak * self.vleak + w_numerator
-                denominator = cm_t + self.gleak + w_denominator
-
-                return numerator / (denominator + self.epsilon)
-
-            v_pre = self.ode_solver(f, v_pre, 0, 1.0 / self._ode_unfolds)
+            if self.solver == ODESolver.SEMI_IMPLICIT:
+                v_pre = semi_implicit_solve(f, v_pre, dt)
+            elif self.solver == ODESolver.EXPLICIT:
+                v_pre = euler_solve(f, v_pre, dt)
+            elif self.solver == ODESolver.RUNGE_KUTTA:
+                v_pre = rk4_solve(f, v_pre, 0, dt)
+            else:
+                raise ValueError(f"Unsupported solver type: {self.solver}")
 
         return v_pre
 
     def __call__(self, inputs, state=None, time=1.0):
-        """
-        Process one time step.
+        """Process one time step through the cell.
 
         Args:
-            inputs: Input tensor
-            state: Optional initial state
-            time: Time step size
+            inputs: Input tensor of shape [batch_size, input_size]
+            state: Optional initial state of shape [batch_size, hidden_size]
+            time: Time step size (default: 1.0)
 
         Returns:
-            Tuple of (output, new_state)
+            Tuple of:
+            - output: Processed output of shape [batch_size, output_dim]
+            - new_state: Updated state as list [state] of shape [batch_size, hidden_size]
         """
         batch_size = inputs.shape[0]
         if state is None:
-            state = mx.zeros((batch_size, self.units))
+            state = mx.zeros((batch_size, self.hidden_size))
 
         new_state = self._ode_solver(inputs, state, time)
         output = self.activation(new_state)
 
-        if self.output_dim != self.units:
+        if self.output_dim != self.hidden_size:
             output = output[:, :self.output_dim]
 
-        return output, new_state
+        return output, [new_state]
 
     def get_config(self):
         """Get configuration for serialization."""
         config = super().get_config()
         config.update({
-            "solver": self.solver,
+            "solver": self.solver.value,
             "sparsity": self.sparsity,
             "activation": self.activation,
+            "hidden_size": self.hidden_size,
         })
         return config
 
@@ -189,4 +210,5 @@ class ELTCCell(LTCCell):
             solver=config["solver"],
             sparsity=config["sparsity"],
             activation=config["activation"],
+            hidden_size=config.get("hidden_size"),
         )

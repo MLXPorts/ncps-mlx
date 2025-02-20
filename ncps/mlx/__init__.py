@@ -1,47 +1,39 @@
-"""Neural Circuit Policy implementations for MLX backend.
+"""Neural Circuit Policies MLX Implementation."""
 
-This module provides MLX implementations of various neural circuit components
-including CfC (Closed-form Continuous-time) cells, LTC (Liquid Time-Constant) cells,
-and their variants.
-"""
-
-from .cfc_cell_mlx import CfCCell
+from .base import LiquidCell, LiquidRNN
 from .cfc import CfC
-from .cfc_rnn import CfCRNN
-from .cfc_rnn_cell import CfCRNNCell
-from .ltc_cell import LTCCell
+from .cfc_cell_mlx import CfCCell
 from .ltc import LTC
-from .ltc_rnn import LTCRNN
-from .ltc_rnn_cell import LTCRNNCell
+from .ltc_cell import LTCCell
+from .eltc import ELTC
 from .eltc_cell import ELTCCell
-from .mm_rnn import MMRNN
-from .wired_cfc_cell import WiredCfCCell
-from .wired_eltc_cell import WiredELTCCell
-from .utils import save_model, load_model
+from .ctrnn import CTRNNCell
+from .ctrnn_rnn import CTRNN
+from .ctgru import CTGRUCell
+from .ctgru_rnn import CTGRU
 
 __all__ = [
-    # Base cells
-    "CfCCell",
-    "LTCCell",
-    "ELTCCell",
+    # Base classes
+    'LiquidCell',
+    'LiquidRNN',
     
-    # Layer wrappers
-    "CfC",
-    "CfCRNN",
-    "CfCRNNCell",
-    "LTC",
-    "LTCRNN",
-    "LTCRNNCell",
-    "MMRNN",
+    # CfC implementations
+    'CfC',
+    'CfCCell',
     
-    # Wired variants
-    "WiredCfCCell",
-    "WiredELTCCell",
+    # LTC implementations
+    'LTC',
+    'LTCCell',
     
-    # Utilities
-    "save_model",
-    "load_model",
+    # ELTC implementations
+    'ELTC',
+    'ELTCCell',
+    
+    # CTRNN implementations
+    'CTRNN',
+    'CTRNNCell',
+    
+    # CTGRU implementations
+    'CTGRU',
+    'CTGRUCell',
 ]
-
-# Version of the ncps.mlx package
-__version__ = "1.0.0"
