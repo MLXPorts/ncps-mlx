@@ -1,12 +1,57 @@
 Advanced Wiring Techniques
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
 =======================
 
 This guide covers advanced techniques for creating sophisticated neural circuit policies using MLX.
 
 Multi-Scale Architectures
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
 ----------------------
 
 Handling Multiple Time Scales
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -15,9 +60,11 @@ Handling Multiple Time Scales
         """Wiring pattern for multiple time scales.
         
         Features:
-        - Fast path for immediate responses
-        - Medium path for tactical decisions
-        - Slow path for strategic planning
+
+    - Fast path for immediate responses
+    - Medium path for tactical decisions
+    - Slow path for strategic planning
+
         """
         def __init__(
             self,
@@ -48,6 +95,21 @@ Handling Multiple Time Scales
             self._build_connections()
 
 Hierarchical Processing
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -56,9 +118,11 @@ Hierarchical Processing
         """Hierarchical wiring pattern.
         
         Features:
-        - Feature hierarchy
-        - Skip connections
-        - Feedback pathways
+
+    - Feature hierarchy
+    - Skip connections
+    - Feedback pathways
+
         """
         def __init__(
             self,
@@ -85,9 +149,39 @@ Hierarchical Processing
                 self._build_feedback_connections()
 
 Attention Mechanisms
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
 -----------------
 
 Self-Attention Wiring
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -96,9 +190,11 @@ Self-Attention Wiring
         """Wiring pattern with self-attention.
         
         Features:
-        - Query/Key/Value projections
-        - Multi-head attention
-        - Position-wise processing
+
+    - Query/Key/Value projections
+    - Multi-head attention
+    - Position-wise processing
+
         """
         def __init__(
             self,
@@ -123,6 +219,21 @@ Self-Attention Wiring
             self._build_attention_connections()
 
 Cross-Attention Wiring
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -131,9 +242,11 @@ Cross-Attention Wiring
         """Wiring pattern with cross-attention.
         
         Features:
-        - Attend to external context
-        - Gated information flow
-        - Context integration
+
+    - Attend to external context
+    - Gated information flow
+    - Context integration
+
         """
         def __init__(
             self,
@@ -153,9 +266,39 @@ Cross-Attention Wiring
             self._build_cross_attention()
 
 Specialized Patterns
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
 -----------------
 
 Signal Processing
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -164,9 +307,11 @@ Signal Processing
         """Wiring for signal processing.
         
         Features:
-        - Multi-scale decomposition
-        - Frequency-specific processing
-        - Temporal integration
+
+    - Multi-scale decomposition
+    - Frequency-specific processing
+    - Temporal integration
+
         """
         def __init__(
             self,
@@ -185,6 +330,21 @@ Signal Processing
             self._build_frequency_pathways()
 
 Computer Vision
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 .. code-block:: python
@@ -193,9 +353,11 @@ Computer Vision
         """Wiring for visual processing.
         
         Features:
-        - Local receptive fields
-        - Feature hierarchies
-        - Skip connections
+
+    - Local receptive fields
+    - Feature hierarchies
+    - Skip connections
+
         """
         def __init__(
             self,
@@ -220,6 +382,21 @@ Computer Vision
             self._build_conv_connections()
 
 Natural Language
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -228,9 +405,11 @@ Natural Language
         """Wiring for language processing.
         
         Features:
-        - Position encoding
-        - Self-attention
-        - Hierarchical processing
+
+    - Position encoding
+    - Self-attention
+    - Hierarchical processing
+
         """
         def __init__(
             self,
@@ -251,29 +430,63 @@ Natural Language
             self._build_language_model()
 
 Best Practices
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 ------------
 
 1. **Architecture Design**
+
    - Match wiring to problem structure
    - Consider computational efficiency
    - Use domain-specific patterns
 
 2. **Implementation**
+
    - Modular design for reusability
    - Clear documentation
    - Comprehensive testing
 
 3. **Optimization**
+
    - Profile memory usage
    - Benchmark performance
    - Tune hyperparameters
 
 4. **Integration**
+
    - Clean interfaces
    - Error handling
    - Configuration management
 
 Common Patterns
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
 ------------
 
 1. **Skip Connections**
@@ -318,6 +531,21 @@ Common Patterns
                 self.add_synapse(k, v, 1)
 
 Advanced Topics
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
 ------------
 
 1. **Dynamic Routing**
@@ -352,6 +580,21 @@ Advanced Topics
             self._build_meta_connections()
 
 Getting Help
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
 ----------
 
 If you need assistance with advanced wiring:

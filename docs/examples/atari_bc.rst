@@ -1,4 +1,19 @@
 Atari Behavior Cloning
+======================
+======================
+======================
+======================
+======================
+======================
+======================
+======================
+======================
+======================
+======================
+======================
+======================
+======================
+======================
 ================================================
 
 In this guide, we will train an NCP to play Atari.
@@ -11,13 +26,28 @@ make use of an pretrained expert policy that the NCP should copy using supervise
 
 
 Setup and Requirements
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
 -------------------------------------
 Before we start, we need to install some packages
 
 .. tab-set::
 
     .. tab-item:: PyTorch
-        :sync: key1
+    :sync: key1
 
         .. code-block:: bash
 
@@ -34,6 +64,21 @@ Before we start, we need to install some packages
 Note that this example uses older versions of ``ale-py``, ``ray`` and ``gym`` due to compatibility issues with the latest versions caused by the deprecation of ``gym`` in favor for the ``gymnasium`` package.
 
 Defining the model
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
 -------------------------------------
 First, we will define the neural network model.
 The model consists of a convolutional block, followed by a CfC recurrent neural network, and a final linear layer.
@@ -43,7 +88,7 @@ We first define a convolutional block that operates over just a batch of images.
 .. tab-set::
 
     .. tab-item:: PyTorch
-        :sync: key1
+    :sync: key1
 
         .. code-block:: python
 
@@ -115,7 +160,7 @@ This is implemented by implementing two different inference modes of the model:
 .. tab-set::
 
     .. tab-item:: PyTorch
-        :sync: key1
+    :sync: key1
 
         .. code-block:: python
 
@@ -172,6 +217,21 @@ This is implemented by implementing two different inference modes of the model:
 
 
 Dataloader
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
 -------------------------------------
 Next, we define the Atari environment and the dataset.
 We have to wrap the environment with the helper functions proposed in `DeepMind's Atari Nature paper <https://www.nature.com/articles/nature14236>`_, which apply the following transformations:
@@ -198,7 +258,7 @@ For the behavior cloning dataset, we will use the ``AtariCloningDataset`` (PyTor
 .. tab-set::
 
     .. tab-item:: PyTorch
-        :sync: key1
+    :sync: key1
 
         .. code-block:: python
 
@@ -229,6 +289,21 @@ For the behavior cloning dataset, we will use the ``AtariCloningDataset`` (PyTor
 
 
 Running the model in a closed-loop
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
+----------------------------------
 -------------------------------------
 Next, we have to define the code for applying the model in a continuous control loop with the environment.
 There are three subtleties we need to take care of:
@@ -240,7 +315,7 @@ There are three subtleties we need to take care of:
 .. tab-set::
 
     .. tab-item:: PyTorch
-        :sync: key1
+    :sync: key1
 
         .. code-block:: python
 
@@ -303,11 +378,26 @@ There are three subtleties we need to take care of:
                                 return returns
 
 Training loop
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
 -------------------------------------
 .. tab-set::
 
     .. tab-item:: PyTorch
-        :sync: key1
+    :sync: key1
 
         For the training, we define a function that train the model by making one pass over the dataset.
         We also define an evaluation function that measure the loss and accuracy of the model.
@@ -381,13 +471,28 @@ Training loop
 
 
 Training the model
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
 -------------------------------------
 Finally, we can instantiate the model and train it.
 
 .. tab-set::
 
     .. tab-item:: PyTorch
-        :sync: key1
+    :sync: key1
 
         .. code-block:: python
 
@@ -451,7 +556,7 @@ The output of the full script is something like:
 .. tab-set::
 
     .. tab-item:: PyTorch
-        :sync: key1
+    :sync: key1
 
         .. code-block:: text
 

@@ -1,12 +1,57 @@
 Visualization Guide
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
 =================
 
 This guide covers the visualization tools available for analyzing and optimizing neural circuit policies.
 
 Wiring Visualization
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
 ----------------
 
 WiringVisualizer
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 .. code-block:: python
@@ -23,7 +68,7 @@ Methods:
    
    Plot network topology:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_wiring(
            figsize=(10, 10),
@@ -38,7 +83,7 @@ Methods:
    
    Plot adjacency matrix:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_connectivity_matrix(
            figsize=(8, 8),
@@ -49,7 +94,7 @@ Methods:
    
    Plot in/out degree distributions:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_degree_distribution(
            figsize=(12, 5)
@@ -59,16 +104,46 @@ Methods:
    
    Plot path length distribution:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_path_lengths(
            figsize=(8, 6)
        )
 
 Performance Visualization
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
+-------------------------
 --------------------
 
 PerformanceVisualizer
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -84,7 +159,7 @@ Methods:
    
    Add performance metrics:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.add_metrics(
            loss=0.5,          # Training loss
@@ -97,7 +172,7 @@ Methods:
    
    Plot performance metrics:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_metrics(
            metrics=['loss', 'memory', 'time', 'tflops'],
@@ -109,7 +184,7 @@ Methods:
    
    Plot correlation between metrics:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_correlation(
            metric1='loss',
@@ -118,9 +193,39 @@ Methods:
        )
 
 Profiling Visualization
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
 -------------------
 
 ProfileVisualizer
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -138,7 +243,7 @@ Methods:
    
    Plot compute profiling results:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_compute_profile(
            figsize=(12, 5)
@@ -148,7 +253,7 @@ Methods:
    
    Plot memory profiling results:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_memory_profile(
            figsize=(12, 5)
@@ -158,16 +263,46 @@ Methods:
    
    Plot stream profiling results:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.plot_stream_profile(
            figsize=(12, 5)
        )
 
 Comparative Analysis
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
 ----------------
 
 plot_comparison
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 .. code-block:: python
@@ -195,33 +330,67 @@ plot_comparison
     )
 
 Best Practices
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 -----------
 
 1. **Wiring Analysis**
+
    - Use different layouts to understand structure
    - Analyze connectivity patterns
    - Check path distributions
    - Monitor degree distributions
 
 2. **Performance Tracking**
+
    - Track multiple metrics
    - Use rolling averages for smoothing
    - Analyze correlations
    - Compare configurations
 
 3. **Profiling Analysis**
+
    - Profile different batch sizes
    - Monitor memory patterns
    - Analyze stream operations
    - Look for optimization opportunities
 
 4. **Visualization Settings**
+
    - Adjust figure sizes for clarity
    - Use appropriate color schemes
    - Add grid lines for readability
    - Include legends and labels
 
 Common Patterns
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
 ------------
 
 1. **Training Analysis**
@@ -289,27 +458,60 @@ Common Patterns
        visualizer.plot_stream_profile()
 
 Troubleshooting
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
 ------------
 
 1. **Poor Visualization**
+
    - Adjust figure sizes
    - Change color schemes
    - Modify layouts
    - Add grid lines
 
 2. **Memory Issues**
+
    - Reduce batch sizes
    - Clear previous plots
    - Use sparse matrices
    - Profile memory usage
 
 3. **Performance Issues**
+
    - Optimize profiling frequency
    - Reduce visualization complexity
    - Use appropriate layouts
    - Monitor resource usage
 
 Getting Help
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
 ----------
 
 If you need visualization assistance:

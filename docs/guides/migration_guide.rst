@@ -1,12 +1,57 @@
 Migration Guide
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
 ==============
 
 This guide helps you migrate your Neural Circuit Policies code to the MLX implementation, which is optimized for Apple Silicon.
 
 Framework Differences
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
 ------------------
 
 MLX vs PyTorch
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 1. **Model Creation**
@@ -98,6 +143,21 @@ MLX vs PyTorch
            optimizer.update(model, grads)
 
 MLX vs TensorFlow
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~
 
 1. **Model Creation**
@@ -177,6 +237,21 @@ MLX vs TensorFlow
            return mx.value_and_grad(model, loss_fn)
 
 Common Migration Tasks
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
 -------------------
 
 1. **State Management**
@@ -226,48 +301,99 @@ Common Migration Tasks
                    yield self.x[batch_idx], self.y[batch_idx]
 
 Best Practices
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 ------------
 
 1. **Hardware Optimization**
+
    - Use MLX's lazy evaluation
    - Enable operator fusion
    - Optimize batch sizes
    - Monitor memory usage
 
 2. **Code Structure**
+
    - Separate model definition
    - Use functional components
    - Implement proper state management
    - Handle device placement
 
 3. **Performance**
+
    - Profile code sections
    - Use MLX compilation
    - Optimize memory usage
    - Monitor training metrics
 
 Common Issues
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
 -----------
 
 1. **Memory Management**
+
    - Clear unused variables
    - Use appropriate batch sizes
    - Monitor memory usage
    - Implement checkpointing
 
 2. **Performance**
+
    - Enable MLX optimizations
    - Profile bottlenecks
    - Use efficient architectures
    - Monitor hardware utilization
 
 3. **Training**
+
    - Implement proper logging
    - Monitor gradients
    - Track metrics
    - Validate results
 
 Getting Help
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
 ----------
 
 For migration assistance:
@@ -278,6 +404,21 @@ For migration assistance:
 4. Join discussions
 
 References
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
 ---------
 
 - `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_

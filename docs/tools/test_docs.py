@@ -5,14 +5,15 @@ Tests documentation builds, checks links, and validates RST syntax.
 """
 
 import os
-import sys
 import re
+import sys
+import ast
 import subprocess
 from pathlib import Path
 from typing import List, Dict, Set
 from concurrent.futures import ThreadPoolExecutor
-import http.client
-import urllib.parse
+import docutils.core
+import docutils.parsers.rst
 
 class DocTester:
     def __init__(self, docs_dir: str = "."):
@@ -57,16 +58,17 @@ class DocTester:
         
         for rst_file in self.docs_dir.rglob("*.rst"):
             try:
-                result = subprocess.run(
-                    ["rst2pseudoxml.py", str(rst_file)],
-                    capture_output=True,
-                    text=True
+                with open(rst_file) as f:
+                    content = f.read()
+                    
+                # Use docutils to parse RST
+                docutils.core.publish_string(
+                    content,
+                    writer_name='null',
+                    settings_overrides={'warning_stream': None}
                 )
-                if result.returncode != 0:
-                    self.errors.append(f"RST syntax error in {rst_file}: {result.stderr}")
-                    success = False
             except Exception as e:
-                self.errors.append(f"Error checking {rst_file}: {str(e)}")
+                self.errors.append(f"RST syntax error in {rst_file}: {str(e)}")
                 success = False
                 
         return success
@@ -75,6 +77,7 @@ class DocTester:
         """Test documentation build."""
         print("Testing documentation build...")
         try:
+            # First try sphinx-build
             result = subprocess.run(
                 ["sphinx-build", "-W", "-b", "html", ".", "_build/html"],
                 cwd=self.docs_dir,
@@ -82,8 +85,18 @@ class DocTester:
                 text=True
             )
             if result.returncode != 0:
+                # Try python -m sphinx as fallback
+                result = subprocess.run(
+                    ["python", "-m", "sphinx", "-W", "-b", "html", ".", "_build/html"],
+                    cwd=self.docs_dir,
+                    capture_output=True,
+                    text=True
+                )
+                
+            if result.returncode != 0:
                 self.errors.append(f"Build failed: {result.stderr}")
                 return False
+                
             return True
         except Exception as e:
             self.errors.append(f"Build error: {str(e)}")
@@ -94,15 +107,23 @@ class DocTester:
         print("Testing links...")
         success = True
         
-        # Build linkcheck
         try:
+            # First try sphinx-build
             result = subprocess.run(
                 ["sphinx-build", "-b", "linkcheck", ".", "_build/linkcheck"],
                 cwd=self.docs_dir,
                 capture_output=True,
                 text=True
             )
-            
+            if result.returncode != 0:
+                # Try python -m sphinx as fallback
+                result = subprocess.run(
+                    ["python", "-m", "sphinx", "-b", "linkcheck", ".", "_build/linkcheck"],
+                    cwd=self.docs_dir,
+                    capture_output=True,
+                    text=True
+                )
+                
             if result.returncode != 0:
                 self.errors.append(f"Link check failed: {result.stderr}")
                 success = False
@@ -135,7 +156,8 @@ class DocTester:
                 # Find all code blocks
                 code_blocks = re.finditer(
                     r'.. code-block:: python\n\n((?:    .+\n)+)',
-                    content
+                    content,
+                    re.MULTILINE
                 )
                 
                 for block in code_blocks:
@@ -144,8 +166,8 @@ class DocTester:
                     code = "\n".join(line[4:] for line in code.splitlines())
                     
                     try:
-                        # Check syntax
-                        compile(code, str(rst_file), 'exec')
+                        # Parse code to check syntax
+                        ast.parse(code)
                     except SyntaxError as e:
                         self.errors.append(
                             f"Syntax error in code block in {rst_file}:"
@@ -164,15 +186,23 @@ class DocTester:
         print("Testing cross-references...")
         success = True
         
-        # Build the docs with nitpicky flag
         try:
+            # First try sphinx-build
             result = subprocess.run(
                 ["sphinx-build", "-n", "-W", "-b", "html", ".", "_build/html"],
                 cwd=self.docs_dir,
                 capture_output=True,
                 text=True
             )
-            
+            if result.returncode != 0:
+                # Try python -m sphinx as fallback
+                result = subprocess.run(
+                    ["python", "-m", "sphinx", "-n", "-W", "-b", "html", ".", "_build/html"],
+                    cwd=self.docs_dir,
+                    capture_output=True,
+                    text=True
+                )
+                
             if result.returncode != 0:
                 # Parse output for reference errors
                 for line in result.stderr.splitlines():

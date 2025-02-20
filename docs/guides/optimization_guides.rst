@@ -1,12 +1,57 @@
 Optimization Guides
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
+===================
 =================
 
 Based on comprehensive benchmarks, these guides help you choose and optimize wiring patterns for different tasks.
 
 Task-Specific Optimization
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
+--------------------------
 ----------------------
 
 Sequence Prediction
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~
 
 Best for tasks requiring temporal pattern recognition:
@@ -26,6 +71,7 @@ Best for tasks requiring temporal pattern recognition:
     model = CfC(wiring=wiring)
 
 Performance characteristics:
+
 - Memory: O(n²) where n is number of neurons
 - Training time: Scales with sequence length
 - Inference time: Linear with sequence length
@@ -36,6 +82,21 @@ Optimization tips:
 3. Adjust fanout/fanin for information flow
 
 Classification
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 ~~~~~~~~~~~
 
 Best for pattern recognition tasks:
@@ -51,6 +112,7 @@ Best for pattern recognition tasks:
     model = CfC(wiring=wiring)
 
 Performance characteristics:
+
 - Memory: Reduced by sparsity factor
 - Training: Faster convergence with sparse patterns
 - Inference: Efficient for real-time classification
@@ -61,6 +123,21 @@ Optimization tips:
 3. Balance units with task complexity
 
 Control Tasks
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 ~~~~~~~~~~
 
 Best for real-time control applications:
@@ -80,6 +157,7 @@ Best for real-time control applications:
     model = LTC(wiring=wiring)  # LTC for smooth control
 
 Performance characteristics:
+
 - Latency: Critical for control
 - Memory: Must fit real-time constraints
 - Stability: Important for control tasks
@@ -90,9 +168,39 @@ Optimization tips:
 3. Balance accuracy and speed
 
 Hardware-Specific Optimization
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
+------------------------------
 -------------------------
 
 CPU Optimization
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 For CPU deployment:
@@ -112,6 +220,21 @@ Best practices:
 3. Profile memory bandwidth
 
 GPU Optimization
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 For GPU deployment:
@@ -132,6 +255,21 @@ Best practices:
 3. Maximize parallelism
 
 Memory-Limited Devices
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~
 
 For memory-constrained systems:
@@ -151,72 +289,171 @@ Best practices:
 3. Minimize network size
 
 Performance Tuning
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
 --------------
 
 Batch Size Selection
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~
 
 Guidelines for choosing batch size:
 
 1. **CPU**:
-   - Start with batch_size=16
-   - Increase until memory/compute saturated
-   - Monitor cache efficiency
+
+    - Start with batch_size=16
+    - Increase until memory/compute saturated
+    - Monitor cache efficiency
 
 2. **GPU**:
-   - Start with batch_size=64
-   - Scale up for better utilization
-   - Watch memory limits
+
+    - Start with batch_size=64
+    - Scale up for better utilization
+    - Watch memory limits
 
 3. **Memory-Limited**:
-   - Use small batches (1-8)
-   - Profile memory usage
-   - Consider gradient accumulation
+
+    - Use small batches (1-8)
+    - Profile memory usage
+    - Consider gradient accumulation
 
 Sparsity Tuning
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 Guidelines for sparsity levels:
 
 1. **Small Networks** (< 100 units):
-   - Use dense patterns (sparsity 0.0-0.3)
-   - Maximize information flow
-   - Quick convergence
+
+    - Use dense patterns (sparsity 0.0-0.3)
+    - Maximize information flow
+    - Quick convergence
 
 2. **Medium Networks** (100-500 units):
-   - Moderate sparsity (0.3-0.7)
-   - Balance performance/memory
-   - Task-dependent tuning
+
+    - Moderate sparsity (0.3-0.7)
+    - Balance performance/memory
+    - Task-dependent tuning
 
 3. **Large Networks** (> 500 units):
-   - High sparsity (0.7-0.9)
-   - Memory efficiency
-   - Careful initialization
+
+    - High sparsity (0.7-0.9)
+    - Memory efficiency
+    - Careful initialization
 
 Architecture Selection
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~
 
 Choosing the right architecture:
 
 1. **CfC**:
-   - General-purpose tasks
-   - Good convergence
-   - Flexible sparsity
+
+    - General-purpose tasks
+    - Good convergence
+    - Flexible sparsity
 
 2. **LTC**:
-   - Control tasks
-   - Smooth dynamics
-   - Real-time applications
+
+    - Control tasks
+    - Smooth dynamics
+    - Real-time applications
 
 3. **Hybrid**:
-   - Complex tasks
-   - Multiple timescales
-   - Custom requirements
+
+    - Complex tasks
+    - Multiple timescales
+    - Custom requirements
 
 Monitoring and Optimization
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
 -----------------------
 
 Performance Metrics
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~
 
 Key metrics to monitor:
@@ -247,65 +484,149 @@ Key metrics to monitor:
     print(f"Latency: {latency_stats['time_mean']*1000:.2f} ms")
 
 Optimization Process
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~
 
 1. **Initial Setup**:
-   - Choose architecture based on task
-   - Start with conservative settings
-   - Establish baseline metrics
+
+    - Choose architecture based on task
+    - Start with conservative settings
+    - Establish baseline metrics
 
 2. **Iterative Optimization**:
-   - Profile performance
-   - Identify bottlenecks
-   - Adjust parameters
-   - Validate improvements
+
+    - Profile performance
+    - Identify bottlenecks
+    - Adjust parameters
+    - Validate improvements
 
 3. **Validation**:
-   - Test with real data
-   - Verify stability
-   - Monitor long-term performance
+
+    - Test with real data
+    - Verify stability
+    - Monitor long-term performance
 
 Common Issues
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
 ----------
 
 Memory Problems
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 1. **Symptoms**:
-   - OOM errors
-   - Slow performance
-   - High memory usage
+
+    - OOM errors
+    - Slow performance
+    - High memory usage
 
 2. **Solutions**:
-   - Increase sparsity
-   - Reduce batch size
-   - Use gradient accumulation
-   - Profile memory patterns
+
+    - Increase sparsity
+    - Reduce batch size
+    - Use gradient accumulation
+    - Profile memory patterns
 
 Performance Issues
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~
 
 1. **Symptoms**:
-   - Slow training
-   - High latency
-   - Poor convergence
+
+    - Slow training
+    - High latency
+    - Poor convergence
 
 2. **Solutions**:
-   - Optimize batch size
-   - Adjust network size
-   - Use appropriate sparsity
-   - Profile bottlenecks
+
+    - Optimize batch size
+    - Adjust network size
+    - Use appropriate sparsity
+    - Profile bottlenecks
 
 Stability Issues
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 1. **Symptoms**:
-   - Unstable training
-   - Poor generalization
-   - Inconsistent results
+
+    - Unstable training
+    - Poor generalization
+    - Inconsistent results
 
 2. **Solutions**:
-   - Adjust learning rate
-   - Modify architecture
-   - Use regularization
-   - Monitor gradients
+
+    - Adjust learning rate
+    - Modify architecture
+    - Use regularization
+    - Monitor gradients

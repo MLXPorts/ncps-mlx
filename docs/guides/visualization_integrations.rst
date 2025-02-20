@@ -1,16 +1,46 @@
 Visualization Library Integrations
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
+==================================
 ===========================
 
 This guide covers how to integrate neural circuit policy visualizations with popular visualization libraries.
 
 Matplotlib Integration
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
 ------------------
 
 1. **Basic Integration**
    
    Use Matplotlib for static visualizations:
 
-   .. code-block:: python
+    .. code-block:: python
 
        import matplotlib.pyplot as plt
        from ncps.mlx.visualization import WiringVisualizer
@@ -37,7 +67,7 @@ Matplotlib Integration
    
    Add advanced Matplotlib features:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def plot_with_features(self):
            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
@@ -56,7 +86,7 @@ Matplotlib Integration
    
    Apply custom Matplotlib styles:
 
-   .. code-block:: python
+    .. code-block:: python
 
        plt.style.use('seaborn')
        
@@ -65,13 +95,28 @@ Matplotlib Integration
                self.plot_custom()
 
 Plotly Integration
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
+------------------
 --------------
 
 1. **Interactive Plots**
    
    Create interactive Plotly visualizations:
 
-   .. code-block:: python
+    .. code-block:: python
 
        import plotly.graph_objects as go
        
@@ -95,7 +140,7 @@ Plotly Integration
    
    Enable real-time updates:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def update_plot(self, fig, new_data):
            with fig.batch_update():
@@ -105,7 +150,7 @@ Plotly Integration
    
    Add custom interactions:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def add_interactions(self, fig):
            fig.update_layout(
@@ -116,13 +161,28 @@ Plotly Integration
            return fig
 
 Bokeh Integration
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
 -------------
 
 1. **Basic Integration**
    
    Use Bokeh for web-based visualizations:
 
-   .. code-block:: python
+    .. code-block:: python
 
        from bokeh.plotting import figure
        
@@ -139,7 +199,7 @@ Bokeh Integration
    
    Add interactive features:
 
-   .. code-block:: python
+    .. code-block:: python
 
        from bokeh.models import HoverTool
        
@@ -156,7 +216,7 @@ Bokeh Integration
    
    Enable server-side updates:
 
-   .. code-block:: python
+    .. code-block:: python
 
        from bokeh.server.server import Server
        
@@ -165,13 +225,28 @@ Bokeh Integration
            server.start()
 
 HoloViews Integration
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
 -----------------
 
 1. **Basic Integration**
    
    Use HoloViews for declarative visualizations:
 
-   .. code-block:: python
+    .. code-block:: python
 
        import holoviews as hv
        
@@ -190,7 +265,7 @@ HoloViews Integration
    
    Enable dynamic updates:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def update_plot(self, plot, data):
            return plot.clone(data)
@@ -199,7 +274,7 @@ HoloViews Integration
    
    Create custom layouts:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def create_dashboard(self):
            # Create plots
@@ -212,13 +287,28 @@ HoloViews Integration
            return dashboard
 
 Dash Integration
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
+----------------
 ------------
 
 1. **Basic Integration**
    
    Create Dash applications:
 
-   .. code-block:: python
+    .. code-block:: python
 
        import dash
        from dash import html, dcc
@@ -238,7 +328,7 @@ Dash Integration
    
    Add interactive callbacks:
 
-   .. code-block:: python
+    .. code-block:: python
 
        from dash.dependencies import Input, Output
        
@@ -254,7 +344,7 @@ Dash Integration
    
    Enable real-time updates:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def add_interval_update(self, app):
            app.layout.children.append(
@@ -265,23 +355,38 @@ Dash Integration
            )
 
 Best Practices
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 -----------
 
 1. **Library Selection**
    
    Choose appropriate libraries:
 
-   - Matplotlib: Static visualizations
-   - Plotly: Interactive web visualizations
-   - Bokeh: Server-side applications
-   - HoloViews: Declarative visualizations
-   - Dash: Full web applications
+    - Matplotlib: Static visualizations
+    - Plotly: Interactive web visualizations
+    - Bokeh: Server-side applications
+    - HoloViews: Declarative visualizations
+    - Dash: Full web applications
 
 2. **Performance**
    
    Optimize performance:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class OptimizedVisualizer:
            def __init__(self):
@@ -304,7 +409,7 @@ Best Practices
    
    Handle memory efficiently:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class MemoryEfficientVisualizer:
            def __init__(self, max_cache_size=100):
@@ -322,7 +427,7 @@ Best Practices
    
    Implement robust error handling:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class RobustVisualizer:
            def create_visualization(self, data):
@@ -333,13 +438,28 @@ Best Practices
                    return self._create_fallback_viz()
 
 Integration Examples
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
 ----------------
 
 1. **Combined Visualizations**
    
    Use multiple libraries together:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class HybridVisualizer:
            def create_visualization(self):
@@ -355,7 +475,7 @@ Integration Examples
    
    Create custom extensions:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class CustomVisualizer:
            def __init__(self):
@@ -372,7 +492,7 @@ Integration Examples
    
    Add export capabilities:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class ExportableVisualizer:
            def export_visualization(self, fig, format='png'):
@@ -384,11 +504,26 @@ Integration Examples
                    fig.write_json('visualization.json')
 
 Getting Started
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
 ------------
 
 1. Choose visualization library:
 
-   .. code-block:: python
+    .. code-block:: python
 
        # For static plots
        from ncps.mlx.visualization.matplotlib import MatplotlibVisualizer
@@ -401,7 +536,7 @@ Getting Started
 
 2. Create visualizer:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer = PlotlyVisualizer(model)
        fig = visualizer.create_visualization()
@@ -409,7 +544,7 @@ Getting Started
 
 3. Customize visualization:
 
-   .. code-block:: python
+    .. code-block:: python
 
        visualizer.update_layout(
            title='Custom Visualization',

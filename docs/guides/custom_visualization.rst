@@ -1,19 +1,64 @@
 Custom Visualization Guide
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
+==========================
 ======================
 
 This guide covers how to create custom visualization extensions for neural circuit policies.
 
 Creating Custom Visualizers
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
 -----------------------
 
 Base Classes
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
 ~~~~~~~~~~
 
 1. **WiringVisualizer**
    
    Base class for wiring pattern visualization:
 
-   .. code-block:: python
+    .. code-block:: python
 
        from ncps.mlx.visualization import WiringVisualizer
        
@@ -30,7 +75,7 @@ Base Classes
    
    Base class for performance metrics visualization:
 
-   .. code-block:: python
+    .. code-block:: python
 
        from ncps.mlx.visualization import PerformanceVisualizer
        
@@ -44,13 +89,28 @@ Base Classes
                pass
 
 Extension Points
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 1. **Graph Visualization**
    
    Customize network graph visualization:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def plot_custom_graph(self):
            # Get graph from base class
@@ -72,7 +132,7 @@ Extension Points
    
    Add custom performance metrics:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def add_custom_metrics(self, **metrics):
            for name, value in metrics.items():
@@ -84,7 +144,7 @@ Extension Points
    
    Add interactive visualization features:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def plot_interactive(self):
            import plotly.graph_objects as go
@@ -104,13 +164,28 @@ Extension Points
            fig.show()
 
 Visualization Types
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
 ---------------
 
 1. **Network Structure**
    
    Visualize network architecture:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class ArchitectureVisualizer(WiringVisualizer):
            def plot_layers(self):
@@ -129,7 +204,7 @@ Visualization Types
    
    Visualize network dynamics:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class DynamicsVisualizer:
            def __init__(self, model):
@@ -152,7 +227,7 @@ Visualization Types
    
    Create 3D visualizations:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class Visualizer3D:
            def plot_3d(self):
@@ -164,13 +239,28 @@ Visualization Types
                plt.show()
 
 Integration
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
+-----------
 ---------
 
 1. **With MLX Tools**
    
    Integrate with MLX's profiling tools:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def profile_and_visualize(self):
            # Enable MLX profiling
@@ -189,7 +279,7 @@ Integration
    
    Use external visualization libraries:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def plot_with_bokeh(self):
            from bokeh.plotting import figure, show
@@ -202,6 +292,21 @@ Integration
            show(p)
 
 Best Practices
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 -----------
 
 1. **Design Principles**
@@ -233,6 +338,21 @@ Best Practices
    - Clean up resources properly
 
 Example Implementations
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
 -------------------
 
 1. **Hierarchical Visualizer**
@@ -308,30 +428,78 @@ Example Implementations
                pass
 
 Troubleshooting
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
 ------------
 
 Common Issues
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 ~~~~~~~~~~
 
 1. **Memory Issues**
+
    - Use appropriate data structures
    - Clear unused plots
    - Implement data streaming
    - Monitor memory usage
 
 2. **Performance Issues**
+
    - Optimize plotting code
    - Use efficient algorithms
    - Cache results
    - Profile visualization code
 
 3. **Display Issues**
+
    - Check backend compatibility
    - Verify plot dimensions
    - Handle resolution properly
    - Test on different platforms
 
 Getting Help
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
 ----------
 
 If you need assistance:

@@ -4,65 +4,38 @@ This directory contains tools for managing NCPS documentation.
 
 ## Quick Start
 
-The `doctools` script provides a simple interface to all documentation tools:
-
+1. Set up documentation environment:
 ```bash
-# Make tools executable (if needed)
-chmod +x tools/doctools tools/*.py
+# Make setup script executable
+chmod +x setup.sh
 
-# Add to your PATH (optional)
-export PATH=$PATH:/path/to/ncps/docs/tools
+# Run setup
+./setup.sh
 
-# Show available commands
-./doctools help
-
-# Common commands
-./doctools convert    # Convert markdown to RST
-./doctools test      # Run doc tests
-./doctools build     # Build HTML docs
-./doctools preview   # Build and open in browser
+# Activate documentation environment
+source ../activate_docs
 ```
 
-## Available Commands
+2. Use documentation tools:
+```bash
+# Show available commands
+doctools help
 
-1. `convert` - Convert and organize documentation
-   ```bash
-   ./doctools convert
-   ```
+# Build documentation
+doctools build
 
-2. `test` - Run documentation tests
-   ```bash
-   ./doctools test
-   ```
+# Preview in browser
+doctools preview
+```
 
-3. `create` - Create new documentation
-   ```bash
-   ./doctools create "My Guide" --template guide --directory guides
-   ```
-
-4. `build` - Build documentation
-   ```bash
-   ./doctools build
-   ```
-
-5. `preview` - Build and preview in browser
-   ```bash
-   ./doctools preview
-   ```
-
-6. `clean` - Clean build directory
-   ```bash
-   ./doctools clean
-   ```
-
-## Individual Tools
+## Available Tools
 
 ### 1. convert_docs.py
 Converts markdown files to RST and organizes them into the Sphinx structure.
 
 ```bash
 # Convert and organize all documentation
-python convert_docs.py
+doctools convert
 
 # The script will:
 # 1. Convert MD to RST
@@ -75,7 +48,7 @@ Tests documentation builds and checks for common issues.
 
 ```bash
 # Run all documentation tests
-python test_docs.py
+doctools test
 
 # Tests include:
 # - RST syntax validation
@@ -90,11 +63,27 @@ Creates new documentation files using templates.
 
 ```bash
 # Create a guide
-python create_doc.py "My Guide Title" --template guide --directory guides
+doctools create "My Guide Title" --template guide --directory guides
 
 # Create API documentation
-python create_doc.py "MyClass API" --template api --directory api \
+doctools create "MyClass API" --template api --directory api \
     --module-path ncps.module --class-name MyClass
+
+# Create architecture documentation
+doctools create "Design Document" --template architecture \
+    --directory architecture/design
+
+# Create research documentation
+doctools create "Research Topic" --template research \
+    --directory architecture/research
+```
+
+### 4. fix_rst.py
+Fixes common RST syntax issues and code block formatting.
+
+```bash
+# Fix RST syntax in all documentation
+doctools fix
 ```
 
 ## Templates
@@ -130,6 +119,41 @@ python create_doc.py "MyClass API" --template api --directory api \
 - Conclusions
 - Future Work
 - References
+
+## Usage Examples
+
+### Converting Documentation
+```bash
+# Convert all markdown files
+doctools convert
+
+# Test the conversion
+doctools test
+```
+
+### Creating New Documentation
+```bash
+# Create a new guide
+doctools create "Installation Guide" \
+    --template guide \
+    --directory guides
+
+# Create API documentation
+doctools create "TensorAbstraction API" \
+    --template api \
+    --directory api \
+    --module-path ncps.abstractions \
+    --class-name TensorAbstraction
+```
+
+### Testing Documentation
+```bash
+# Run all tests
+doctools test
+
+# Build documentation after changes
+doctools build
+```
 
 ## Best Practices
 
@@ -167,9 +191,19 @@ python create_doc.py "MyClass API" --template api --directory api \
 
 ## Getting Help
 
-- Check Sphinx documentation
-- Review existing docs
-- Use test output for debugging
-- Consult team members
+1. Tool Help:
+```bash
+doctools help
+```
+
+2. Documentation:
+   - Check Sphinx documentation: https://www.sphinx-doc.org/
+   - Review existing docs for examples
+   - Use test output for debugging
+
+3. Issues:
+   - Run `doctools test` for validation
+   - Check error messages
+   - Review build output
 
 These tools are designed to make documentation management easier and more consistent. Use them regularly to maintain high-quality documentation.

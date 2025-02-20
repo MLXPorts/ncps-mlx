@@ -1,7 +1,26 @@
 :hide-toc:
 
+
+
+
+
 ===================================================
 Quickstart
+==========
+==========
+==========
+==========
+==========
+==========
+==========
+==========
+==========
+==========
+==========
+==========
+==========
+==========
+==========
 ===================================================
 
 Neural Circuit Policies are recurrent neural network models inspired by the nervous system of the nematode C. elegans.
@@ -11,6 +30,21 @@ Compared to standard ML models, NCPs have
 #. A sparse structured wiring
 
 Neuron Models
+=============
+=============
+=============
+=============
+=============
+=============
+=============
+=============
+=============
+=============
+=============
+=============
+=============
+=============
+=============
 =============================
 The package currently provides two neuron models: LTC and CfC:
 The `liquid time-constant (LTC) <https://ojs.aaai.org/index.php/AAAI/article/view/16936/16743>`_ model is based on neurons in the form of differential equations interconnected via sigmoidal synapses.
@@ -24,6 +58,21 @@ Closed-form continuous-time (CfC) models resolve this bottleneck by approximatin
     Both the LTC and the CfC models are **recurrent neural networks** and possess a temporal state. Therefore, these models are applicable only to sequential or time-series data.
 
 Wirings
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
 =============================
 Neural Circuit Policies use wiring patterns to define the connectivity between neurons. The package provides several wiring patterns:
 
@@ -59,10 +108,40 @@ Neural Circuit Policies use wiring patterns to define the connectivity between n
    :align: center
 
 Creating Models
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
 =============================
 Models can be created using the wiring patterns above. Here's how to create models with different frameworks:
 
 MLX Implementation
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -104,6 +183,21 @@ MLX Implementation
     outputs, states = cfc_model(x, time_delta=time_delta)
 
 PyTorch Implementation
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -115,6 +209,21 @@ PyTorch Implementation
     model = CfC(input_size=20, wiring=wiring)
 
 Keras Implementation
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -130,9 +239,39 @@ Keras Implementation
     ])
 
 Troubleshooting
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
+===============
 =============================
 
 Common Issues
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 ~~~~~~~~~~~~
 
 1. ImportError: No module named 'mlx'
@@ -163,8 +302,10 @@ Common Issues
     wiring.build(input_dim=8)
 
 For basic examples, see:
+
 - examples/notebooks/mlx_cfc_example.ipynb
 - examples/notebooks/mlx_ltc_rnn_example.ipynb
 
 For advanced features and usage, see:
+
 - docs/deepdive/advanced_features.rst

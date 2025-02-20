@@ -1,16 +1,46 @@
 Advanced Visualization Techniques
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
+=================================
 ===========================
 
 This guide covers advanced visualization techniques for Neural Circuit Policies using MLX.
 
 MLX-Specific Visualizations
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
 ------------------------
 
 1. **State Visualization**
    
    Visualize internal states of MLX models:
 
-   .. code-block:: python
+    .. code-block:: python
 
        import mlx.core as mx
        import plotly.graph_objects as go
@@ -48,7 +78,7 @@ MLX-Specific Visualizations
    
    Visualize neural wiring patterns:
 
-   .. code-block:: python
+    .. code-block:: python
 
        def visualize_wiring(wiring):
            # Create graph
@@ -112,7 +142,7 @@ MLX-Specific Visualizations
    
    Visualize time-dependent behavior:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class TimeVisualizer:
            def __init__(self, model):
@@ -144,6 +174,21 @@ MLX-Specific Visualizations
                return self.fig
 
 Real-time Visualization
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
+-----------------------
 -------------------
 
 1. **Performance-Optimized Updates**
@@ -189,6 +234,21 @@ Real-time Visualization
                    self.fig.data[0].z = output.numpy()
 
 Advanced Analysis
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
 --------------
 
 1. **State Space Analysis**
@@ -250,33 +310,67 @@ Advanced Analysis
            return fig
 
 Best Practices
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 ------------
 
 1. **Performance Optimization**
+
    - Use MLX's lazy evaluation
    - Compile visualization functions
    - Batch updates when possible
    - Monitor memory usage
 
 2. **Memory Management**
+
    - Clear unused variables
    - Use appropriate buffer sizes
    - Implement data streaming
    - Monitor resource usage
 
 3. **Hardware Utilization**
+
    - Leverage Apple Silicon
    - Use hardware acceleration
    - Optimize batch sizes
    - Monitor performance
 
 4. **Visualization Quality**
+
    - Use appropriate color schemes
    - Add interactive elements
    - Include legends and labels
    - Consider accessibility
 
 Example Usage
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
 ----------
 
 1. **Basic Usage**
@@ -318,6 +412,21 @@ Example Usage
        fig.show()
 
 References
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
 ---------
 
 - `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_

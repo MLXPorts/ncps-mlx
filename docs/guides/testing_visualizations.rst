@@ -1,16 +1,46 @@
 Testing Visualization Extensions
+================================
+================================
+================================
+================================
+================================
+================================
+================================
+================================
+================================
+================================
+================================
+================================
+================================
+================================
+================================
 ==========================
 
 This guide covers best practices for testing visualization extensions, with special focus on Apple Silicon optimizations.
 
 Apple Silicon Testing
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
+---------------------
 ----------------
 
 1. **Neural Engine Tests**
    
    Test Neural Engine utilization:
 
-   .. code-block:: python
+    .. code-block:: python
 
        import unittest
        import mlx.core as mx
@@ -45,7 +75,7 @@ Apple Silicon Testing
    
    Test unified memory visualization:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class TestMemoryVisualization(unittest.TestCase):
            def test_memory_tracking(self):
@@ -64,7 +94,7 @@ Apple Silicon Testing
    
    Test device-specific features:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class TestHardwareSpecific(unittest.TestCase):
            def test_device_optimization(self):
@@ -80,23 +110,68 @@ Apple Silicon Testing
                self.assertGreater(len(scaling_data['tflops']), 0)
 
 Unit Testing
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
 ---------
 
 [Previous unit testing section remains the same...]
 
 Integration Testing
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
 ---------------
 
 [Previous integration testing section remains the same...]
 
 Performance Testing
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
+-------------------
 ---------------
 
 1. **Hardware-Aware Memory Testing**
    
    Test memory efficiency with hardware considerations:
 
-   .. code-block:: python
+    .. code-block:: python
 
        import memory_profiler
        
@@ -117,7 +192,7 @@ Performance Testing
    
    Test Neural Engine utilization:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class TestNeuralEnginePerformance(unittest.TestCase):
            def test_ne_efficiency(self):
@@ -130,7 +205,7 @@ Performance Testing
    
    Test performance scaling on different devices:
 
-   .. code-block:: python
+    .. code-block:: python
 
        class TestDeviceScaling(unittest.TestCase):
            def test_batch_size_scaling(self):
@@ -148,18 +223,48 @@ Performance Testing
                    self.assertGreater(perf['efficiency'], 0.7)  # >70% efficient
 
 Visual Testing
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 -----------
 
 [Previous visual testing section remains the same...]
 
 Continuous Integration
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
+----------------------
 ------------------
 
 1. **Hardware-Specific CI**
    
    Setup device-specific testing:
 
-   .. code-block:: yaml
+    .. code-block:: yaml
 
        # .github/workflows/test-visualizations.yml
        name: Test Visualizations
@@ -173,50 +278,105 @@ Continuous Integration
              matrix:
                device: ['M1', 'M1 Pro', 'M1 Max', 'M1 Ultra']
            steps:
-           - uses: actions/checkout@v2
-           - name: Set up Python
+
+    - uses: actions/checkout@v2
+    - name: Set up Python
+
              uses: actions/setup-python@v2
+
            - name: Install dependencies
+
              run: |
                pip install -r requirements.txt
                pip install pytest pytest-cov
+
            - name: Run tests
+
              run: |
                DEVICE_TYPE=${{ matrix.device }} pytest tests/visualization
 
 Best Practices
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 -----------
 
 1. **Hardware-Aware Testing**
+
    - Test on all target devices
    - Monitor hardware utilization
    - Profile performance metrics
    - Validate optimization effects
 
 2. **Memory Management**
+
    - Test unified memory usage
    - Monitor bandwidth utilization
    - Profile cache performance
    - Validate memory patterns
 
 3. **Performance Optimization**
+
    - Test compilation effects
    - Validate batch sizes
    - Monitor Neural Engine
    - Profile hardware usage
 
 4. **Error Handling**
+
    - Test hardware-specific errors
    - Validate error recovery
    - Monitor resource usage
    - Log hardware states
 
 Getting Started
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
 ------------
 
 [Previous getting started section remains the same...]
 
 References
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
 --------
 
 - `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_

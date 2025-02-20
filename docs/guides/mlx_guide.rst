@@ -1,36 +1,129 @@
 MLX Neural Circuit Policies
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
+===========================
 ===================================
 
 Introduction
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
+------------
 -----------
 This guide provides comprehensive documentation for the MLX implementation of Neural Circuit Policies (NCPs), optimized for Apple Silicon processors.
 
 Apple Silicon Optimizations
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
+---------------------------
 -------------------------
 
 Hardware Utilization
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~
 The MLX implementation is specifically optimized for Apple Silicon processors:
 
 1. Neural Engine:
-   - Automatic utilization of the Neural Engine for supported operations
-   - Optimized matrix multiplications
-   - Efficient activation functions
+
+    - Automatic utilization of the Neural Engine for supported operations
+    - Optimized matrix multiplications
+    - Efficient activation functions
 
 2. Memory Management:
-   - Zero-copy data transfers
-   - Lazy evaluation for computation graphs
-   - Efficient memory layout for Apple Silicon
+
+    - Zero-copy data transfers
+    - Lazy evaluation for computation graphs
+    - Efficient memory layout for Apple Silicon
 
 3. Performance Features:
-   - Automatic operation fusion
-   - Hardware-specific optimizations
-   - Parallel computation support
+
+    - Automatic operation fusion
+    - Hardware-specific optimizations
+    - Parallel computation support
 
 Core Architecture
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
 ---------------
 
 Base Classes
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
+~~~~~~~~~~~~
 ~~~~~~~~~~
 
 LiquidCell
@@ -90,6 +183,21 @@ LiquidRNN
         :param merge_mode: How to merge bidirectional outputs
 
 Neural Wiring
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
+-------------
 ------------
 
 The wiring system defines connectivity patterns between neurons:
@@ -100,7 +208,8 @@ The wiring system defines connectivity patterns between neurons:
 
     Base class for neural wiring patterns.
 
-    Key Features:
+    Key Features.. code-block:: python
+
     - Flexible connectivity definition
     - Synapse management
     - State tracking
@@ -138,6 +247,21 @@ Manual Neural Circuit Policy wiring:
     )
 
 Model Implementation
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
+--------------------
 ------------------
 
 1. CfC Models
@@ -150,6 +274,7 @@ CfCCell
     Closed-form Continuous-time cell implementation.
 
     Features:
+
     - Multiple operation modes
     - Backbone network support
     - Time-aware processing
@@ -162,6 +287,7 @@ CfC
     High-level CfC network implementation.
 
     Features:
+
     - Bidirectional processing
     - Sequence handling
     - State management
@@ -177,6 +303,7 @@ LTCCell
     Liquid Time-Constant cell implementation.
 
     Features:
+
     - Biologically-inspired dynamics
     - Backbone network support
     - Time-aware processing
@@ -189,12 +316,28 @@ LTC
     High-level LTC network implementation.
 
     Features:
+
     - Bidirectional processing
     - Sequence handling
     - State management
     - Time-delta support
 
 Performance Optimization
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
 ----------------------
 
 1. Memory Management
@@ -232,6 +375,21 @@ Performance Optimization
     }
 
 Advanced Features
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
+-----------------
 ---------------
 
 1. Custom Wiring
@@ -274,10 +432,26 @@ Advanced Features
         return model(x, time_delta=dt)
 
 Best Practices
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
+--------------
 ------------
 
 1. Hardware Optimization
 ^^^^^^^^^^^^^^^^^^^^^^
+
 - Use appropriate batch sizes for your device
 - Enable operator fusion when possible
 - Monitor memory usage
@@ -285,6 +459,7 @@ Best Practices
 
 2. Model Architecture
 ^^^^^^^^^^^^^^^^^^^
+
 - Choose appropriate wiring patterns
 - Use backbone networks for complex tasks
 - Enable bidirectional processing when needed
@@ -292,6 +467,7 @@ Best Practices
 
 3. Training
 ^^^^^^^^^^
+
 - Monitor loss stability
 - Use gradient clipping
 - Validate state consistency
@@ -299,36 +475,70 @@ Best Practices
 
 4. Testing
 ^^^^^^^^^
+
 - Write comprehensive tests
 - Check edge cases
 - Validate shapes
 - Test performance
 
 Troubleshooting
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+---------------
 -------------
 
 Common Issues
 ^^^^^^^^^^^
 
 1. Memory Issues:
-   - Clear unused variables
-   - Use appropriate batch sizes
-   - Monitor memory usage
-   - Enable garbage collection
+
+    - Clear unused variables
+    - Use appropriate batch sizes
+    - Monitor memory usage
+    - Enable garbage collection
 
 2. Performance Issues:
-   - Profile bottlenecks
-   - Check batch sizes
-   - Enable optimizations
-   - Monitor hardware utilization
+
+    - Profile bottlenecks
+    - Check batch sizes
+    - Enable optimizations
+    - Monitor hardware utilization
 
 3. Training Issues:
-   - Check learning rates
-   - Monitor gradients
-   - Validate loss computation
-   - Check state consistency
+
+    - Check learning rates
+    - Monitor gradients
+    - Validate loss computation
+    - Check state consistency
 
 References
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
+----------
 ---------
 
 - `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_

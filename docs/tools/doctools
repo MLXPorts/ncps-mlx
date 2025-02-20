@@ -2,7 +2,7 @@
 # Documentation management tools for NCPS
 
 # Make scripts executable
-chmod +x convert_docs.py test_docs.py create_doc.py
+chmod +x convert_docs.py test_docs.py create_doc.py fix_rst.py
 
 # Set up variables
 TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,6 +20,7 @@ function show_help() {
     echo "  build       Build documentation"
     echo "  preview     Build and preview documentation"
     echo "  clean       Clean build directory"
+    echo "  fix         Fix RST syntax issues"
     echo "  help        Show this help message"
     echo
     echo "Examples:"
@@ -28,6 +29,7 @@ function show_help() {
     echo "  doctools create guide.rst     # Create new guide"
     echo "  doctools build                # Build HTML docs"
     echo "  doctools preview             # Build and open in browser"
+    echo "  doctools fix                 # Fix RST syntax"
 }
 
 function run_convert() {
@@ -37,6 +39,9 @@ function run_convert() {
 
 function run_test() {
     echo "Testing documentation..."
+    # First fix RST syntax
+    run_fix
+    # Then run tests
     python "$TOOLS_DIR/test_docs.py"
 }
 
@@ -51,17 +56,29 @@ function run_create() {
 
 function run_build() {
     echo "Building documentation..."
+    # Fix RST syntax before building
+    run_fix
     cd "$DOCS_DIR" && make html
 }
 
 function run_preview() {
     echo "Building and previewing documentation..."
-    cd "$DOCS_DIR" && make preview
+    run_build
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        open "$DOCS_DIR/_build/html/index.html"
+    else
+        xdg-open "$DOCS_DIR/_build/html/index.html"
+    fi
 }
 
 function run_clean() {
     echo "Cleaning build directory..."
     cd "$DOCS_DIR" && make clean
+}
+
+function run_fix() {
+    echo "Fixing RST syntax..."
+    python "$TOOLS_DIR/fix_rst.py"
 }
 
 # Main command processing
@@ -84,6 +101,9 @@ case "$1" in
         ;;
     clean)
         run_clean
+        ;;
+    fix)
+        run_fix
         ;;
     help|--help|-h)
         show_help
