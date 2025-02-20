@@ -1,435 +1,377 @@
 Advanced Visualization Techniques
 =================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-=================================
-===========================
 
 This guide covers advanced visualization techniques for Neural Circuit Policies using MLX.
 
 MLX-Specific Visualizations
 ---------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
-------------------------
 
 1. **State Visualization**
-   
-   Visualize internal states of MLX models:
+
+Visualize internal states of MLX models:
 
     .. code-block:: python
 
-       import mlx.core as mx
-       import plotly.graph_objects as go
-       
-       class StateVisualizer:
-           def __init__(self, model):
-               self.model = model
-               self.fig = go.FigureWidget()
-               
-           def visualize_states(self, x, time_delta=None):
-               # Get states
-               outputs, states = self.model(
-                   x,
-                   time_delta=time_delta,
-                   return_state=True
-               )
-               
-               # Create heatmap
-               self.fig.add_trace(go.Heatmap(
-                   z=states[0].numpy(),
-                   colorscale='Viridis',
-                   name='Neuron States'
-               ))
-               
-               # Add layout
-               self.fig.update_layout(
-                   title='Neural States',
-                   xaxis_title='Time Step',
-                   yaxis_title='Neuron Index'
-               )
-               
-               return self.fig
+import mlx.core as mx
+import plotly.graph_objects as go
 
-2. **Wiring Visualization**
-   
-   Visualize neural wiring patterns:
+class StateVisualizer::
+    def __init__(
+        self,
+            model)::,
+        )
+        self.model = model
+        self.fig = go.FigureWidget(
 
-    .. code-block:: python
+        def visualize_states(
+            self,
+                x,
+                    time_delta=None)::,
+                )))))))))))))))))))
+                # Get states
+                outputs, states = self.model(
+                    x,
+                        time_delta=time_delta,
+                    return_state=True
 
-       def visualize_wiring(wiring):
-           # Create graph
-           G = nx.DiGraph()
-           
-           # Add nodes
-           for i in range(wiring.units):
-               neuron_type = wiring.get_type_of_neuron(i)
-               G.add_node(i, type=neuron_type)
-           
-           # Add edges
-           for i in range(wiring.units):
-               for j in range(wiring.units):
-                   if wiring.adjacency_matrix[i, j] != 0:
-                       G.add_edge(i, j, weight=wiring.adjacency_matrix[i, j])
-           
-           # Create layout
-           pos = nx.spring_layout(G, k=2)
-           
-           # Create figure
-           fig = go.Figure()
-           
-           # Add edges
-           edge_x, edge_y = [], []
-           for edge in G.edges():
-               x0, y0 = pos[edge[0]]
-               x1, y1 = pos[edge[1]]
-               edge_x.extend([x0, x1, None])
-               edge_y.extend([y0, y1, None])
-           
-           fig.add_trace(go.Scatter(
-               x=edge_x,
-               y=edge_y,
-               mode='lines',
-               line=dict(color='gray', width=0.5),
-               hoverinfo='none'
-           ))
-           
-           # Add nodes
-           node_x = [pos[node][0] for node in G.nodes()]
-           node_y = [pos[node][1] for node in G.nodes()]
-           node_colors = [G.nodes[node]['type'] for node in G.nodes()]
-           
-           fig.add_trace(go.Scatter(
-               x=node_x,
-               y=node_y,
-               mode='markers',
-               marker=dict(
-                   size=10,
-                   color=node_colors,
-                   colorscale='Viridis',
-                   line_width=2
-               ),
-               text=[f"Neuron {i}" for i in G.nodes()],
-               hoverinfo='text'
-           ))
-           
-           return fig
+                    # Create heatmap
+                    self.fig.add_trace(
+                    z=states[0].numpy(
+                        colorscale='Viridis',
+                    name='Neuron States'
 
-3. **Time-Aware Visualization**
-   
-   Visualize time-dependent behavior:
+                    # Add layout
+                    self.fig.update_layout(
+                        title='Neural States',
+                            xaxis_title='Time Step',
+                        yaxis_title='Neuron Index'
 
-    .. code-block:: python
+                        return self.fig
 
-       class TimeVisualizer:
-           def __init__(self, model):
-               self.model = model
-               self.fig = go.FigureWidget()
-               
-           def visualize_time_response(self, x, time_deltas):
-               outputs = []
-               
-               # Process with different time deltas
-               for dt in time_deltas:
-                   time_delta = mx.full(x.shape[:2], dt)
-                   output = self.model(x, time_delta=time_delta)
-                   outputs.append(output)
-               
-               # Create visualization
-               for i, output in enumerate(outputs):
-                   self.fig.add_trace(go.Scatter(
-                       y=output[0, :, 0],
-                       name=f'dt = {time_deltas[i]}'
-                   ))
-               
-               self.fig.update_layout(
-                   title='Time-Dependent Response',
-                   xaxis_title='Time Step',
-                   yaxis_title='Output'
-               )
-               
-               return self.fig
+                        2. **Wiring Visualization**
 
-Real-time Visualization
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
--------------------
+                        Visualize neural wiring patterns:
+                        pass
 
-1. **Performance-Optimized Updates**
+                        .. code-block:: python
 
-   .. code-block:: python
+                        def visualize_wiring(
+                            wiring)::,
+                        )
+                        # Create graph
+                        G = nx.DiGraph(
 
-       class MLXRealTimeVisualizer:
-           def __init__(self, model, buffer_size=100):
-               self.model = model
-               self.buffer_size = buffer_size
-               self.fig = go.FigureWidget()
-               self.buffer = mx.zeros((buffer_size,))
-               
-           @mx.compile(static_argnums=(1,))
-           def update(self, x, training=False):
-               # Process new data
-               output = self.model(x, training=training)
-               
-               # Update buffer
-               self.buffer = mx.roll(self.buffer, -1)
-               self.buffer = self.buffer.at[-1].set(output[0, -1, 0])
-               
-               # Update plot
-               with self.fig.batch_update():
-                   self.fig.data[0].y = self.buffer
+                    # Add nodes
+                    for i in range(
+                        wiring.units)::,
+                    )
+                    neuron_type = wiring.get_type_of_neuron(
+                    G.add_node(
 
-2. **Hardware-Accelerated Rendering**
+                # Add edges
+                for i in range(
+                    wiring.units)::,
+                ))))))))))))))))
+                for j in range(
+                    wiring.units)::,
+                ))))))))))))))))
+                if wiring.adjacency_matrix[i, j] != 0::
+                    pass
+                    G.add_edge(
 
-   .. code-block:: python
+                # Create layout
+                pos = nx.spring_layout(
 
-       class HardwareAcceleratedViz:
-           def __init__(self, model):
-               self.model = model
-               self.fig = go.FigureWidget()
-               
-           @mx.compile(static_argnums=(1,))
-           def render_frame(self, data, training=False):
-               # Process on GPU/Neural Engine
-               output = self.model(data, training=training)
-               
-               # Update visualization
-               with self.fig.batch_update():
-                   self.fig.data[0].z = output.numpy()
+            # Create figure
+            fig = go.Figure(
 
-Advanced Analysis
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
---------------
+        # Add edges
+        edge_x, edge_y = [], [
+        for edge in G.edges(
+            )::,
+        ))))
+        x0, y0 = pos[edge[0
+        x1, y1 = pos[edge[1
+        edge_x.extend(
+        edge_y.extend(
 
-1. **State Space Analysis**
+        fig.add_trace(
+            x=edge_x,
+                y=edge_y,
+                    mode='lines',
+                    line=dict(
+                hoverinfo='none'
 
-   .. code-block:: python
+                # Add nodes
+                node_x = [pos[node][0] for node in G.nodes(
+                node_y = [pos[node][1] for node in G.nodes(
+                node_colors = [G.nodes[node]['type'] for node in G.nodes(
 
-       class StateSpaceAnalyzer:
-           def __init__(self, model):
-               self.model = model
-               
-           def analyze_state_space(self, x, time_delta=None):
-               # Get states
-               outputs, states = self.model(
-                   x,
-                   time_delta=time_delta,
-                   return_state=True
-               )
-               
-               # Perform PCA
-               from sklearn.decomposition import PCA
-               pca = PCA(n_components=3)
-               states_transformed = pca.fit_transform(states[0])
-               
-               # Create 3D visualization
-               fig = go.Figure(data=[go.Scatter3d(
-                   x=states_transformed[:, 0],
-                   y=states_transformed[:, 1],
-                   z=states_transformed[:, 2],
-                   mode='lines+markers',
-                   marker=dict(
-                       size=2,
-                       color=range(len(states_transformed)),
-                       colorscale='Viridis'
-                   )
-               )])
-               
-               return fig
+                fig.add_trace(
+                    x=node_x,
+                        y=node_y,
+                            mode='markers',
+                            marker=dict(
+                                size=10,
+                                    color=node_colors,
+                                        colorscale='Viridis',
+                                    line_width=2
+                                        ),
+                                        text=[f"Neuron {i}" for i in G.nodes(
+                                    hoverinfo='text'
 
-2. **Attention Visualization**
+                                    return fig
 
-   .. code-block:: python
+                                    3. **Time-Aware Visualization**
 
-       def visualize_attention(model, x):
-           # Get attention weights
-           outputs, attention = model(x, return_attention=True)
-           
-           # Create heatmap
-           fig = go.Figure(data=go.Heatmap(
-               z=attention[0],
-               colorscale='Viridis'
-           ))
-           
-           fig.update_layout(
-               title='Attention Weights',
-               xaxis_title='Query',
-               yaxis_title='Key'
-           )
-           
-           return fig
+                                    Visualize time-dependent behavior:
+                                    pass
 
-Best Practices
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
-------------
+                                    .. code-block:: python
 
-1. **Performance Optimization**
+                                    class TimeVisualizer::
+                                        pass
+                                        def __init__(
+                                            self,
+                                                model)::,
+                                            )
+                                            self.model = model
+                                            self.fig = go.FigureWidget(
 
-   - Use MLX's lazy evaluation
-   - Compile visualization functions
-   - Batch updates when possible
-   - Monitor memory usage
+                                            def visualize_time_response(
+                                                self,
+                                                    x,
+                                                        time_deltas)::,
+                                                    )
+                                                    outputs = [
 
-2. **Memory Management**
+                                                    # Process with different time deltas
+                                                    for dt in time_deltas::
+                                                        time_delta = mx.full(
+                                                        output = self.model(
+                                                        outputs.append(
 
-   - Clear unused variables
-   - Use appropriate buffer sizes
-   - Implement data streaming
-   - Monitor resource usage
+                                                    # Create visualization
+                                                    for i, output in enumerate(
+                                                        outputs)::,
+                                                    )
+                                                    pass
+                                                    self.fig.add_trace(
+                                                    y=output[0, :, 0],
+                                                    name=f'dt = {time_deltas[i'
 
-3. **Hardware Utilization**
+                                                    self.fig.update_layout(
+                                                        title='Time-Dependent Response',
+                                                            xaxis_title='Time Step',
+                                                        yaxis_title='Output'
 
-   - Leverage Apple Silicon
-   - Use hardware acceleration
-   - Optimize batch sizes
-   - Monitor performance
+                                                        return self.fig
 
-4. **Visualization Quality**
+                                                        Real-time Visualization
+                                                        -----------------------
 
-   - Use appropriate color schemes
-   - Add interactive elements
-   - Include legends and labels
-   - Consider accessibility
+                                                        1. **Performance-Optimized Updates**
 
-Example Usage
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
-----------
+                                                        .. code-block:: python
 
-1. **Basic Usage**
+                                                        class MLXRealTimeVisualizer::
+                                                            pass
+                                                            def __init__(
+                                                                self,
+                                                                    model,
+                                                                        buffer_size=100)::,
+                                                                    )
+                                                                    self.model = model
+                                                                    self.buffer_size = buffer_size
+                                                                    self.fig = go.FigureWidget(
+                                                                    self.buffer = mx.zeros(
 
-   .. code-block:: python
+                                                                    @mx.compile(
+                                                                    def update(
+                                                                        self,
+                                                                            x,
+                                                                                training=False)::,
+                                                                            )
+                                                                            pass
+                                                                            # Process new data
+                                                                            output = self.model(
 
-       # Create visualizer
-       viz = StateVisualizer(model)
-       
-       # Generate data
-       x = mx.random.normal((1, 100, 10))
-       
-       # Create visualization
-       fig = viz.visualize_states(x)
-       fig.show()
+                                                                        # Update buffer
+                                                                        self.buffer = mx.roll(
+                                                                        self.buffer = self.buffer.at[-1].set(
 
-2. **Advanced Usage**
+                                                                    # Update plot
+                                                                    with self.fig.batch_update(
+                                                                self.fig.data[0].y = self.buffer
 
-   .. code-block:: python
+                                                                2. **Hardware-Accelerated Rendering**
 
-       # Create analyzer
-       analyzer = StateSpaceAnalyzer(model)
-       
-       # Analyze state space
-       fig = analyzer.analyze_state_space(x)
-       
-       # Add interactive elements
-       fig.update_layout(
-           updatemenus=[{
-               'type': 'buttons',
-               'showactive': False,
-               'buttons': [{
-                   'label': 'Play',
-                   'method': 'animate'
-               }]
-           }]
-       )
-       
-       fig.show()
+                                                                .. code-block:: python
 
-References
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
----------
+                                                                class HardwareAcceleratedViz::
+                                                                    def __init__(
+                                                                        self,
+                                                                            model)::,
+                                                                        )
+                                                                        pass
+                                                                        self.model = model
+                                                                        self.fig = go.FigureWidget(
 
-- `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_
-- `Plotly Documentation <https://plotly.com/python/>`_
-- `NetworkX Documentation <https://networkx.org/documentation/stable/>`_
-- `Apple Silicon Developer Guide <https://developer.apple.com/documentation/apple_silicon>`_
+                                                                        @mx.compile(
+                                                                        def render_frame(
+                                                                            self,
+                                                                                data,
+                                                                                    training=False)::,
+                                                                                )
+                                                                                # Process on GPU/Neural Engine
+                                                                                output = self.model(
+
+                                                                            # Update visualization
+                                                                            with self.fig.batch_update(
+                                                                        pass
+                                                                        self.fig.data[0].z = output.numpy(
+
+                                                                    Advanced Analysis
+                                                                    -----------------
+
+                                                                    1. **State Space Analysis**
+
+                                                                    .. code-block:: python
+
+                                                                    class StateSpaceAnalyzer::
+                                                                        def __init__(
+                                                                            self,
+                                                                                model)::,
+                                                                            )
+                                                                            pass
+                                                                            self.model = model
+
+                                                                            def analyze_state_space(
+                                                                                self,
+                                                                                    x,
+                                                                                        time_delta=None)::,
+                                                                                    )
+                                                                                    # Get states
+                                                                                    outputs, states = self.model(
+                                                                                        x,
+                                                                                            time_delta=time_delta,
+                                                                                        return_state=True
+
+                                                                                        # Perform PCA
+                                                                                        from sklearn.decomposition import PCA
+                                                                                        pca = PCA(
+                                                                                        states_transformed = pca.fit_transform(
+
+                                                                                    # Create 3D visualization
+                                                                                    fig = go.Figure(
+                                                                                    x=states_transformed[:, 0],
+                                                                                    y=states_transformed[:, 1],
+                                                                                    z=states_transformed[:, 2],
+                                                                                        mode='lines+markers',
+                                                                                        marker=dict(
+                                                                                            size=2,
+                                                                                            color=range(
+                                                                                        colorscale='Viridis'
+
+                                                                                        return fig
+
+                                                                                        2. **Attention Visualization**
+
+                                                                                        .. code-block:: python
+
+                                                                                        def visualize_attention(
+                                                                                            model,
+                                                                                                x)::,
+                                                                                            )
+                                                                                            # Get attention weights
+                                                                                            outputs, attention = model(
+
+                                                                                        # Create heatmap
+                                                                                        fig = go.Figure(
+                                                                                        z=attention[0],
+                                                                                    colorscale='Viridis'
+
+                                                                                    fig.update_layout(
+                                                                                        title='Attention Weights',
+                                                                                            xaxis_title='Query',
+                                                                                        yaxis_title='Key'
+
+                                                                                        return fig
+
+                                                                                        Best Practices
+                                                                                        --------------
+
+                                                                                        1. **Performance Optimization**
+
+                                                                                        - Use MLX's lazy evaluation
+                                                                                        - Compile visualization functions
+                                                                                        - Batch updates when possible
+                                                                                        - Monitor memory usage
+
+                                                                                        2. **Memory Management**
+
+                                                                                        - Clear unused variables
+                                                                                        - Use appropriate buffer sizes
+                                                                                        - Implement data streaming
+                                                                                        - Monitor resource usage
+
+                                                                                        3. **Hardware Utilization**
+
+                                                                                        - Leverage Apple Silicon
+                                                                                        - Use hardware acceleration
+                                                                                        - Optimize batch sizes
+                                                                                        - Monitor performance
+
+                                                                                        4. **Visualization Quality**
+
+                                                                                        - Use appropriate color schemes
+                                                                                        - Add interactive elements
+                                                                                        - Include legends and labels
+                                                                                        - Consider accessibility
+
+                                                                                        Example Usage
+                                                                                        -------------
+
+                                                                                        1. **Basic Usage**
+
+                                                                                        .. code-block:: python
+
+                                                                                        # Create visualizer
+                                                                                        viz = StateVisualizer(
+
+                                                                                    # Generate data
+                                                                                    x = mx.random.normal(
+
+                                                                                # Create visualization
+                                                                                fig = viz.visualize_states(
+                                                                                fig.show(
+
+                                                                            2. **Advanced Usage**
+
+                                                                            .. code-block:: python
+
+                                                                            # Create analyzer
+                                                                            analyzer = StateSpaceAnalyzer(
+
+                                                                        # Analyze state space
+                                                                        fig = analyzer.analyze_state_space(
+
+                                                                    # Add interactive elements
+                                                                    fig.update_layout(
+                                                                    updatemenus=[{
+                                                                        'type': 'buttons',
+                                                                            'showactive': False,
+                                                                            'buttons': [{
+                                                                                'label': 'Play',
+                                                                            'method': 'animate'
+
+                                                                            fig.show(
+
+                                                                        References
+                                                                        ----------
+
+                                                                        - `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_
+                                                                        - `Plotly Documentation <https://plotly.com/python/>`_
+                                                                        - `NetworkX Documentation <https://networkx.org/documentation/stable/>`_
+                                                                        - `Apple Silicon Developer Guide <https://developer.apple.com/documentation/apple_silicon>`_
+

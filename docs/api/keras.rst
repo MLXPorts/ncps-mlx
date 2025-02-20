@@ -1,75 +1,42 @@
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+'sphinx.ext.viewcode',
+
 .. keras-api-label:
 
 Keras Layers
 ------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-----------------------------
 
 .. toctree::
-    :maxdepth: 2
+   
+:maxdepth: 2
 
 .. automodule:: ncps.keras
 
 Sequence models
 ===============
-===============
-===============
-===============
-===============
-===============
-===============
-===============
-===============
-===============
-===============
-===============
-===============
-===============
-===============
-============================================
 
 .. autoclass:: CfC
-   :members:
+
+:members:
 
 .. autoclass:: LTC
-   :members:
 
-Single time-step models (RNN **cells**)
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-=======================================
-============================================
+:members:
+
+Single time-step models (RNN **cells**
+======================================
 
 .. autoclass:: CfCCell
-   :members:
+
+:members:
 
 .. autoclass:: LTCCell
-   :members:
+
+:members:
 
 .. note::
-   These layers are implemented using Keras 3.x and are backend-agnostic. They can work with TensorFlow, JAX, or PyTorch backends depending on your Keras configuration.
+
+These layers are implemented using Keras 3.x and are backend-agnostic. They can work with TensorFlow, JAX, or PyTorch backends depending on your Keras configuration.

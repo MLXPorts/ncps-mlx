@@ -1,0 +1,209 @@
+{
+ "CTGRU": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "ncps.mlx",
+   "module_short": "ncps.mlx",
+   "name": "CTGRU"
+  }
+ ],
+ "CTRNN": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "ncps.mlx",
+   "module_short": "ncps.mlx",
+   "name": "CTRNN"
+  }
+ ],
+ "ELTC": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "ncps.mlx",
+   "module_short": "ncps.mlx",
+   "name": "ELTC"
+  }
+ ],
+ "FullyConnected": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "ncps.mlx.wirings",
+   "module_short": "ncps.mlx.wirings",
+   "name": "FullyConnected"
+  }
+ ],
+ "mx.clip": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "clip"
+  }
+ ],
+ "mx.cos": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "cos"
+  }
+ ],
+ "mx.expand_dims": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "expand_dims"
+  }
+ ],
+ "mx.isnan": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "isnan"
+  }
+ ],
+ "mx.linspace": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "linspace"
+  }
+ ],
+ "mx.mean": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "mean"
+  }
+ ],
+ "mx.pi": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "pi"
+  }
+ ],
+ "mx.random.seed": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core.random",
+   "module_short": "mlx.core.random",
+   "name": "seed"
+  }
+ ],
+ "mx.random.uniform": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core.random",
+   "module_short": "mlx.core.random",
+   "name": "uniform"
+  }
+ ],
+ "mx.reshape": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "reshape"
+  }
+ ],
+ "mx.sin": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "sin"
+  }
+ ],
+ "mx.sqrt": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "sqrt"
+  }
+ ],
+ "mx.stack": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "stack"
+  }
+ ],
+ "mx.sum": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "sum"
+  }
+ ],
+ "mx.tanh": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "tanh"
+  }
+ ],
+ "mx.tree_flatten": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "tree_flatten"
+  }
+ ],
+ "mx.tree_map": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "tree_map"
+  }
+ ],
+ "mx.value_and_grad": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.core",
+   "module_short": "mlx.core",
+   "name": "value_and_grad"
+  }
+ ],
+ "optim.Adam": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "mlx.optimizers",
+   "module_short": "mlx.optimizers",
+   "name": "Adam"
+  }
+ ]
+}

@@ -1,13 +1,13 @@
 # Base Cell Design for Liquid Neural Networks
 
 ## Overview
-Base implementation for liquid neural network cells, providing core functionality for time-based updates, state management, and feature extraction.
+Base implementation for liquid neural network cells, providing core functionality for time-based updates, state management, and feature extraction using MLX.
 
 ## Class Structure
 
-### BaseCell
+### LiquidCell
 ```python
-class BaseCell(keras.layers.Layer):
+class LiquidCell(nn.Module):
     """Base class for liquid neural network cells."""
     
     def __init__(
@@ -20,6 +20,12 @@ class BaseCell(keras.layers.Layer):
         **kwargs
     ):
         """Initialize base cell."""
+        super().__init__()
+        self.wiring = wiring
+        self.activation = get_activation(activation)
+        self.backbone_units = backbone_units
+        self.backbone_layers = backbone_layers
+        self.backbone_dropout = backbone_dropout
 ```
 
 ## Core Components
@@ -28,118 +34,139 @@ class BaseCell(keras.layers.Layer):
 ```python
 def get_initial_state(self, batch_size=None):
     """Get initial state for RNN."""
-    return [
-        keras.ops.zeros((batch_size, self.units))
-    ]
+    return mx.zeros((batch_size, self.units))
 ```
 
 Key features:
-- Proper state initialization
+- MLX array initialization
 - Batch size handling
 - Type consistency
 
 ### 2. Time-based Updates
 ```python
-def call(self, inputs, states, training=None):
+def __call__(self, inputs, state, time=1.0):
     """Process one timestep."""
     # Handle time input
     if isinstance(inputs, (list, tuple)):
         x, t = inputs
     else:
-        x, t = inputs, 1.0
+        x, t = inputs, mx.array(time)
+    
+    # Process with proper MLX operations
+    return self.forward(x, state, t)
 ```
 
 Features:
+- MLX array operations
 - Time delta support
 - State updates
-- Training mode
 
 ### 3. Feature Extraction
 ```python
 def build_backbone(self):
     """Build backbone network."""
     if self.backbone_layers > 0:
-        # Build backbone layers
-        self.backbone = [...]
+        layers = []
+        input_dim = self.input_size + self.units
+        
+        for _ in range(self.backbone_layers):
+            layers.extend([
+                nn.Linear(input_dim, self.backbone_units),
+                nn.Dropout(self.backbone_dropout),
+                self.activation
+            ])
+            input_dim = self.backbone_units
+            
+        self.backbone = nn.Sequential(*layers)
 ```
 
 Components:
-- Flexible backbone architecture
-- Dropout support
-- Layer configuration
+- MLX layer construction
+- Dropout implementation
+- Activation handling
 
 ## Integration Points
 
-### 1. With Keras Layer System
-- Proper build() implementation
-- State management
-- Training phase handling
+### 1. With MLX Module System
+- Proper parameter management
+- State tracking
+- Forward pass definition
 
 ### 2. With RNN Infrastructure
 - Compatible state shapes
 - Time sequence support
-- Bidirectional support
+- Proper MLX operations
 
 ### 3. With Wiring System
 - Input/output dimensions
 - Connection patterns
-- Weight initialization
+- MLX weight initialization
 
 ## Key Methods
 
-### 1. build()
+### 1. forward()
 ```python
-def build(self, input_shape):
-    """Build cell weights."""
-    # Get dimensions
-    if isinstance(input_shape, list):
-        input_shape = input_shape[0]
+def forward(self, x, state, time=None):
+    """Forward pass with MLX operations."""
+    # Combine input and state
+    concat = mx.concatenate([x, state], axis=-1)
+    
+    # Apply backbone if present
+    if hasattr(self, 'backbone'):
+        concat = self.backbone(concat)
+        
+    # Apply main transformation
+    output = mx.matmul(concat, self.kernel) + self.bias
+    return output, [output]
+```
+
+### 2. Parameter Management
+```python
+def init_parameters(self, input_shape):
+    """Initialize parameters with MLX."""
     input_dim = input_shape[-1]
+    total_input_dim = input_dim + self.units
+    
+    # Initialize with proper MLX operations
+    self.kernel = self.initializer((total_input_dim, self.units))
+    self.bias = mx.zeros((self.units,))
 ```
 
-### 2. call()
-```python
-def call(self, inputs, states, training=None):
-    """Process one timestep."""
-    # Main processing logic
-    return output, new_state
-```
-
-### 3. get_config()
+### 3. Configuration
 ```python
 def get_config(self):
     """Get configuration."""
-    config = super().get_config()
-    config.update({
+    return {
         "wiring": self.wiring.get_config(),
-        "activation": self.activation_name,
-        # ...
-    })
-    return config
+        "activation": self.activation.__name__,
+        "backbone_units": self.backbone_units,
+        "backbone_layers": self.backbone_layers,
+        "backbone_dropout": self.backbone_dropout
+    }
 ```
 
 ## Implementation Details
 
 ### 1. Weight Management
-- Proper initialization
-- Shape handling
-- Regularization support
+- MLX-specific initialization
+- Proper array handling
+- Gradient tracking
 
 ### 2. State Updates
-- Time-based updates
+- Time-based updates with MLX
 - State validation
 - Shape consistency
 
 ### 3. Feature Processing
-- Input transformation
-- Backbone application
-- Output projection
+- MLX transformations
+- Efficient backbone application
+- Output computation
 
 ## Usage Examples
 
 ### Basic Cell
 ```python
-cell = BaseCell(
+cell = LiquidCell(
     wiring=wiring,
     activation="tanh"
 )
@@ -148,7 +175,7 @@ output, new_state = cell(input, state)
 
 ### With Backbone
 ```python
-cell = BaseCell(
+cell = LiquidCell(
     wiring=wiring,
     backbone_units=128,
     backbone_layers=2
@@ -158,20 +185,22 @@ cell = BaseCell(
 ### With Time
 ```python
 output, state = cell(
-    [input, time_delta],
-    previous_state
+    input,
+    previous_state,
+    time=mx.array(0.1)
 )
 ```
 
 ## Testing Strategy
 
 ### 1. Unit Tests
+- MLX array operations
 - State management
 - Time handling
 - Backbone processing
 
 ### 2. Integration Tests
-- With RNN layer
+- With RNN implementation
 - With different wirings
 - Training scenarios
 
@@ -183,50 +212,52 @@ output, state = cell(
 ## Benefits
 
 ### 1. Code Organization
-- Clear inheritance structure
+- Clear MLX structure
 - Modular components
 - Easy to extend
 
 ### 2. Functionality
-- Complete feature set
+- Complete MLX feature set
 - Flexible configuration
-- Good defaults
+- Efficient computation
 
 ### 3. Maintainability
 - Well-documented
 - Type hints
 - Error handling
 
-## Differences from MLX Version
+## MLX-Specific Features
 
-### 1. Architecture
-- Keras-style layer system
-- Better state management
-- More flexible backbone
+### 1. Array Operations
+- Efficient MLX primitives
+- Proper broadcasting
+- Memory optimization
 
-### 2. Features
-- Enhanced time handling
-- Better error messages
-- More configuration options
+### 2. Gradient Handling
+- Automatic differentiation
+- Gradient clipping
+- Proper backpropagation
 
-### 3. Integration
-- Keras training loop support
-- Custom training support
-- Better serialization
+### 3. Performance
+- Optimized computations
+- Memory efficiency
+- Hardware acceleration
 
 ## Next Steps
 
 1. Implementation
-   - Core base class
+   - Core MLX base class
    - Utility functions
    - Test suite
 
 2. Documentation
    - API reference
    - Usage examples
-   - Migration guide
+   - Performance guide
 
 3. Integration
-   - With existing cells
+   - With CfC/LTC cells
    - With training system
    - With examples
+
+This design provides a solid foundation for implementing liquid neural networks in MLX while maintaining efficiency and flexibility.

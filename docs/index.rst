@@ -1,20 +1,5 @@
 Welcome to NCPS Documentation
 =============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-=============================
-===========================
 
 Neural Circuit Policies (NCPS) is a framework for implementing and training liquid neural networks, with support for multiple backends including MLX, PyTorch, and TensorFlow.
 
@@ -64,21 +49,6 @@ Neural Circuit Policies (NCPS) is a framework for implementing and training liqu
 
 Features
 --------
---------
---------
---------
---------
---------
---------
---------
---------
---------
---------
---------
---------
---------
---------
---------
 
 - Multiple backend support (MLX, PyTorch, TensorFlow)
 - Liquid neural network implementations
@@ -88,95 +58,38 @@ Features
 
 Quick Example
 -------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
-------------
 
 .. code-block:: python
 
-   from ncps.mlx import CfC
-   import mlx.core as mx
+    from ncps.mlx import CfC
+    import mlx.core as mx
 
-   # Create a model
-   model = CfC(
-       units=64,
-       return_sequences=True
-   )
+    # Create a model
+    model = CfC(
+        units=64,
+        return_sequences=True
+    )
 
-   # Process data
-   x = mx.random.normal((32, 100, 10))  # (batch, time, features)
-   y = model(x)
+    # Generate sample data
+    x = mx.random.normal((32, 100, 10))  # (batch_size, time_steps, features)
+    
+    # Process data
+    y = model(x)
+    print(f"Output shape: {y.shape}")
 
 Installation
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
 ------------
 
 .. code-block:: bash
 
-   pip install ncps-mlx
+    pip install ncps-mlx
 
 Contributing
 ------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
------------
 
-We welcome contributions! Please see our :doc:`contributing`     guide for details.
+We welcome contributions! Please see our :doc:`contributing` guide for details.
 
 Indices and tables
-==================
-==================
-==================
-==================
-==================
-==================
-==================
-==================
-==================
-==================
-==================
-==================
-==================
-==================
-==================
 ==================
 
 * :ref:`genindex`

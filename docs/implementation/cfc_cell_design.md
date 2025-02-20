@@ -1,166 +1,130 @@
 # CfC (Closed-form Continuous-time) Cell Design
 
 ## Overview
-Implementation of the CfC cell, providing closed-form solutions for continuous-time neural networks with Keras integration.
+Implementation of the CfC cell using MLX, providing closed-form solutions for continuous-time neural networks with optimized performance.
 
 ## Class Structure
 
 ### CfCCell
 ```python
-class CfCCell(BaseCell):
-    """Closed-form Continuous-time cell."""
+class CfCCell(LiquidCell):
+    """Closed-form Continuous-time cell with MLX implementation."""
     
     def __init__(
         self,
         wiring,
-        mode="default",
-        activation="tanh",
+        solver_type="semi_implicit",
+        activation="lecun_tanh",
+        solver_unfolds=6,
         backbone_units=None,
         backbone_layers=0,
         backbone_dropout=0.0,
         **kwargs
     ):
         """Initialize CfC cell."""
+        super().__init__(wiring, activation, backbone_units,
+                        backbone_layers, backbone_dropout)
+        self.solver_type = solver_type
+        self.solver_unfolds = solver_unfolds
 ```
 
-## Operating Modes
+## ODE Solvers
 
-### 1. Pure Mode
+### 1. Semi-Implicit Solver
 ```python
-def _pure_step(self, h, t):
-    """Pure mode with direct ODE solution."""
-    return (
-        -self.A 
-        * ops.exp(-t * (ops.abs(self.w_tau) + ops.abs(h))) 
-        * h 
-        + self.A
-    )
+def _semi_implicit_solver(self, prev_output, net_input):
+    """Semi-implicit solver with MLX operations."""
+    dt = mx.array(1.0) / mx.array(self.solver_unfolds)
+    return prev_output + dt * (self.activation(net_input) - prev_output)
 ```
 
 Features:
-- Direct ODE solution
-- Time-scaled updates
-- Stable dynamics
+- Efficient MLX computation
+- Better stability
+- Controlled unfolding
 
-### 2. Gated Mode
+### 2. Runge-Kutta Solver
 ```python
-def _gated_step(self, h, h_prev, t):
-    """Gated mode with interpolation."""
-    gate = ops.matmul(h_prev, self.gate_kernel)
-    if self.use_bias:
-        gate = gate + self.gate_bias
-    gate = ops.sigmoid(-t * gate)
-    
-    return h * (1.0 - gate) + gate * h_prev
+def _runge_kutta_solver(self, prev_output, net_input):
+    """4th order Runge-Kutta solver with MLX operations."""
+    dt = mx.array(1.0) / mx.array(self.solver_unfolds)
+    k1 = self.activation(net_input)
+    k2 = self.activation(net_input + mx.multiply(dt * 0.5, k1))
+    k3 = self.activation(net_input + mx.multiply(dt * 0.5, k2))
+    k4 = self.activation(net_input + mx.multiply(dt, k3))
+    return prev_output + mx.multiply(dt / 6.0, k1 + 2.0 * k2 + 2.0 * k3 + k4)
 ```
 
 Features:
-- Time-dependent gating
-- State interpolation
-- Flexible control
+- Higher accuracy
+- Better stability
+- Complex dynamics support
 
-### 3. No-Gate Mode
+### 3. Explicit Solver
 ```python
-def _no_gate_step(self, h, h_prev, t):
-    """Simplified gated mode."""
-    return h + t * self.gate(h_prev)
+def _explicit_solver(self, prev_output, net_input):
+    """Explicit solver with MLX operations."""
+    dt = mx.array(1.0) / mx.array(self.solver_unfolds)
+    return prev_output + dt * self.activation(net_input)
 ```
 
 Features:
-- Simpler computation
-- Direct time scaling
-- Linear interpolation
+- Fast computation
+- Simple dynamics
+- Efficient memory use
 
 ## Core Components
 
 ### 1. State Management
 ```python
-def build(self, input_shape):
-    """Build cell weights."""
-    # Main transformation
-    self.kernel = self.add_weight(...)
+def forward(self, x: mx.array, state: mx.array, time: float = 1.0):
+    """Process one step with MLX operations."""
+    # Combine input and state
+    concat_input = mx.concatenate([x, state], axis=-1)
     
-    # Mode-specific weights
-    if self.mode == "pure":
-        self._build_pure_mode()
+    # Apply backbone if present
+    if self.backbone is not None:
+        concat_input = self.backbone(concat_input)
+    
+    # Apply main transformation
+    net_input = mx.matmul(concat_input, self.ff1_kernel) + self.ff1_bias
+    
+    # Apply solver
+    if self.solver_type == "semi_implicit":
+        new_state = self._semi_implicit_solver(state, net_input)
+    elif self.solver_type == "runge_kutta":
+        new_state = self._runge_kutta_solver(state, net_input)
     else:
-        self._build_gated_mode()
+        new_state = self._explicit_solver(state, net_input)
+    
+    return new_state, [new_state]
 ```
 
-### 2. Time Handling
+### 2. Parameter Management
 ```python
-def call(self, inputs, states, training=None):
-    """Process one timestep."""
-    # Handle time input
-    if isinstance(inputs, (list, tuple)):
-        x, t = inputs
-        t = ops.reshape(t, [-1, 1])
-    else:
-        x, t = inputs, 1.0
+def init_parameters(self, input_shape):
+    """Initialize parameters with MLX."""
+    input_dim = input_shape[-1]
+    total_input_dim = input_dim + self.units
+    
+    # Initialize with proper MLX operations
+    self.ff1_kernel = self.initializer((total_input_dim, self.units))
+    self.ff1_bias = mx.zeros((self.units,))
 ```
 
-### 3. Feature Processing
+### 3. Gradient Control
 ```python
-def process_inputs(self, x, state):
-    """Process inputs with backbone."""
-    concat = ops.concatenate([x, state], axis=-1)
-    return self.apply_backbone(concat)
-```
-
-## Integration Points
-
-### 1. With Base Cell
-- Inherit core functionality
-- Override key methods
-- Add mode-specific logic
-
-### 2. With ODE Solvers
-- Use for pure mode
-- Time-based updates
-- Stability control
-
-### 3. With Training System
-- Proper gradient flow
-- State management
-- Loss computation
-
-## Implementation Details
-
-### 1. Weight Management
-```python
-def _build_pure_mode(self):
-    """Build pure mode weights."""
-    self.w_tau = self.add_weight(
-        shape=(1, self.units),
-        initializer="zeros",
-        name="w_tau"
-    )
-    self.A = self.add_weight(
-        shape=(1, self.units),
-        initializer="ones",
-        name="A"
-    )
-```
-
-### 2. State Updates
-```python
-def _update_state(self, h, state, t):
-    """Update state based on mode."""
-    if self.mode == "pure":
-        return self._pure_step(h, t)
-    elif self.mode == "no_gate":
-        return self._no_gate_step(h, state, t)
-    else:
-        return self._gated_step(h, state, t)
-```
-
-### 3. Output Processing
-```python
-def _compute_output(self, state):
-    """Compute output from state."""
-    if self.wiring.output_dim != self.units:
-        return ops.matmul(state, self.output_kernel)
-    return state
+def process_gradients(self, grads):
+    """Process gradients with MLX operations."""
+    # Value clipping
+    grads = tree_map(lambda g: mx.clip(g, -1.0, 1.0), grads)
+    
+    # Norm clipping
+    grad_norm = mx.sqrt(sum(mx.sum(g * g) for _, g in tree_flatten(grads)))
+    if grad_norm > 0.1:  # Conservative threshold
+        scale = 0.1 / (grad_norm + 1e-6)
+        grads = tree_map(lambda g: g * scale, grads)
+    return grads
 ```
 
 ## Usage Examples
@@ -169,93 +133,105 @@ def _compute_output(self, state):
 ```python
 cell = CfCCell(
     wiring=wiring,
-    mode="pure"
+    solver_type="semi_implicit",
+    activation="lecun_tanh"
 )
 output, state = cell(input, prev_state)
 ```
 
-### With Time Input
-```python
-output, state = cell(
-    [input, time_delta],
-    prev_state,
-    training=True
-)
-```
-
-### With Backbone
+### With Advanced Configuration
 ```python
 cell = CfCCell(
     wiring=wiring,
+    solver_type="runge_kutta",
+    solver_unfolds=8,
     backbone_units=128,
     backbone_layers=2
 )
 ```
 
+### Training Configuration
+```python
+training_config = {
+    'learning_rate': 0.0001,
+    'max_grad_norm': 0.1,
+    'max_grad_value': 1.0,
+    'solver_unfolds': 6,
+    'activation': 'lecun_tanh'
+}
+```
+
+## Performance Optimizations
+
+### 1. Memory Efficiency
+- Weight sharing groups
+- State caching
+- Gradient accumulation
+
+### 2. Computational Optimization
+- Batched operations
+- Efficient MLX primitives
+- Proper broadcasting
+
+### 3. Training Stability
+- Gradient clipping
+- Learning rate scheduling
+- State normalization
+
+### 4. Monitoring
+- Memory usage tracking
+- Gradient statistics
+- Performance metrics
+
 ## Testing Strategy
 
 ### 1. Unit Tests
-- Mode behavior
-- Time handling
-- State updates
+- Solver accuracy
+- Gradient computation
+- State management
 
 ### 2. Integration Tests
-- With RNN layer
-- Training loops
-- Serialization
+- With different wirings
+- Training scenarios
+- Performance benchmarks
 
 ### 3. Property Tests
-- Stability
+- Numerical stability
 - Gradient flow
-- Time scaling
+- Memory efficiency
 
 ## Benefits
 
 ### 1. Performance
-- Efficient implementation
-- Memory optimization
+- Optimized MLX operations
+- Efficient memory use
 - Fast computation
 
 ### 2. Flexibility
-- Multiple modes
-- Configurable backbone
-- Time handling
+- Multiple solvers
+- Configurable architecture
+- Adaptable parameters
 
 ### 3. Reliability
-- Stable dynamics
-- Error checking
-- Good defaults
-
-## Differences from MLX Version
-
-### 1. Architecture
-- Keras integration
-- Better state handling
-- More flexible modes
-
-### 2. Features
-- Enhanced time scaling
-- Better backbone options
-- More configuration
-
-### 3. Integration
-- Training loop support
-- Better serialization
-- More examples
+- Stable training
+- Controlled gradients
+- Proper initialization
 
 ## Next Steps
 
 1. Implementation
-   - Core cell class
-   - Mode-specific logic
-   - Test suite
+   - Optimize solvers
+   - Enhance monitoring
+   - Improve testing
 
 2. Documentation
-   - API reference
-   - Usage examples
    - Performance guide
+   - Tuning recommendations
+   - Benchmark results
 
 3. Integration
-   - With training system
-   - With examples
+   - With training pipelines
    - With visualization tools
+   - With example suite
+
+This design provides an efficient and flexible implementation of the CfC cell using MLX, with careful attention to performance and stability.

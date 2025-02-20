@@ -1,75 +1,15 @@
 MLX Neural Circuit Policies
 ===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===========================
-===================================
 
 Introduction
 ------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
------------
 This guide provides comprehensive documentation for the MLX implementation of Neural Circuit Policies (NCPs), optimized for Apple Silicon processors.
 
 Apple Silicon Optimizations
 ---------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
----------------------------
--------------------------
 
 Hardware Utilization
 ~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~
 The MLX implementation is specifically optimized for Apple Silicon processors:
 
 1. Neural Engine:
@@ -92,47 +32,17 @@ The MLX implementation is specifically optimized for Apple Silicon processors:
 
 Core Architecture
 -----------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
----------------
 
 Base Classes
 ~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~
 
 LiquidCell
-^^^^^^^^^
+^^^^^^^^^^
 .. py:class:: LiquidCell
 
     Base class for liquid neuron cells with wiring support.
 
-    .. py:method:: __init__(wiring, activation="tanh", backbone_units=None, backbone_layers=0, backbone_dropout=0.0, initializer=None)
+    .. py:method:: __init__(wiring, activation="tanh", backbone_units=None, backbone_layers=0, backbone_dropout=0.0, initializer=None
 
         Initialize the liquid cell.
 
@@ -143,7 +53,7 @@ LiquidCell
         :param backbone_dropout: Dropout rate for backbone
         :param initializer: Weight initializer function
 
-    .. py:method:: build_backbone()
+    .. py:method:: build_backbone(
 
         Build backbone network layers.
 
@@ -154,25 +64,25 @@ LiquidCell
         :param x: Input tensor
         :return: Processed tensor
 
-    .. py:method:: get_config() -> Dict[str, Any]
+    .. py:method:: get_config() -> Dict[str, Any
 
         Get configuration dictionary.
 
-    .. py:method:: state_dict() -> Dict[str, Any]
+    .. py:method:: state_dict() -> Dict[str, Any
 
         Get serializable state.
 
-    .. py:method:: load_state_dict(state_dict: Dict[str, Any])
+    .. py:method:: load_state_dict(state_dict: Dict[str, Any
 
         Load state from dictionary.
 
 LiquidRNN
-^^^^^^^^
+^^^^^^^^^
 .. py:class:: LiquidRNN
 
     Base class for liquid neural networks.
 
-    .. py:method:: __init__(cell: LiquidCell, return_sequences: bool = False, return_state: bool = False, bidirectional: bool = False, merge_mode: Optional[str] = None)
+    .. py:method:: __init__(cell: LiquidCell, return_sequences: bool = False, return_state: bool = False, bidirectional: bool = False, merge_mode: Optional[str] = None
 
         Initialize the network.
 
@@ -184,364 +94,293 @@ LiquidRNN
 
 Neural Wiring
 -------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
--------------
-------------
 
 The wiring system defines connectivity patterns between neurons:
 
 1. Base Wiring
-^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
 .. py:class:: Wiring
 
     Base class for neural wiring patterns.
 
     Key Features.. code-block:: python
 
-    - Flexible connectivity definition
-    - Synapse management
-    - State tracking
-    - Configuration handling
+- Flexible connectivity definition
+- Synapse management
+- State tracking
+- Configuration handling
 
 2. Wiring Patterns
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 AutoNCP
 """""""
 Automatic Neural Circuit Policy wiring:
+pass
 
 .. code-block:: python
 
-    wiring = AutoNCP(
-        units=32,          # Total neurons
-        output_size=4,     # Output neurons
-        sparsity_level=0.5 # Connection sparsity
-    )
+wiring = AutoNCP(
+units=32,          # Total neurons
+output_size=4,     # Output neurons
+sparsity_level=0.5 # Connection sparsity
 
 NCP
 """
 Manual Neural Circuit Policy wiring:
+pass
 
 .. code-block:: python
 
-    wiring = NCP(
-        inter_neurons=16,
+wiring = NCP(
+    inter_neurons=16,
         command_neurons=8,
-        motor_neurons=4,
-        sensory_fanout=4,
-        inter_fanout=4,
-        recurrent_command_synapses=3,
-        motor_fanin=4
-    )
+            motor_neurons=4,
+                sensory_fanout=4,
+                    inter_fanout=4,
+                        recurrent_command_synapses=3,
+                    motor_fanin=4
 
-Model Implementation
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
---------------------
-------------------
+                    Model Implementation
+                    --------------------
 
-1. CfC Models
-^^^^^^^^^^^^
+                    1. CfC Models
+                    ^^^^^^^^^^^^^
 
-CfCCell
-"""""""
-.. py:class:: CfCCell
+                    CfCCell
+                    """""""
+                    .. py:class:: CfCCell
 
-    Closed-form Continuous-time cell implementation.
+                    Closed-form Continuous-time cell implementation.
 
-    Features:
+                    Features:
+                    pass
 
-    - Multiple operation modes
-    - Backbone network support
-    - Time-aware processing
-    - State management
+                    - Multiple operation modes
+                    - Backbone network support
+                    - Time-aware processing
+                    - State management
 
-CfC
-"""
-.. py:class:: CfC
+                    CfC
+                    """
+                    .. py:class:: CfC
 
-    High-level CfC network implementation.
+                    High-level CfC network implementation.
 
-    Features:
+                    Features:
+                    pass
+                    pass
 
-    - Bidirectional processing
-    - Sequence handling
-    - State management
-    - Time-delta support
+                    - Bidirectional processing
+                    - Sequence handling
+                    - State management
+                    - Time-delta support
 
-2. LTC Models
-^^^^^^^^^^^^
+                    2. LTC Models
+                    ^^^^^^^^^^^^^
 
-LTCCell
-"""""""
-.. py:class:: LTCCell
+                    LTCCell
+                    """""""
+                    .. py:class:: LTCCell
 
-    Liquid Time-Constant cell implementation.
+                    Liquid Time-Constant cell implementation.
 
-    Features:
+                    Features:
 
-    - Biologically-inspired dynamics
-    - Backbone network support
-    - Time-aware processing
-    - State management
+                    - Biologically-inspired dynamics
+                    - Backbone network support
+                    - Time-aware processing
+                    - State management
 
-LTC
-"""
-.. py:class:: LTC
+                    LTC
+                    """
+                    .. py:class:: LTC
 
-    High-level LTC network implementation.
+                    High-level LTC network implementation.
 
-    Features:
+                    Features:
+                    pass
 
-    - Bidirectional processing
-    - Sequence handling
-    - State management
-    - Time-delta support
+                    - Bidirectional processing
+                    - Sequence handling
+                    - State management
+                    - Time-delta support
 
-Performance Optimization
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-------------------------
-----------------------
+                    Performance Optimization
+                    ------------------------
 
-1. Memory Management
-^^^^^^^^^^^^^^^^^^
+                    1. Memory Management
+                    ^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: python
+                    .. code-block:: python
 
-    # Use lazy evaluation
-    import mlx.core as mx
+                    # Use lazy evaluation
+                    import mlx.core as mx
 
-    @mx.compile(static_argnums=(1,))
-    def forward_pass(x, training=True):
-        return model(x, training=training)
+                    @mx.compile(
+                    def forward_pass(
+                        x,
+                            training=True)::,
+                        )
+                        pass
+                        pass
+                        return model(
 
-2. Computation Optimization
-^^^^^^^^^^^^^^^^^^^^^^^^
+                    2. Computation Optimization
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: python
+                    .. code-block:: python
 
-    # Enable operator fusion
-    mx.set_default_device(mx.gpu)
-    mx.enable_operator_fusion()
+                    # Enable operator fusion
+                    mx.set_default_device(
+                    mx.enable_operator_fusion(
 
-3. Batch Processing
-^^^^^^^^^^^^^^^^^
+                3. Batch Processing
+                ^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: python
+                .. code-block:: python
 
-    # Optimal batch sizes for Apple Silicon
-    BATCH_SIZES = {
-        'M1': 64,
-        'M1 Pro': 128,
-        'M1 Max': 256,
-        'M1 Ultra': 512
-    }
+                # Optimal batch sizes for Apple Silicon
+                    BATCH_SIZES = {
+                        'M1': 64,
+                            'M1 Pro': 128,
+                                'M1 Max': 256,
+                            'M1 Ultra': 512
 
-Advanced Features
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
------------------
----------------
+                            Advanced Features
+                            -----------------
 
-1. Custom Wiring
-^^^^^^^^^^^^^^^
+                            1. Custom Wiring
+                            ^^^^^^^^^^^^^^^^
 
-.. code-block:: python
+                            .. code-block:: python
 
-    class CustomWiring(Wiring):
-        def __init__(self, units, output_size):
-            super().__init__(units)
-            self.output_size = output_size
-            
-        def build(self, input_dim):
-            # Custom connectivity logic
-            pass
+                            class CustomWiring(
+                                Wiring)::,
+                            )
+                            def __init__(
+                                self,
+                                    units,
+                                        output_size)::,
+                                    )
+                                    pass
+                                    pass
+                                    super(
+                                self.output_size = output_size
 
-2. State Management
-^^^^^^^^^^^^^^^^^
+                                def build(
+                                    self,
+                                        input_dim)::,
+                                    )
+                                    # Custom connectivity logic
+                                    pass
 
-.. code-block:: python
+                                    2. State Management
+                                    ^^^^^^^^^^^^^^^^^^^
 
-    class StatefulModel(nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.cfc = CfC(
-                cell=CfCCell(wiring),
-                return_state=True
-            )
-            
-        def __call__(self, x, state=None):
-            return self.cfc(x, initial_state=state)
+                                    .. code-block:: python
 
-3. Time-Aware Processing
-^^^^^^^^^^^^^^^^^^^^^^
+                                    class StatefulModel(
+                                        nn.Module)::,
+                                    )
+                                    def __init__(
+                                        self)::,
+                                    )
+                                    super(
+                                    self.cfc = CfC(
+                                    cell=CfCCell(
+                                return_state=True
 
-.. code-block:: python
+                                def __call__(
+                                    self,
+                                        x,
+                                            state=None)::,
+                                        )
+                                        pass
+                                        return self.cfc(
 
-    def process_sequence(model, x, dt):
-        """Process sequence with variable time steps."""
-        return model(x, time_delta=dt)
+                                    3. Time-Aware Processing
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Best Practices
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
-------------
+                                    .. code-block:: python
 
-1. Hardware Optimization
-^^^^^^^^^^^^^^^^^^^^^^
+                                    def process_sequence(
+                                        model,
+                                            x,
+                                                dt)::,
+                                            )
+                                            pass
+                                            """Process sequence with variable time steps."""
+                                            return model(
 
-- Use appropriate batch sizes for your device
-- Enable operator fusion when possible
-- Monitor memory usage
-- Profile performance bottlenecks
+                                        Best Practices
+                                        --------------
 
-2. Model Architecture
-^^^^^^^^^^^^^^^^^^^
+                                        1. Hardware Optimization
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Choose appropriate wiring patterns
-- Use backbone networks for complex tasks
-- Enable bidirectional processing when needed
-- Consider time-aware processing
+                                        - Use appropriate batch sizes for your device
+                                        - Enable operator fusion when possible
+                                        - Monitor memory usage
+                                        - Profile performance bottlenecks
 
-3. Training
-^^^^^^^^^^
+                                        2. Model Architecture
+                                        ^^^^^^^^^^^^^^^^^^^^^
 
-- Monitor loss stability
-- Use gradient clipping
-- Validate state consistency
-- Profile memory usage
+                                        - Choose appropriate wiring patterns
+                                        - Use backbone networks for complex tasks
+                                        - Enable bidirectional processing when needed
+                                        - Consider time-aware processing
 
-4. Testing
-^^^^^^^^^
+                                        3. Training
+                                        ^^^^^^^^^^^
 
-- Write comprehensive tests
-- Check edge cases
-- Validate shapes
-- Test performance
+                                        - Monitor loss stability
+                                        - Use gradient clipping
+                                        - Validate state consistency
+                                        - Profile memory usage
 
-Troubleshooting
----------------
----------------
----------------
----------------
----------------
----------------
----------------
----------------
----------------
----------------
----------------
----------------
----------------
----------------
----------------
--------------
+                                        4. Testing
+                                        ^^^^^^^^^^
 
-Common Issues
-^^^^^^^^^^^
+                                        - Write comprehensive tests
+                                        - Check edge cases
+                                        - Validate shapes
+                                        - Test performance
 
-1. Memory Issues:
+                                        Troubleshooting
+                                        ---------------
 
-    - Clear unused variables
-    - Use appropriate batch sizes
-    - Monitor memory usage
-    - Enable garbage collection
+                                        Common Issues
+                                        ^^^^^^^^^^^^^
 
-2. Performance Issues:
+                                        1. Memory Issues:
+                                        pass
 
-    - Profile bottlenecks
-    - Check batch sizes
-    - Enable optimizations
-    - Monitor hardware utilization
+                                        - Clear unused variables
+                                        - Use appropriate batch sizes
+                                        - Monitor memory usage
+                                        - Enable garbage collection
 
-3. Training Issues:
+                                        2. Performance Issues:
 
-    - Check learning rates
-    - Monitor gradients
-    - Validate loss computation
-    - Check state consistency
+                                        - Profile bottlenecks
+                                        - Check batch sizes
+                                        - Enable optimizations
+                                        - Monitor hardware utilization
 
-References
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
-----------
----------
+                                        3. Training Issues:
 
-- `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_
-- `Neural Circuit Policies Paper <https://arxiv.org/abs/2003.06567>`_
-- `MLX GitHub Repository <https://github.com/ml-explore/mlx>`_
-- `NCP GitHub Repository <https://github.com/mlech26l/ncps>`_
+                                        - Check learning rates
+                                        - Monitor gradients
+                                        - Validate loss computation
+                                        - Check state consistency
+
+                                        References
+                                        ----------
+
+                                        - `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_
+                                        - `Neural Circuit Policies Paper <https://arxiv.org/abs/2003.06567>`_
+                                        - `MLX GitHub Repository <https://github.com/ml-explore/mlx>`_
+                                        - `NCP GitHub Repository <https://github.com/mlech26l/ncps>`_
+

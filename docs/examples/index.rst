@@ -1,10 +1,11 @@
 :hide-toc:
 
 Examples
-##########################
+########
 
 .. toctree::
-    :titlesonly:
+   
+:titlesonly:
 
     torch_first_steps.rst
     tf_first_steps.rst

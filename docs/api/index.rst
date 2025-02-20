@@ -1,10 +1,11 @@
 :hide-toc:
 
 API Reference
-##########################
+#############
 
 .. toctree::
-    :titlesonly:
+   
+:titlesonly:
 
     mlx
     keras

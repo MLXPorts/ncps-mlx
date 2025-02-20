@@ -1,728 +1,506 @@
 Deployment Guide
 ================
-================
-================
-================
-================
-================
-================
-================
-================
-================
-================
-================
-================
-================
-================
-===============
 
 This guide covers best practices for deploying Neural Circuit Policies in production environments using MLX.
 
 Model Serialization
 -------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
--------------------
------------------
 
 Saving Models
 ~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~~~
-~~~~~~~~~~~
 
 MLX models can be serialized to JSON format.
 
 .. code-block:: python
 
-    def save_model(model, path):
-        """Save model to file."""
+def save_model(
+    model,
+        path)::,
+    ))))))))
+    """Save model to file."""
         state = {
-            'model_state': model.state_dict(),
-            'model_config': {
-                'input_size': model.input_size,
+        'model_state': model.state_dict(
+        'model_config': {
+            'input_size': model.input_size,
                 'hidden_size': model.hidden_size,
-                'num_layers': model.num_layers,
+                    'num_layers': model.num_layers,
                 # Add other relevant config
-            }
-        }
-        with open(path, 'w') as f:
-            json.dump(state, f)
 
-Loading Models
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~
+                with open(
+                json.dump(
 
-Load saved models for inference.
+            Loading Models
+            ~~~~~~~~~~~~~~
 
-.. code-block:: python
+            Load saved models for inference.
 
-    def load_model(path):
-        """Load model from file."""
-        with open(path, 'r') as f:
-            state = json.load(f)
-            
-        model = CfC(**state['model_config'])
-        model.load_state_dict(state['model_state'])
+            .. code-block:: python
+
+            def load_model(
+                path)::,
+            )
+            """Load model from file."""
+            with open(
+            state = json.load(
+
+            model = CfC(
+            model.load_state_dict(
         return model
 
-Model Optimization
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
----------------
+        Model Optimization
+        ------------------
 
-Compilation
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~~~
-~~~~~~~~~
+        Compilation
+        ~~~~~~~~~~~
 
-Use MLX's compilation for faster inference.
+        Use MLX's compilation for faster inference.
 
-.. code-block:: python
+        .. code-block:: python
 
-    @mx.compile
-    def optimized_inference(model, x, time_delta=None):
-        return model(x, time_delta=time_delta)
+        @mx.compile
+        def optimized_inference(
+            model,
+                x,
+                    time_delta=None)::,
+                )
+                return model(
 
-Batch Processing
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~
+            Batch Processing
+            ~~~~~~~~~~~~~~~~
 
-Efficient batch processing for multiple inputs.
+            Efficient batch processing for multiple inputs.
 
-.. code-block:: python
+            .. code-block:: python
 
-    class BatchProcessor:
-        def __init__(self, model, batch_size=32):
-            self.model = model
-            self.batch_size = batch_size
-            
-        def process_all(self, data):
-            results = []
-            for i in range(0, len(data), self.batch_size):
-                batch = data[i:i+self.batch_size]
-                results.extend(self.model(batch))
-            return results
+            class BatchProcessor::
+                def __init__(
+                    self,
+                        model,
+                            batch_size=32)::,
+                        )
+                        self.model = model
+                        self.batch_size = batch_size
 
-Memory Management
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
+                        def process_all(
+                            self,
+                                data)::,
+                            )
+                            results = [
+                            for i in range(
+                                0,
+                                len(
+                                    data),
+                                )
+                                    self.batch_size)::,
+                                )
+                                batch = data[i:i+self.batch_size
+                                results.extend(
+                            return results
 
-Optimize memory usage for production.
+                            Memory Management
+                            ~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
+                            Optimize memory usage for production.
 
-    class MemoryOptimizedInference:
-        def __init__(self, model):
-            self.model = model
-            
-        def __call__(self, x):
-            with mx.stream():
-                result = self.model(x)
-                mx.eval(result)
-            return result
+                            .. code-block:: python
 
-Serving Strategies
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
----------------
+                            class MemoryOptimizedInference::
+                                def __init__(
+                                    self,
+                                        model)::,
+                                    )
+                                    self.model = model
 
-FastAPI Integration
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~
+                                    def __call__(
+                                        self,
+                                            x)::,
+                                        )
+                                        with mx.stream(
+                                        result = self.model(
+                                        mx.eval(
+                                    return result
 
-Create a REST API using FastAPI.
+                                    Serving Strategies
+                                    ------------------
 
-.. code-block:: python
+                                    FastAPI Integration
+                                    ~~~~~~~~~~~~~~~~~~~
 
-    from fastapi import FastAPI
-    import mlx.core as mx
-    import numpy as np
-    
-    app = FastAPI()
-    
-    class ModelServer:
-        def __init__(self, model_path):
-            self.model = load_model(model_path)
-            
-        async def predict(self, data):
-            x = mx.array(data)
-            return self.model(x)
-    
-    server = ModelServer('path/to/model.json')
-    
-    @app.post("/predict")
-    async def predict(data: dict):
-        result = await server.predict(data['input'])
-        return {"prediction": result.tolist()}
+                                    Create a REST API using FastAPI.
 
-gRPC Service
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~~~
-~~~~~~~~~~
+                                    .. code-block:: python
 
-High-performance gRPC service.
+                                    from fastapi import FastAPI
+                                    import mlx.core as mx
+                                    import numpy as np
 
-.. code-block:: python
+                                    app = FastAPI(
 
-    import grpc
-    from concurrent import futures
-    import prediction_pb2
-    import prediction_pb2_grpc
-    
-    class PredictionService(prediction_pb2_grpc.PredictorServicer):
-        def __init__(self, model_path):
-            self.model = load_model(model_path)
-            
-        def Predict(self, request, context):
-            input_data = np.array(request.data)
-            prediction = self.model(mx.array(input_data))
-            return prediction_pb2.PredictionResponse(
-                prediction=prediction.tolist()
-            )
-    
-    def serve():
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        prediction_pb2_grpc.add_PredictorServicer_to_server(
-            PredictionService('path/to/model.json'), server
-        )
-        server.add_insecure_port('[::]:50051')
-        server.start()
-        server.wait_for_termination()
+                                class ModelServer::
+                                    def __init__(
+                                        self,
+                                            model_path)::,
+                                        )
+                                        self.model = load_model(
 
-Production Considerations
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
--------------------------
-----------------------
+                                        async def predict(
+                                        x = mx.array(
+                                        return self.model(
 
-Error Handling
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
-~~~~~~~~~~~~
+                                        server = ModelServer(
 
-Robust error handling for production.
+                                        @app.post(
+                                        async def predict(
+                                        result = await server.predict(
+                                            return {"prediction": result.tolist(
 
-.. code-block:: python
+                                        gRPC Service
+                                        ~~~~~~~~~~~~
 
-    class ProductionModel:
-        def __init__(self, model_path):
-            self.model = load_model(model_path)
-            
-        def predict(self, x):
-            try:
-                # Input validation
-                if not self._validate_input(x):
-                    raise ValueError("Invalid input format")
-                
-                # Prediction with timeout
-                with timeout(seconds=30):
-                    result = self.model(x)
-                
-                # Output validation
-                if not self._validate_output(result):
-                    raise ValueError("Invalid model output")
-                
-                return result
-                
-            except Exception as e:
-                logger.error(f"Prediction error: {str(e)}")
-                raise
+                                        High-performance gRPC service.
 
-Monitoring
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~~
-~~~~~~~~~
+                                        .. code-block:: python
 
-Monitor model performance in production.
+                                        import grpc
+                                        from concurrent import futures
+                                        import prediction_pb2
+                                        import prediction_pb2_grpc
 
-.. code-block:: python
+                                        class PredictionService(
+                                            prediction_pb2_grpc.PredictorServicer)::,
+                                        )
+                                        def __init__(
+                                            self,
+                                                model_path)::,
+                                            )
+                                            self.model = load_model(
 
-    class MonitoredModel:
-        def __init__(self, model, metrics_client):
-            self.model = model
-            self.metrics = metrics_client
-            
-        def predict(self, x):
-            start_time = time.time()
-            try:
-                result = self.model(x)
-                self.metrics.increment('predictions.success')
-                return result
-            except Exception as e:
-                self.metrics.increment('predictions.error')
-                raise
-            finally:
-                duration = time.time() - start_time
-                self.metrics.timing('prediction.duration', duration)
+                                            def Predict(
+                                                self,
+                                                    request,
+                                                        context)::,
+                                                    )))))))))))
+                                                    input_data = np.array(
+                                                    prediction = self.model(
+                                                    return prediction_pb2.PredictionResponse(
+                                                    prediction=prediction.tolist(
 
-Scaling
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~~
-~~~~~~
+                                                    def serve(
+                                                        )::,
+                                                    ))))
+                                                    server = grpc.server(
+                                                    prediction_pb2_grpc.add_PredictorServicer_to_server(
+                                                    PredictionService(
 
-Strategies for scaling model serving.
+                                                    server.add_insecure_port(
+                                                    server.start(
+                                                    server.wait_for_termination(
 
-.. code-block:: python
+                                                Production Considerations
+                                                -------------------------
 
-    class LoadBalancedPredictor:
-        def __init__(self, model_paths, max_batch_size=32):
-            self.models = [load_model(path) for path in model_paths]
-            self.current_model = 0
-            self.max_batch_size = max_batch_size
-            
-        def predict(self, x):
-            # Round-robin load balancing
-            model = self.models[self.current_model]
-            self.current_model = (self.current_model + 1) % len(self.models)
-            
-            # Batch size management
-            if len(x) > self.max_batch_size:
-                return self._predict_large_batch(x)
-            return model(x)
-            
-        def _predict_large_batch(self, x):
-            results = []
-            for i in range(0, len(x), self.max_batch_size):
-                batch = x[i:i+self.max_batch_size]
-                results.append(self.predict(batch))
-            return mx.concatenate(results)
+                                                Error Handling
+                                                ~~~~~~~~~~~~~~
 
-Deployment Environments
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
------------------------
---------------------
+                                                Robust error handling for production.
 
-Docker Deployment
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~
+                                                .. code-block:: python
 
-Containerize your model for deployment.
+                                                class ProductionModel::
+                                                    def __init__(
+                                                        self,
+                                                            model_path)::,
+                                                        )
+                                                        self.model = load_model(
 
-.. code-block:: dockerfile
+                                                        def predict(
+                                                            self,
+                                                                x)::,
+                                                            )))))
+                                                            try:
+                                                            # Input validation
+                                                            if not self._validate_input(
+                                                                x)::,
+                                                            )))))
+                                                            raise ValueError(
 
-    FROM python:3.8-slim
-    
-    WORKDIR /app
-    
-    # Install dependencies
-    COPY requirements.txt .
-    RUN pip install -r requirements.txt
-    
-    # Copy model and code
-    COPY model.json .
-    COPY server.py .
-    
-    # Run the server
-    CMD ["python", "server.py"]
+                                                        # Prediction with timeout
+                                                        with timeout(
+                                                        result = self.model(
 
-Kubernetes Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~
+                                                    # Output validation
+                                                    if not self._validate_output(
+                                                        result)::,
+                                                    ))))))))))
+                                                    raise ValueError(
 
-Deploy on Kubernetes for scaling.
+                                                return result
 
-.. code-block:: yaml
+                                                except Exception as e:
+                                                logger.error(
+                                            raise
 
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: model-service
-    spec:
-      replicas: 3
-      selector:
-        matchLabels:
-          app: model-service
-      template:
-        metadata:
-          labels:
-            app: model-service
-        spec:
-          containers:
+                                            Monitoring
+                                            ~~~~~~~~~~
 
-    - name: model-service
+                                            Monitor model performance in production.
 
-            image: model-service:latest
-            resources:
-              limits:
-                memory: "1Gi"
-                cpu: "500m"
-            ports:
+                                            .. code-block:: python
 
-    - containerPort: 8000
+                                            class MonitoredModel::
+                                                def __init__(
+                                                    self,
+                                                        model,
+                                                            metrics_client)::,
+                                                        )
+                                                        self.model = model
+                                                        self.metrics = metrics_client
 
-Best Practices
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
---------------
-------------
+                                                        def predict(
+                                                            self,
+                                                                x)::,
+                                                            )
+                                                            start_time = time.time(
+                                                        try:
+                                                        result = self.model(
+                                                        self.metrics.increment(
+                                                    return result
+                                                    except Exception as e:
+                                                    self.metrics.increment(
+                                                raise
+                                                finally:
+                                                duration = time.time(
+                                                self.metrics.timing(
 
-1. **Model Versioning**
+                                            Scaling
+                                            ~~~~~~~
 
-   - Use semantic versioning
-   - Track model lineage
-   - Version control configurations
+                                            Strategies for scaling model serving.
 
-2. **Testing**
+                                            .. code-block:: python
 
-   - Unit tests for serving code
-   - Integration tests for API
-   - Load testing for production
+                                            class LoadBalancedPredictor::
+                                                def __init__(
+                                                    self,
+                                                        model_paths,
+                                                            max_batch_size=32)::,
+                                                        )
+                                                        self.models = [load_model(
+                                                    self.current_model = 0
+                                                    self.max_batch_size = max_batch_size
 
-3. **Monitoring**
+                                                    def predict(
+                                                        self,
+                                                            x)::,
+                                                        )))))
+                                                        # Round-robin load balancing
+                                                        model = self.models[self.current_model
+                                                        self.current_model = (
 
-   - Track prediction latency
-   - Monitor resource usage
-   - Set up alerting
+                                                    # Batch size management
+                                                    if len(
+                                                        x) > self.max_batch_size::,
+                                                    )))))))))))))))))))))))))))
+                                                    return self._predict_large_batch(
+                                                    return model(
 
-4. **Documentation**
+                                                    def _predict_large_batch(
+                                                        self,
+                                                            x)::,
+                                                        )))))
+                                                        results = [
+                                                        for i in range(
+                                                            0,
+                                                            len(
+                                                                x),
+                                                            )
+                                                                self.max_batch_size)::,
+                                                            )))))))))))))))))))))))
+                                                            batch = x[i:i+self.max_batch_size
+                                                            results.append(
+                                                            return mx.concatenate(
 
-   - API documentation
-   - Deployment procedures
-   - Troubleshooting guides
+                                                        Deployment Environments
+                                                        -----------------------
 
-Example Deployment
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
-------------------
----------------
+                                                        Docker Deployment
+                                                        ~~~~~~~~~~~~~~~~~
 
-Complete deployment example:
+                                                        Containerize your model for deployment.
 
-.. code-block:: python
+                                                        .. code-block:: dockerfile
 
-    from fastapi import FastAPI, HTTPException
-    from pydantic import BaseModel
-    import mlx.core as mx
-    import numpy as np
-    import json
-    import logging
-    
-    # Configure logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-    
-    class PredictionRequest(BaseModel):
-        data: list
-        time_delta: Optional[list] = None
-    
-    class PredictionResponse(BaseModel):
-        prediction: list
-        confidence: float
-    
-    class ProductionModelServer:
-        def __init__(self, model_path):
-            self.model = self._load_model(model_path)
-            self.metrics = MetricsClient()
-            
-        def _load_model(self, path):
-            try:
-                return load_model(path)
-            except Exception as e:
-                logger.error(f"Failed to load model: {str(e)}")
-                raise
-                
-        async def predict(self, data, time_delta=None):
-            try:
-                x = mx.array(data)
-                if time_delta is not None:
-                    time_delta = mx.array(time_delta)
-                
-                with self.metrics.timer('prediction.duration'):
-                    result = self.model(x, time_delta=time_delta)
-                    
-                return {
-                    'prediction': result.tolist(),
-                    'confidence': float(self._compute_confidence(result))
-                }
-                
-            except Exception as e:
-                logger.error(f"Prediction error: {str(e)}")
-                raise HTTPException(status_code=500, detail=str(e))
-                
-        def _compute_confidence(self, result):
-            # Implement confidence calculation
-            return 0.95
-    
-    # Create FastAPI app
-    app = FastAPI()
-    model_server = ProductionModelServer('model.json')
-    
-    @app.post("/predict")
-    async def predict(request: PredictionRequest):
-        return await model_server.predict(
-            request.data,
-            request.time_delta
-        )
+                                                        FROM python:3.8-slim
 
-Getting Help
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-------------
-----------
+                                                        WORKDIR /app
 
-If you need deployment assistance:
+                                                        # Install dependencies
+                                                        COPY requirements.txt .
+                                                        RUN pip install -r requirements.txt
 
-1. Check deployment examples
-2. Review best practices
-3. Consult MLX documentation
-4. Join community discussions
+                                                        # Copy model and code
+                                                        COPY model.json .
+                                                        COPY server.py .
+
+                                                        # Run the server
+                                                        CMD ["python", "server.py"
+
+                                                        Kubernetes Configuration
+                                                        ~~~~~~~~~~~~~~~~~~~~~~~~
+
+                                                        Deploy on Kubernetes for scaling.
+
+                                                        .. code-block:: yaml
+
+                                                        apiVersion: apps/v1
+                                                        kind: Deployment
+                                                        metadata:
+                                                        name: model-service
+                                                        spec:
+                                                        replicas: 3
+                                                        selector:
+                                                        matchLabels:
+                                                        app: model-service
+                                                        template:
+                                                        metadata:
+                                                        labels:
+                                                        app: model-service
+                                                        spec:
+                                                        containers:
+                                                        pass
+
+                                                        - name: model-service
+
+                                                        image: model-service:latest
+                                                        resources:
+                                                        limits:
+                                                        memory: "1Gi"
+                                                        cpu: "500m"
+                                                        ports:
+                                                        pass
+
+                                                        - containerPort: 8000
+
+                                                        Best Practices
+                                                        --------------
+
+                                                        1. **Model Versioning**
+
+                                                        - Use semantic versioning
+                                                        - Track model lineage
+                                                        - Version control configurations
+
+                                                        2. **Testing**
+
+                                                        - Unit tests for serving code
+                                                        - Integration tests for API
+                                                        - Load testing for production
+
+                                                        3. **Monitoring**
+
+                                                        - Track prediction latency
+                                                        - Monitor resource usage
+                                                        - Set up alerting
+
+                                                        4. **Documentation**
+
+                                                        - API documentation
+                                                        - Deployment procedures
+                                                        - Troubleshooting guides
+
+                                                        Example Deployment
+                                                        ------------------
+
+                                                        Complete deployment example:
+
+                                                        .. code-block:: python
+
+                                                        from fastapi import FastAPI, HTTPException
+                                                        from pydantic import BaseModel
+                                                        import mlx.core as mx
+                                                        import numpy as np
+                                                        import json
+                                                        import logging
+
+                                                        # Configure logging
+                                                        logging.basicConfig(
+                                                        logger = logging.getLogger(
+
+                                                        class PredictionRequest(
+                                                            BaseModel)::,
+                                                        )))))))))))))
+                                                        data: list
+                                                        time_delta: Optional[list] = None
+
+                                                        class PredictionResponse(
+                                                            BaseModel)::,
+                                                        )))))))))))))
+                                                        prediction: list
+                                                        confidence: float
+
+                                                        class ProductionModelServer::
+                                                            def __init__(
+                                                                self,
+                                                                    model_path)::,
+                                                                )
+                                                                self.model = self._load_model(
+                                                                self.metrics = MetricsClient(
+
+                                                                def _load_model(
+                                                                    self,
+                                                                        path)::,
+                                                                    ))))))))
+                                                                    try:
+                                                                    return load_model(
+                                                                except Exception as e:
+                                                                logger.error(
+                                                            raise
+
+                                                            async def predict(
+                                                        try:
+                                                        x = mx.array(
+                                                    if time_delta is not None::
+                                                        pass
+                                                        time_delta = mx.array(
+
+                                                        with self.metrics.timer(
+                                                    pass
+                                                    result = self.model(
+
+                                                    return {
+                                                    'prediction': result.tolist(
+                                                    'confidence': float(
+
+                                                except Exception as e:
+                                                pass
+                                                logger.error(
+                                                raise HTTPException(
+
+                                                def _compute_confidence(
+                                                    self,
+                                                        result)::,
+                                                    ))))))))))
+                                                    pass
+                                                    # Implement confidence calculation
+                                                    return 0.95
+
+                                                    # Create FastAPI app
+                                                    app = FastAPI(
+                                                    model_server = ProductionModelServer(
+
+                                                    @app.post(
+                                                    async def predict(
+                                                    return await model_server.predict(
+                                                        request.data,
+                                                    request.time_delta
+
+                                                    Getting Help
+                                                    ------------
+
+                                                    If you need deployment assistance:
+
+                                                    1. Check deployment examples
+                                                    2. Review best practices
+                                                    3. Consult MLX documentation
+                                                    4. Join community discussions
+
