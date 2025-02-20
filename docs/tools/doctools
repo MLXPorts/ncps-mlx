@@ -1,0 +1,96 @@
+#!/bin/bash
+# Documentation management tools for NCPS
+
+# Make scripts executable
+chmod +x convert_docs.py test_docs.py create_doc.py
+
+# Set up variables
+TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOCS_DIR="$(dirname "$TOOLS_DIR")"
+
+function show_help() {
+    echo "NCPS Documentation Tools"
+    echo
+    echo "Usage: doctools COMMAND [args...]"
+    echo
+    echo "Commands:"
+    echo "  convert     Convert markdown to RST and organize"
+    echo "  test        Run documentation tests"
+    echo "  create      Create new documentation"
+    echo "  build       Build documentation"
+    echo "  preview     Build and preview documentation"
+    echo "  clean       Clean build directory"
+    echo "  help        Show this help message"
+    echo
+    echo "Examples:"
+    echo "  doctools convert              # Convert all markdown files"
+    echo "  doctools test                 # Run all tests"
+    echo "  doctools create guide.rst     # Create new guide"
+    echo "  doctools build                # Build HTML docs"
+    echo "  doctools preview             # Build and open in browser"
+}
+
+function run_convert() {
+    echo "Converting documentation..."
+    python "$TOOLS_DIR/convert_docs.py"
+}
+
+function run_test() {
+    echo "Testing documentation..."
+    python "$TOOLS_DIR/test_docs.py"
+}
+
+function run_create() {
+    if [ -z "$2" ]; then
+        echo "Error: Please specify document title"
+        echo "Usage: doctools create TITLE [--template TYPE] [--directory DIR]"
+        exit 1
+    fi
+    python "$TOOLS_DIR/create_doc.py" "$@"
+}
+
+function run_build() {
+    echo "Building documentation..."
+    cd "$DOCS_DIR" && make html
+}
+
+function run_preview() {
+    echo "Building and previewing documentation..."
+    cd "$DOCS_DIR" && make preview
+}
+
+function run_clean() {
+    echo "Cleaning build directory..."
+    cd "$DOCS_DIR" && make clean
+}
+
+# Main command processing
+case "$1" in
+    convert)
+        run_convert
+        ;;
+    test)
+        run_test
+        ;;
+    create)
+        shift
+        run_create "$@"
+        ;;
+    build)
+        run_build
+        ;;
+    preview)
+        run_preview
+        ;;
+    clean)
+        run_clean
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        echo "Error: Unknown command '$1'"
+        echo "Run 'doctools help' for usage information"
+        exit 1
+        ;;
+esac
