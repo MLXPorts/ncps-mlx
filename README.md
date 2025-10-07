@@ -5,6 +5,14 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![MLX](https://img.shields.io/badge/MLX-Optimized-green.svg)](https://github.com/ml-explore/mlx)
+[![Tests](https://github.com/SolaceHarmony/ncps-mlx/actions/workflows/python-test.yml/badge.svg)](https://github.com/SolaceHarmony/ncps-mlx/actions)
+[![Apple Silicon](https://github.com/SolaceHarmony/ncps-mlx/actions/workflows/apple-silicon-tests.yml/badge.svg)](https://github.com/SolaceHarmony/ncps-mlx/actions)
+
+[![GitHub stars](https://img.shields.io/github/stars/SolaceHarmony/ncps-mlx?style=social)](https://github.com/SolaceHarmony/ncps-mlx/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/SolaceHarmony/ncps-mlx?style=social)](https://github.com/SolaceHarmony/ncps-mlx/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/SolaceHarmony/ncps-mlx)](https://github.com/SolaceHarmony/ncps-mlx/issues)
+[![GitHub release](https://img.shields.io/github/v/release/SolaceHarmony/ncps-mlx)](https://github.com/SolaceHarmony/ncps-mlx/releases)
+[![Code style](https://img.shields.io/badge/code%20style-NCPSLint-brightgreen)](misc/emberlint.py)
 
 **High-performance liquid neural networks powered by Apple's MLX framework**
 
@@ -14,6 +22,8 @@
 [Documentation](#-documentation) •
 [Examples](#-examples) •
 [Citation](#-citation)
+
+<img src="misc/ncp_cnn.png" alt="NCP Architecture" width="600"/>
 
 </div>
 
@@ -183,6 +193,26 @@ save_model(model, "my_ncp_model.npz")
 model = CfC(input_size=10, hidden_size=32)
 load_model(model, "my_ncp_model.npz")
 \`\`\`
+
+---
+
+## 📈 Project Stats
+
+<div align="center">
+
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/SolaceHarmony/ncps-mlx)
+![GitHub last commit](https://img.shields.io/github/last-commit/SolaceHarmony/ncps-mlx)
+![GitHub code size](https://img.shields.io/github/languages/code-size/SolaceHarmony/ncps-mlx)
+![GitHub repo size](https://img.shields.io/github/repo-size/SolaceHarmony/ncps-mlx)
+
+</div>
+
+### Recent Activity
+
+- ✅ **v2.0.0** - Complete MLX implementation with all model types
+- ✅ **171 commits** - Continuous improvements and optimizations
+- 🔧 **Active development** - Regular updates and bug fixes
+- 🧪 **CI/CD** - Automated testing on Apple Silicon and Linux
 
 ---
 
@@ -396,6 +426,47 @@ We're grateful to all contributors who have helped improve this implementation:
 And everyone who has opened issues, provided feedback, or contributed code!
 
 ---
+
+
+## 🎯 Roadmap
+
+### Current Status (v2.0.0)
+
+- ✅ Core implementations (CfC, LTC, CTRNN, CT-GRU)
+- ✅ Bidirectional processing
+- ✅ Time-aware processing
+- ✅ MLX optimization
+- ✅ Comprehensive documentation
+- ✅ CI/CD with Apple Silicon testing
+
+### Upcoming
+
+- 🔄 Enhanced LTC (ELTC) improvements
+- 🔄 Additional wiring patterns
+- 🔄 Pre-trained models
+- 🔄 PyPI package release
+- 🔄 More example applications
+- 🔄 Performance optimizations
+
+### Future Goals
+
+- 📅 Integration with MLX training frameworks
+- 📅 Distributed training support
+- 📅 Model quantization for even faster inference
+- 📅 Visualization tools
+- 📅 Transfer learning utilities
+
+Want to help? Check out our [CONTRIBUTING.md](CONTRIBUTING.md)!
+
+---
+
+## 🐛 Known Issues
+
+- ⚠️ ELTC has matrix dimension issues (under investigation)
+- ⚠️ Type errors in MLX type stubs (upstream issue)
+
+See [GitHub Issues](https://github.com/SolaceHarmony/ncps-mlx/issues) for the full list and to report new ones.
+
 
 ## 🤝 Contributing
 
