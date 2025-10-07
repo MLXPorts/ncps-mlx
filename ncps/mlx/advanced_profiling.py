@@ -5,10 +5,9 @@ including compute, memory, and stream profiling capabilities.
 """
 
 import time
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional
 import mlx.core as mx
 import numpy as np
-from ncps.mlx.wirings import Wiring
 
 
 class MLXProfiler:

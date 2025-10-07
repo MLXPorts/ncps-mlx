@@ -1,8 +1,7 @@
 """Continuous-Time Recurrent Neural Network (CTRNN) RNN implementation."""
 
 import mlx.core as mx
-import mlx.nn as nn
-from typing import Optional, Tuple, List, Union, Dict, Any, Callable
+from typing import Optional, List, Union, Callable, Tuple
 
 from .base import LiquidRNN
 from .liquid_utils import TimeAwareMixin

@@ -2,9 +2,8 @@
 
 import mlx.core as mx
 import mlx.nn as nn
-from typing import Optional, Tuple, List, Dict, Any, Union
+from typing import Optional, Tuple, List, Union
 
-from .base import LiquidCell
 from .liquid_utils import get_activation
 
 

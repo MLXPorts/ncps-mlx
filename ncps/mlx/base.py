@@ -183,12 +183,25 @@ class LiquidRNN(nn.Module):
             # Create a new wiring instance with the same configuration
             wiring_config = cell.wiring.get_config()
             wiring_class = type(cell.wiring)
-            backward_wiring = wiring_class(
-                units=wiring_config['units'],
-                output_dim=wiring_config['output_dim'],
-                sparsity_level=wiring_config.get('sparsity_level', 0.0),
-                random_seed=wiring_config.get('random_seed', 1111)
-            )
+            
+            # Build backward wiring with only the parameters the wiring class accepts
+            backward_wiring_kwargs = {
+                'units': wiring_config['units'],
+            }
+            
+            # Add optional parameters if they exist in the config
+            if 'output_dim' in wiring_config:
+                backward_wiring_kwargs['output_dim'] = wiring_config['output_dim']
+            if 'erev_init_seed' in wiring_config:
+                backward_wiring_kwargs['erev_init_seed'] = wiring_config.get('random_seed', 1111)
+            elif 'random_seed' in wiring_config:
+                # Some wirings may use 'random_seed' instead of 'erev_init_seed'
+                backward_wiring_kwargs['random_seed'] = wiring_config['random_seed']
+            if 'self_connections' in wiring_config:
+                backward_wiring_kwargs['self_connections'] = wiring_config.get('self_connections', True)
+            
+            backward_wiring = wiring_class(**backward_wiring_kwargs)
+            
             if cell.wiring.input_dim is not None:
                 backward_wiring.build(cell.wiring.input_dim)
             
@@ -297,13 +310,23 @@ class LiquidRNN(nn.Module):
         return state
         
     def process_time_delta(self, time_delta: Union[float, mx.array], batch_size: int, seq_len: int) -> mx.array:
-        """Process time delta input into consistent format."""
+        """Process time delta input into consistent format.
+        
+        Accepts:
+        - Scalar (float/int): Broadcast to (batch_size, seq_len)
+        - (seq_len,): Broadcast to (batch_size, seq_len)
+        - (batch_size, seq_len): Use as-is
+        - (batch_size, seq_len, 1): Squeeze last dimension
+        """
         if isinstance(time_delta, (int, float)):
             return mx.full((batch_size, seq_len), time_delta)
         elif len(time_delta.shape) == 1:
             return mx.broadcast_to(time_delta[:, None], (batch_size, seq_len))
         elif len(time_delta.shape) == 2:
             return time_delta
+        elif len(time_delta.shape) == 3 and time_delta.shape[2] == 1:
+            # Handle (batch_size, seq_len, 1) by squeezing last dimension
+            return mx.squeeze(time_delta, axis=2)
         else:
             raise ValueError(f"Invalid time_delta shape: {time_delta.shape}")
             

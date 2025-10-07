@@ -1,8 +1,6 @@
 """Enhanced Liquid Time-Constant (ELTC) RNN implementation."""
 
-import mlx.core as mx
-import mlx.nn as nn
-from typing import Optional, Tuple, List, Union, Dict, Any
+from typing import Optional, Union, Dict, Any
 
 from .base import LiquidRNN
 from .liquid_utils import get_activation

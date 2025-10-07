@@ -1,8 +1,7 @@
 """Continuous-Time Gated Recurrent Unit (CTGRU) RNN implementation."""
 
 import mlx.core as mx
-import mlx.nn as nn
-from typing import Optional, Tuple, List, Union, Dict, Any
+from typing import Optional, List, Union, Tuple
 
 from .base import LiquidRNN
 from .liquid_utils import TimeAwareMixin

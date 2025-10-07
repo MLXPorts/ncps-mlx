@@ -32,12 +32,8 @@ setup(
     # download of the gpu version or the cpu version.
     # users should install it manually.
     install_requires=[
-        "packaging>=20.0", 
-        "future>=0.18.2", 
         "mlx>=0.1.0", 
-        "numpy>=1.19.2", 
-        "scipy>=1.5.2", 
-        "onnxruntime>=1.8.0",
+        "numpy>=1.19.2",
     ],
     extras_require={
         "dev": [
@@ -47,6 +43,14 @@ setup(
         "docs": [
             "sphinx>=3.0",
             "sphinx_rtd_theme>=0.5.0",
+        ],
+        "viz": [
+            "matplotlib>=3.0.0",
+            "networkx>=2.5",
+        ],
+        "all": [
+            "matplotlib>=3.0.0",
+            "networkx>=2.5",
         ],
     },
     classifiers=[

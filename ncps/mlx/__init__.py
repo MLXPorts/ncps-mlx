@@ -11,6 +11,7 @@ from .ctrnn import CTRNNCell
 from .ctrnn_rnn import CTRNN
 from .ctgru import CTGRUCell
 from .ctgru_rnn import CTGRU
+from .utils import save_model, load_model
 
 __all__ = [
     # Base classes
@@ -36,4 +37,8 @@ __all__ = [
     # CTGRU implementations
     'CTGRU',
     'CTGRUCell',
+    
+    # Utility functions
+    'save_model',
+    'load_model',
 ]
