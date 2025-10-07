@@ -119,7 +119,7 @@ model = CfC(
 )
 
 # Process a sequence
-x = mx.random.normal((batch_size, seq_length, input_size))
+x = mx.random.normal((16, 20, 10)) # e.g. batch_size=16, seq_length=20, input_size=10
 outputs, states = model(x)
 
 print(f"Output shape: {outputs.shape}")  # (seq_length, hidden_size)
