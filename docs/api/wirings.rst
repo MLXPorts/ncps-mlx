@@ -37,10 +37,11 @@ Fully Connected
 
 from ncps.mlx.wirings import FullyConnected
 
-wiring = FullyConnected(
-units=32,              # Total neurons
-output_dim=10,         # Output size
-self_connections=True  # Allow self-loops
+    wiring = FullyConnected(
+        units=32,              # Total neurons
+        output_dim=10,         # Output size
+        self_connections=True  # Allow self-loops
+    )
 
 Creates a network where every neuron is connected to every other neuron.
 
