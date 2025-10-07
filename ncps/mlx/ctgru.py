@@ -73,30 +73,27 @@ class CTGRUCell(nn.Module):
     def __call__(
         self,
         inputs: mx.array,
-        state: Union[mx.array, List[mx.array]],
+        state: mx.array,
         time: float = 1.0,
         **kwargs
-    ) -> Tuple[mx.array, List[mx.array]]:
+    ) -> Tuple[mx.array, mx.array]:
         """Process one time step.
         
         Args:
             inputs: Input tensor
-            state: Previous state tensor or list containing state tensor
+            state: Previous state tensor
             time: Time step size
             **kwargs: Additional arguments
             
         Returns:
-            Tuple of (output, new_states)
+            Tuple of (output, new_state) as MLX arrays
         """
         if not self.built:
             self.build(inputs.shape)
-
-        # Extract state from list if needed
-        prev_output = state[0] if isinstance(state, list) else state
         
         # Compute gates with proper MLX operations
         net = mx.matmul(inputs, self.kernel)
-        net = net + mx.matmul(prev_output, self.recurrent_kernel)
+        net = net + mx.matmul(state, self.recurrent_kernel)
         net = net + self.bias
         
         # Split activation for different purposes using centralized functions
@@ -105,14 +102,14 @@ class CTGRUCell(nn.Module):
         c = self._tanh(net)  # Candidate state
         
         # Compute target state
-        target_state = (1 - z) * prev_output + z * (r * c)
+        target_state = (1 - z) * state + z * (r * c)
         
         # Update state using continuous-time dynamics with fixed time constant
-        d_state = (-prev_output + target_state) / (self.tau + self._epsilon)  # Add epsilon for stability
-        output = prev_output + time * d_state
+        d_state = (-state + target_state) / (self.tau + self._epsilon)  # Add epsilon for stability
+        output = state + time * d_state
         
         # Apply cell clipping if specified
         if self._cell_clip is not None:
             output = mx.clip(output, -self._cell_clip, self._cell_clip)
         
-        return output, [output]
+        return output, output

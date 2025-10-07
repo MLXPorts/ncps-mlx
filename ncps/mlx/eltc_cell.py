@@ -81,25 +81,36 @@ class ELTCCell(LTCCell):
             hidden_size: Size of hidden state (optional, defaults to wiring units)
             **kwargs: Additional arguments passed to the base LTCCell
         """
+        # Store ELTC-specific parameters before calling parent
+        self.input_mapping = input_mapping
+        self.output_mapping = output_mapping
+        self._sparsity = sparsity
+        self._eltc_activation = activation
+        self._eltc_hidden_size = hidden_size
+        
+        # Filter kwargs to only pass what LTCCell accepts
+        ltc_valid_kwargs = {'backbone_units', 'backbone_layers', 'backbone_dropout', 'initializer'}
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in ltc_valid_kwargs}
+        
+        # Call parent - LTCCell only accepts: wiring, activation, backbone_units, backbone_layers, backbone_dropout, initializer
         super().__init__(
             wiring=wiring,
-            input_mapping=input_mapping,
-            output_mapping=output_mapping,
-            ode_unfolds=ode_unfolds,
-            epsilon=epsilon,
-            initialization_ranges=initialization_ranges,
-            forget_gate_bias=forget_gate_bias,
-            **kwargs,
+            activation=activation if isinstance(activation, str) else "tanh",
+            **filtered_kwargs,
         )
-        # Convert string solver type to enum if needed
+        # Convert string solver type to enum if needed and store ELTC-specific params
         self.solver = solver if isinstance(solver, ODESolver) else ODESolver(solver)
-        self.sparsity = sparsity
-        self.activation = activation
-        self.hidden_size = hidden_size or self.units
+        self.ode_unfolds = ode_unfolds
+        self.epsilon = epsilon
+        self.sparsity = self._sparsity
+        self.activation = self._eltc_activation
+        self.hidden_size = self._eltc_hidden_size or self.units
 
-        # Initialize dense layers
-        self.input_dense = nn.Linear(self.input_size, self.hidden_size)
-        self.recurrent_dense = nn.Linear(self.hidden_size, self.hidden_size)
+        # Initialize dense layers based on mapping type
+        if self.input_mapping == "affine":
+            self.input_dense = nn.Linear(self.input_size, self.hidden_size)
+        if self.output_mapping == "affine":
+            self.recurrent_dense = nn.Linear(self.hidden_size, self.hidden_size)
 
     def build(self):
         """Initialize parameters and apply sparsity."""
@@ -150,10 +161,10 @@ class ELTCCell(LTCCell):
             return self.activation(net_input) - y
 
         # Apply selected solver
-        dt = elapsed_time / self._ode_unfolds
+        dt = elapsed_time / self.ode_unfolds
         v_pre = state
 
-        for _ in range(self._ode_unfolds):
+        for _ in range(self.ode_unfolds):
             if self.solver == ODESolver.SEMI_IMPLICIT:
                 v_pre = semi_implicit_solve(f, v_pre, dt)
             elif self.solver == ODESolver.EXPLICIT:
@@ -185,8 +196,8 @@ class ELTCCell(LTCCell):
         new_state = self._ode_solver(inputs, state, time)
         output = self.activation(new_state)
 
-        if self.output_dim != self.hidden_size:
-            output = output[:, :self.output_dim]
+        if self.wiring.output_dim != self.hidden_size:
+            output = output[:, :self.wiring.output_dim]
 
         return output, [new_state]
 

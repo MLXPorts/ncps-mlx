@@ -117,7 +117,7 @@ class CTGRU(LiquidRNN):
             
             for t in range(seq_len):
                 dt = time_delta[:, t] if time_delta is not None else 1.0
-                output, [state] = forward_cell(current_input[:, t], state)
+                output, state = forward_cell(current_input[:, t], state)
                 forward_states.append(output)
             
             forward_output = mx.stack(forward_states, axis=1)
@@ -130,7 +130,7 @@ class CTGRU(LiquidRNN):
                 
                 for t in range(seq_len - 1, -1, -1):
                     dt = time_delta[:, t] if time_delta is not None else 1.0
-                    output, [state] = backward_cell(current_input[:, t], state)
+                    output, state = backward_cell(current_input[:, t], state)
                     backward_states.append(output)
                 
                 backward_output = mx.stack(backward_states[::-1], axis=1)

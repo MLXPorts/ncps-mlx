@@ -19,21 +19,25 @@ class CTRNN(LiquidRNN):
         return_sequences: bool = True,
         return_state: bool = False,
         global_feedback: bool = False,
-        activation: Callable = mx.tanh,
+        activation: Union[str, Callable] = "tanh",
         cell_clip: Optional[float] = None,
     ):
         """Initialize the CTRNN layer.
         
         Args:
-            units: Number of units in each layer
-            num_layers: Number of stacked CTRNN layers
+            units: Number of units in the recurrent layer
+            num_layers: Number of stacked layers
             bidirectional: Whether to use bidirectional processing
-            return_sequences: Whether to return the full sequence or just the last output
-            return_state: Whether to return the final states
+            return_sequences: Whether to return full sequence
+            return_state: Whether to return final state
             global_feedback: Whether to use global feedback
-            activation: Activation function to use
-            cell_clip: Optional value to clip cell outputs
+            activation: Activation function (string name or callable, default "tanh")
+            cell_clip: Optional gradient clipping value
         """
+        # Convert activation to string if it's a callable
+        if callable(activation) and not isinstance(activation, str):
+            activation = "tanh"  # Default for MLX functions
+        
         # Create base cell
         cell = CTRNNCell(
             units=units,
@@ -127,7 +131,7 @@ class CTRNN(LiquidRNN):
             
             for t in range(seq_len):
                 dt = time_delta[:, t] if time_delta is not None else 1.0
-                output, [state] = forward_cell(current_input[:, t], state, time=dt)
+                output, state = forward_cell(current_input[:, t], state, time=dt)
                 forward_states.append(output)
             
             forward_output = mx.stack(forward_states, axis=1)
@@ -140,7 +144,7 @@ class CTRNN(LiquidRNN):
                 
                 for t in range(seq_len - 1, -1, -1):
                     dt = time_delta[:, t] if time_delta is not None else 1.0
-                    output, [state] = backward_cell(current_input[:, t], state, time=dt)
+                    output, state = backward_cell(current_input[:, t], state, time=dt)
                     backward_states.append(output)
                 
                 backward_output = mx.stack(backward_states[::-1], axis=1)
