@@ -22,11 +22,15 @@ class LTC(LiquidRNN):
         bidirectional: bool = False,
         return_sequences: bool = True,  # Changed default to True to match test expectations
         return_state: bool = False,
-        activation: str = "tanh",
+        activation: str = "identity",
         backbone_units: Optional[Union[int, List[int]]] = None,
         backbone_layers: int = 0,  # Changed default to 0 to avoid dimension issues when not needed
         backbone_dropout: float = 0.0,
         sparsity_mask: Optional[mx.array] = None,
+        ode_solver: str = "semi_implicit",
+        ode_solver_unfolds: int = 6,
+        input_mapping: str = "affine",
+        **ltc_cell_kwargs,
     ):
         """Initialize the LTC layer."""
         if wiring is not None:
@@ -61,6 +65,10 @@ class LTC(LiquidRNN):
             backbone_units=backbone_units,
             backbone_layers=backbone_layers,
             backbone_dropout=backbone_dropout,
+            ode_solver=ode_solver,
+            ode_solver_unfolds=ode_solver_unfolds,
+            input_mapping=input_mapping,
+            **ltc_cell_kwargs,
         )
 
         self.num_layers = num_layers
@@ -75,27 +83,37 @@ class LTC(LiquidRNN):
         
         # Create forward layers
         self.forward_layers = []
-        for _ in range(num_layers):
+        for idx in range(num_layers):
             layer_cell = LTCCell(
                 wiring=type(wiring).from_config(wiring.get_config()),
                 activation=activation,
                 backbone_units=backbone_units,
                 backbone_layers=backbone_layers,
                 backbone_dropout=backbone_dropout,
+                ode_solver=ode_solver,
+                ode_solver_unfolds=ode_solver_unfolds,
+                input_mapping=input_mapping,
+                **ltc_cell_kwargs,
             )
+            setattr(self, f"forward_layer_{idx}", layer_cell)
             self.forward_layers.append(layer_cell)
         
         # Create backward layers if bidirectional
         if bidirectional:
             self.backward_layers = []
-            for _ in range(num_layers):
+            for idx in range(num_layers):
                 layer_cell = LTCCell(
                     wiring=type(wiring).from_config(wiring.get_config()),
                     activation=activation,
                     backbone_units=backbone_units,
                     backbone_layers=backbone_layers,
                     backbone_dropout=backbone_dropout,
+                    ode_solver=ode_solver,
+                    ode_solver_unfolds=ode_solver_unfolds,
+                    input_mapping=input_mapping,
+                    **ltc_cell_kwargs,
                 )
+                setattr(self, f"backward_layer_{idx}", layer_cell)
                 self.backward_layers.append(layer_cell)
     
     def __call__(
@@ -177,26 +195,46 @@ class LTC(LiquidRNN):
         return current_input
     
     def state_dict(self) -> Dict[str, Any]:
-        """Return the layer's state dictionary."""
         state = super().state_dict()
-        state.update({
-            'return_sequences': self.return_sequences,
-            'return_state': self.return_state,
+        config = state['config']
+        config.update({
+            'num_layers': self.num_layers,
+            'hidden_size': self.hidden_size,
             'forward_layers': [layer.state_dict() for layer in self.forward_layers],
         })
         if self.bidirectional:
-            state['backward_layers'] = [layer.state_dict() for layer in self.backward_layers]
+            config['backward_layers'] = [layer.state_dict() for layer in self.backward_layers]
         return state
     
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
-        """Load the layer's state from a dictionary."""
         super().load_state_dict(state_dict)
-        self.return_sequences = state_dict['return_sequences']
-        self.return_state = state_dict['return_state']
-        
-        # Load layer states
-        for layer, layer_state in zip(self.forward_layers, state_dict['forward_layers']):
-            layer.load_state_dict(layer_state)
-        if self.bidirectional:
-            for layer, layer_state in zip(self.backward_layers, state_dict['backward_layers']):
+        config = state_dict.get('config', {})
+        if config:
+            self.num_layers = config.get('num_layers', self.num_layers)
+            self.hidden_size = config.get('hidden_size', self.hidden_size)
+            forward_states = config.get('forward_layers', [])
+            for layer, layer_state in zip(self.forward_layers, forward_states):
                 layer.load_state_dict(layer_state)
+            if self.bidirectional:
+                backward_states = config.get('backward_layers', [])
+                for layer, layer_state in zip(self.backward_layers, backward_states):
+                    layer.load_state_dict(layer_state)
+
+    # ------------------------------------------------------------------ #
+    # LTC-specific utilities
+    # ------------------------------------------------------------------ #
+    def set_solver(self, solver: str) -> None:
+        self.cell.set_solver(solver)
+        for layer in self.forward_layers:
+            layer.set_solver(solver)
+        if self.bidirectional:
+            for layer in self.backward_layers:
+                layer.set_solver(solver)
+
+    def apply_constraints(self) -> None:
+        self.cell.apply_constraints()
+        for layer in self.forward_layers:
+            layer.apply_constraints()
+        if self.bidirectional:
+            for layer in self.backward_layers:
+                layer.apply_constraints()

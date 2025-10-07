@@ -148,7 +148,7 @@ class MMRNN(LTCRNN):
             layer_input_size = input_size if layer == 0 else hidden_size * (2 if bidirectional else 1)
             
             # Forward cell
-            self.forward_layers.append(MMRNNCell(
+            forward_cell = MMRNNCell(
                 input_size=layer_input_size,
                 hidden_size=hidden_size,
                 memory_size=memory_size,
@@ -158,11 +158,13 @@ class MMRNN(LTCRNN):
                 backbone_layers=backbone_layers,
                 backbone_dropout=backbone_dropout,
                 sparsity_mask=sparsity_mask
-            ))
+            )
+            setattr(self, f"forward_layer_{layer}", forward_cell)
+            self.forward_layers.append(forward_cell)
             
             # Backward cell if bidirectional
             if bidirectional:
-                self.backward_layers.append(MMRNNCell(
+                backward_cell = MMRNNCell(
                     input_size=layer_input_size,
                     hidden_size=hidden_size,
                     memory_size=memory_size,
@@ -172,7 +174,9 @@ class MMRNN(LTCRNN):
                     backbone_layers=backbone_layers,
                     backbone_dropout=backbone_dropout,
                     sparsity_mask=sparsity_mask
-                ))
+                )
+                setattr(self, f"backward_layer_{layer}", backward_cell)
+                self.backward_layers.append(backward_cell)
     
     def __call__(
         self,

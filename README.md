@@ -221,7 +221,7 @@ load_model(model, "my_ncp_model.npz")
 ### Core Documentation
 
 - **[API Reference](docs/api/)**: Complete API documentation
-- **[Examples](examples/)**: 17 Python examples and 25 Jupyter notebooks
+- **[Examples](examples/)**: curated MLX scripts and interactive notebooks
 - **[Architecture Guide](docs/architecture.md)**: Deep dive into the implementation
 
 ### Key Concepts
@@ -288,12 +288,21 @@ action, state = model(observations, time_delta=timestamps)
 
 ### More Examples
 
-Check out our extensive [examples directory](examples/):
+Check out our MLX-first [examples directory](examples/):
 
-- **Basic**: Simple introduction to each model type
-- **Advanced**: Multi-layer, bidirectional, custom wirings
-- **Applications**: Time series, classification, control
-- **Notebooks**: Interactive tutorials with visualizations
+- `examples/mlx_cfc_regression.py` – minimal regression loop using `nn.value_and_grad`, `optim.Adam`, and `Module.save_weights`.
+- `examples/mlx_smnist_training.py` – Sequential MNIST classifier showcasing dataset download + MLX-native checkpointing.
+- `examples/mlx_cheetah_training.py` – Cheetah trajectory predictor mirroring the LTC paper workflow entirely in MLX.
+- `examples/enhanced_training_example.py` – advanced training configuration with `EnhancedLTCTrainer`.
+- `examples/mlx_cell_comparison.py` – compare CTRNN, CTGRU, and ELTC cells on synthetic data.
+- **Notebooks**: Interactive tutorials with visualisations (profiling, visualisation, wiring exploration).
+
+### Datasets
+
+- Run `bash datasets/download_datasets.sh` to mirror the UCI datasets used in the original LTC experiments into `datasets/data/`.
+- The downloader also grabs Sequential MNIST (`datasets/data/smnist/mnist.npz`) and, when present on your machine, copies cheetah traces from `/Volumes/stuff/Projects/liquid_time_constant_networks/experiments_with_ltcs/data/cheetah/` into `datasets/data/cheetah/`.
+- Copy the cheetah traces (`trace_*.npy`) into `datasets/data/cheetah/` (from the legacy `liquid_time_constant_networks` repository or your own captures).
+- All MLX examples consume data straight from `datasets/data/…` and checkpoint weights under `artifacts/` using `Module.save_weights`.
 
 ---
 
@@ -487,6 +496,10 @@ Please feel free to:
 5. Commit your changes (\`git commit -m 'Add amazing feature'\`)
 6. Push to the branch (\`git push origin feature/amazing-feature\`)
 7. Open a Pull Request
+
+## 🧪 Pytest & MLX Module Demo
+
+Run `pytest` to execute a lightweight regression example that integrates the latest MLX `nn.Module` APIs. The test suite exercises `create_training_state` and `train_for_epochs` from `ncps.mlx.module_training_demo`, showing how to combine `nn.Sequential` layers, `nn.value_and_grad`, and `mlx.optimizers.Adam` in a concise training loop.
 
 ---
 

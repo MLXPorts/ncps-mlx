@@ -2,6 +2,7 @@
 
 import mlx.core as mx
 import mlx.nn as nn
+import mlx.utils as mxu
 from typing import Optional, Tuple, List, Dict, Any, Union
 
 from .typing import TensorOrFloat, InitializerCallable
@@ -30,6 +31,15 @@ class LiquidCell(nn.Module):
         self.activation_name = activation
         self.activation = get_activation(activation)
         
+        # Default to Glorot uniform initialization
+        if initializer is None:
+            def glorot_uniform(shape):
+                limit = mx.sqrt(6 / sum(shape))
+                return mx.random.uniform(low=-limit, high=limit, shape=shape)
+            self.initializer = glorot_uniform
+        else:
+            self.initializer = initializer
+
         # Process backbone units
         if backbone_units is None:
             backbone_units = []
@@ -43,6 +53,8 @@ class LiquidCell(nn.Module):
         self.backbone_layers = backbone_layers
         self.backbone_dropout = backbone_dropout
         self.backbone = None
+        self._backbone_layers: List[nn.Linear] = []
+        self._backbone_built_for: Optional[int] = None
         
         # Calculate backbone dimensions
         self.backbone_input_dim = self.input_size + self.hidden_size
@@ -51,37 +63,25 @@ class LiquidCell(nn.Module):
             self.build_backbone()
         else:
             self.backbone_output_dim = self.backbone_input_dim
-        
-        # Default to Glorot uniform initialization
-        if initializer is None:
-            def glorot_uniform(shape):
-                limit = mx.sqrt(6 / sum(shape))
-                return mx.random.uniform(low=-limit, high=limit, shape=shape)
-            self.initializer = glorot_uniform
-        else:
-            self.initializer = initializer
 
     def build_backbone(self):
         """Build backbone network layers."""
         layers = []
         current_dim = self.backbone_input_dim
         
-        # Build layers
-        for i, units in enumerate(self.backbone_units):
-            # Add linear layer
-            layers.append(nn.Linear(current_dim, units))
-            
-            # Add activation and dropout except for last layer
-            if i < len(self.backbone_units) - 1:
-                layers.append(self.activation)
-                if self.backbone_dropout > 0:
-                    layers.append(nn.Dropout(p=self.backbone_dropout))
-            
+        self._backbone_layers = []
+        for units in self.backbone_units:
+            layer = nn.Linear(current_dim, units)
+            if callable(self.initializer):
+                layer.weight = self.initializer((units, current_dim))
+                layer.bias = mx.zeros((units,))
+            self._backbone_layers.append(layer)
             current_dim = units
-            
-        self.backbone = nn.Sequential(*layers) if layers else None
+        self.backbone = nn.Sequential(*self._backbone_layers) if self._backbone_layers else None
+        self._backbone_built_for = self.backbone_input_dim
+        self.backbone_output_dim = current_dim if self._backbone_layers else self.backbone_input_dim
 
-    def apply_backbone(self, x: mx.array) -> mx.array:
+    def apply_backbone(self, x: mx.array, training: bool = True) -> mx.array:
         """Apply backbone network if present."""
         if self.backbone is not None:
             # Get input shape
@@ -91,8 +91,14 @@ class LiquidCell(nn.Module):
             if x.shape[-1] != self.backbone_input_dim:
                 raise ValueError(f"Expected input dimension {self.backbone_input_dim}, got {x.shape[-1]}")
             
-            # Apply backbone
-            x = self.backbone(x)
+            h = x
+            for idx, layer in enumerate(self._backbone_layers):
+                h = layer(h)
+                if idx < len(self._backbone_layers) - 1:
+                    h = self.activation(h)
+                    if training and self.backbone_dropout > 0:
+                        h = nn.dropout(h, self.backbone_dropout)
+            x = h
             
         return x
 
@@ -119,46 +125,45 @@ class LiquidCell(nn.Module):
             'backbone_units': self.backbone_units,
             'backbone_layers': self.backbone_layers,
             'backbone_dropout': self.backbone_dropout,
+            'input_dim': self.input_size,
             'initializer': self.initializer,
         })
         return config
 
     def state_dict(self) -> Dict[str, Any]:
-        """Get serializable state."""
-        state = {
+        """Return MLX parameters alongside high-level configuration."""
+        config = {
             'units': self.units,
             'wiring': self.wiring.get_config(),
             'activation': self.activation_name,
             'backbone_units': self.backbone_units,
             'backbone_layers': self.backbone_layers,
             'backbone_dropout': self.backbone_dropout,
+            'input_dim': self.input_size,
         }
-        if self.backbone is not None:
-            state['backbone'] = [layer.parameters() if isinstance(layer, nn.Linear) else None for layer in self.backbone]
-        return state
+        parameters = mxu.tree_map(lambda arr: mx.array(arr), self.parameters())
+        return {'config': config, 'parameters': parameters}
+        
+    def _build_from_config(self, config: Dict[str, Any]) -> None:
+        """Hook for subclasses to rebuild modules before loading weights."""
+        return
         
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
-        """Load cell state from dictionary."""
-        self.units = state_dict['units']
-        self.wiring = type(self.wiring).from_config(state_dict['wiring'])
-        self.activation_name = state_dict['activation']
-        self.activation = get_activation(self.activation_name)
-        self.backbone_units = state_dict['backbone_units']
-        self.backbone_layers = state_dict['backbone_layers']
-        self.backbone_dropout = state_dict['backbone_dropout']
-        
-        if 'backbone' in state_dict:
-            layers = []
-            current_dim = self.backbone_input_dim
-            for i, params in enumerate(state_dict['backbone']):
-                if params is not None:
-                    layer = nn.Linear(current_dim, params['weight'].shape[0])
-                    layer.update(params)
-                    layers.append(layer)
-                    if i < len(state_dict['backbone']) - 1:
-                        layers.extend([self.activation, nn.Dropout(p=self.backbone_dropout)])
-                    current_dim = params['weight'].shape[0]
-            self.backbone = nn.Sequential(*layers) if layers else None
+        """Restore configuration and MLX parameters from dictionary."""
+        config = state_dict.get('config', {})
+        if config:
+            self.units = config['units']
+            self.wiring = type(self.wiring).from_config(config['wiring'])
+            self.activation_name = config['activation']
+            self.activation = get_activation(self.activation_name)
+            self.backbone_units = config['backbone_units']
+            self.backbone_layers = config['backbone_layers']
+            self.backbone_dropout = config['backbone_dropout']
+            self.input_size = config.get('input_dim', self.input_size)
+            self._build_from_config(config)
+        parameters = state_dict.get('parameters', {})
+        if parameters:
+            self.update(parameters)
 
 
 class LiquidRNN(nn.Module):
@@ -297,17 +302,17 @@ class LiquidRNN(nn.Module):
         return outputs
 
     def state_dict(self) -> Dict[str, Any]:
-        """Get configuration for serialization."""
-        state = {
+        """Serialize configuration and parameters."""
+        config: Dict[str, Any] = {
             'cell': self.cell.state_dict(),
             'return_sequences': self.return_sequences,
             'return_state': self.return_state,
             'bidirectional': self.bidirectional,
         }
         if self.bidirectional:
-            state['merge_mode'] = self.merge_mode
-            state['backward_cell'] = self.backward_cell.state_dict()
-        return state
+            config['merge_mode'] = self.merge_mode
+            config['backward_cell'] = self.backward_cell.state_dict()
+        return {'config': config, 'parameters': {}}
         
     def process_time_delta(self, time_delta: Union[float, mx.array], batch_size: int, seq_len: int) -> mx.array:
         """Process time delta input into consistent format.
@@ -331,12 +336,16 @@ class LiquidRNN(nn.Module):
             raise ValueError(f"Invalid time_delta shape: {time_delta.shape}")
             
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
-        """Load state from dictionary."""
-        self.cell.load_state_dict(state_dict['cell'])
-        self.return_sequences = state_dict['return_sequences']
-        self.return_state = state_dict['return_state']
-        self.bidirectional = state_dict['bidirectional']
-        
-        if self.bidirectional:
-            self.merge_mode = state_dict['merge_mode']
-            self.backward_cell.load_state_dict(state_dict['backward_cell'])
+        """Restore configuration and parameters."""
+        config = state_dict.get('config', {})
+        if config:
+            self.cell.load_state_dict(config['cell'])
+            self.return_sequences = config['return_sequences']
+            self.return_state = config['return_state']
+            self.bidirectional = config['bidirectional']
+            if self.bidirectional and 'backward_cell' in config:
+                self.merge_mode = config.get('merge_mode', self.merge_mode)
+                self.backward_cell.load_state_dict(config['backward_cell'])
+        parameters = state_dict.get('parameters', {})
+        if parameters:
+            self.update(parameters)

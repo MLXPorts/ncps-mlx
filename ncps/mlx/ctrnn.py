@@ -2,7 +2,8 @@
 
 import mlx.core as mx
 import mlx.nn as nn
-from typing import Optional, Tuple, List, Union
+import mlx.utils as mxu
+from typing import Optional, Tuple, List, Union, Dict, Any
 
 from .liquid_utils import get_activation
 
@@ -42,10 +43,12 @@ class CTRNNCell(nn.Module):
         self._activation_name = activation
         self._cell_clip = cell_clip
         self._epsilon = epsilon
-        self.built = False
 
-        # Get activation function from centralized utilities
         self._activation = get_activation(activation)
+        self.input_linear: Optional[nn.Linear] = None
+        self.recurrent_linear: Optional[nn.Linear] = None
+        self._input_dim: Optional[int] = None
+        self.tau = None
 
     @property
     def state_size(self):
@@ -57,28 +60,20 @@ class CTRNNCell(nn.Module):
         """Return the size of the cell output."""
         return self._units
 
-    def build(self, input_shape: Tuple[int, ...]):
-        """Build the cell parameters.
-        
-        Args:
-            input_shape: Shape of the input tensor
-        """
-        input_dim = input_shape[-1]
-        
-        # Initialize weights with proper MLX operations using Xavier initialization
-        scale = mx.sqrt(2.0 / (input_dim + self._units))
-        self.kernel = scale * mx.random.normal((input_dim, self._units))
-        
-        scale = mx.sqrt(2.0 / (2 * self._units))
-        self.recurrent_kernel = scale * mx.random.normal((self._units, self._units))
-        
-        # Initialize bias with small positive values for stability
-        self.bias = 0.1 * mx.ones((self._units,))
-        
-        # Initialize fixed time constant
-        self.tau = 0.1 * mx.ones((self._units,))  # Smaller time constant for faster dynamics
-        
-        self.built = True
+    def _ensure_parameters(self, input_dim: int) -> None:
+        """Ensure projection layers match the current input dimension."""
+        self._input_dim = input_dim
+        if self.input_linear is None or self.input_linear.weight.shape[1] != input_dim:
+            self.input_linear = nn.Linear(input_dim, self._units, bias=False)
+            scale = mx.sqrt(2.0 / (input_dim + self._units))
+            self.input_linear.weight = scale * mx.random.normal(self.input_linear.weight.shape)
+        if self.recurrent_linear is None or self.recurrent_linear.weight.shape[1] != self._units:
+            self.recurrent_linear = nn.Linear(self._units, self._units, bias=True)
+            scale = mx.sqrt(2.0 / (2 * self._units))
+            self.recurrent_linear.weight = scale * mx.random.normal(self.recurrent_linear.weight.shape)
+            self.recurrent_linear.bias = 0.1 * mx.ones((self._units,))
+        if self.tau is None or self.tau.shape[-1] != self._units:
+            self.tau = 0.1 * mx.ones((self._units,))
 
     def __call__(
         self,
@@ -98,13 +93,9 @@ class CTRNNCell(nn.Module):
         Returns:
             Tuple of (output, new_state) as MLX arrays
         """
-        if not self.built:
-            self.build(inputs.shape)
+        self._ensure_parameters(inputs.shape[-1])
         
-        # Compute net input with proper MLX operations
-        net = mx.matmul(inputs, self.kernel)
-        net = net + mx.matmul(state, self.recurrent_kernel)
-        net = net + self.bias
+        net = self.input_linear(inputs) + self.recurrent_linear(state)
         
         # Apply activation to get target state
         target_state = self._activation(net)
@@ -118,3 +109,44 @@ class CTRNNCell(nn.Module):
             output = mx.clip(output, -self._cell_clip, self._cell_clip)
         
         return output, output
+
+    def state_dict(self) -> Dict[str, Any]:
+        parameters = mxu.tree_map(lambda arr: mx.array(arr), self.parameters())
+        return {
+            'config': {
+                'units': self._units,
+                'global_feedback': self._global_feedback,
+                'activation': self._activation_name,
+                'cell_clip': self._cell_clip,
+                'epsilon': self._epsilon,
+                'input_dim': self._input_dim,
+            },
+            'parameters': parameters,
+            'buffers': {'tau': self.tau},
+        }
+
+    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+        config = state_dict.get('config', {})
+        if config:
+            self._units = config['units']
+            self._global_feedback = config['global_feedback']
+            self._activation_name = config['activation']
+            self._activation = get_activation(self._activation_name)
+            self._cell_clip = config['cell_clip']
+            self._epsilon = config['epsilon']
+            self._input_dim = config.get('input_dim', self._input_dim)
+        buffers = state_dict.get('buffers', {})
+        if 'tau' in buffers:
+            self.tau = buffers['tau']
+        params = state_dict.get('parameters', {})
+        if params:
+            input_dim = self._input_dim
+            if input_dim is None:
+                weight = params.get('input_linear.weight')
+                if weight is not None:
+                    input_dim = weight.shape[1]
+                else:
+                    input_dim = self._units
+            self._ensure_parameters(input_dim)
+        if params:
+            self.update(params)

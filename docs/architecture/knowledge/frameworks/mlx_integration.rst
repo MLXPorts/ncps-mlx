@@ -67,21 +67,25 @@ available - Handle device placement (CPU/GPU)
 2. Layer System
 ~~~~~~~~~~~~~~~
 
-MLX-specific layer implementations should inherit from a base MLX layer:
+MLX-specific layer implementations now inherit directly from
+:class:`mlx.nn.Module` — no custom shims are required:
 
 .. code:: python
 
-# ncps/mlx/layers/layer.py
-class Layer:
-    def __init__(self, dtype="float32"):
-        self.dtype = dtype
-        self.params = {}  # MLX parameters
+    from mlx import nn
 
-    def __call__(self, x):
-        return self.call(x)
+    class Projector(nn.Module):
+        def __init__(self, in_dims, out_dims):
+            super().__init__()
+            self.linear = nn.Linear(in_dims, out_dims)
 
-Benefits: - Clean separation from NumPy implementation - MLX-specific
-parameter management - Optimized for MLX’s computation model
+        def __call__(self, x):
+            return nn.relu(self.linear(x))
+
+Benefits:
+- Leverages the official MLX parameter management
+- Keeps ncps aligned with upstream APIs
+- Reduces maintenance overhead
 
 3. RNN Implementation
 ~~~~~~~~~~~~~~~~~~~~~
@@ -90,15 +94,14 @@ The MLX RNN implementation should leverage MLX’s capabilities:
 
 .. code:: python
 
-# ncps/mlx/layers/rnn.py
-class RNN(Layer):
-    def __init__(self, cell, return_sequences=False):
-        self.cell = cell
-        self.return_sequences = return_sequences
+    class RNN(nn.Module):
+        def __init__(self, cell, return_sequences=False):
+            super().__init__()
+            self.cell = cell
+            self.return_sequences = return_sequences
 
-    def __call__(self, inputs):
-        # Use MLX's optimized operations
-        return self.call(inputs)
+        def __call__(self, inputs):
+            return self.cell(inputs)
 
 Features: - Efficient sequence processing - MLX-optimized state
 management - Support for MLX’s automatic batching
@@ -110,17 +113,9 @@ MLX-specific liquid neuron implementations:
 
 .. code:: python
 
-# ncps/mlx/layers/liquid.py
-class LiquidCell(RNNCell):
-    def __init__(self, units, **kwargs):
-        super().__init__(units, **kwargs)
-
-    def call(self, inputs, states):
-        # Use MLX ops for computations
-        return outputs, new_states
-
-Optimizations: - MLX-specific backbone implementations - Efficient
-time-based computations - MLX-optimized state updates
+Liquid neuron implementations (CfC, LTC, etc.) also subclass
+:class:`mlx.nn.Module`, so they integrate seamlessly with MLX optimizers and
+training utilities.
 
 Testing Strategy
 ----------------

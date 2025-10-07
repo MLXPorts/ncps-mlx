@@ -32,15 +32,9 @@
 ## Phase 2: Layer System
 
 ### 1. Base Layer Implementation
-- [ ] Create ncps/mlx/layers directory
-- [ ] Implement base Layer class
-  - [ ] Parameter management
-  - [ ] Forward pass handling
-  - [ ] Device placement
-- [ ] Implement Dense layer
-  - [ ] Weight initialization
-  - [ ] Forward computation
-  - [ ] Activation handling
+- [x] Use MLX's native modules (`mlx.nn`) directly — no custom layer directory
+- [x] Delegate parameter management, device placement, and initialisation to MLX
+- [x] Rely on `nn.Linear`, `nn.Sequential`, etc. for dense layers and composition
 
 ### 2. RNN Implementation
 - [ ] Implement RNNCell base class

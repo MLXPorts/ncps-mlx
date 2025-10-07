@@ -148,3 +148,5 @@ test*.py
 
 # OS
 Thumbs.db
+datasets/
+artifacts/

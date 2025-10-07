@@ -158,9 +158,10 @@ Usage Example
 MLX implementation
 ==================
 
-from ncps.mlx.layers import Dense
+from mlx import nn
 
 Create and use layer
 ====================
 
-layer = Dense(units=64, activation=‘relu’) output = layer(input_tensor)
+layer = nn.Linear(in_features, 64)
+output = nn.relu(layer(input_tensor))

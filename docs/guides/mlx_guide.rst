@@ -5,6 +5,32 @@ Introduction
 ------------
 This guide provides comprehensive documentation for the MLX implementation of Neural Circuit Policies (NCPs), optimized for Apple Silicon processors.
 
+MLX Usage Patterns
+------------------
+
+To align with the core MLX API, keep these idioms in mind:
+
+* Compose networks with :class:`mlx.nn.Module`. Attach MLX arrays or submodules as attributes in
+  ``__init__`` and MLX will track them automatically.
+* Prefer the built-in modules (``nn.Linear``, ``nn.LayerNorm``, ``nn.Sequential``) instead of custom
+  shims; they initialise lazily on first call.
+* For manual initialisation, rely on ``mx.random`` or ``mlx.nn.init`` helpers and only call ``mx.eval``
+  when you need values materialised.
+* Use ``mlx.nn.value_and_grad`` to generate loss/gradient callables and update weights through
+  optimisers such as ``mlx.optimizers.Adam``. After ``update`` you can ``mx.eval`` the parameter and
+  optimiser states if required.
+* Checkpoint models with :meth:`mlx.nn.Module.save_weights` / :meth:`mlx.nn.Module.load_weights`,
+  which wrap ``mx.savez``/``mx.load`` (or ``mx.save_safetensors`` for ``.safetensors`` files) so you
+  never leave the MLX execution model.
+* Manage randomness with explicit keys (``key = mx.random.key(seed)`` and ``key = mx.random.split(key)``)
+  to keep sampling within MLX's lazy execution model.
+* Persist models via ``state_dict`` / ``load_state_dict``; include both configuration metadata and MLX
+  parameter dictionaries for consistency.
+* Stay inside MLX for tensor math and wiring representations—export to NumPy only when an external
+  tool demands it.
+* For LTC, enforce the original constraint ops by calling :meth:`ncps.mlx.LTC.apply_constraints`
+  after optimiser updates; this mirrors the MIT CSAIL reference implementation.
+
 Apple Silicon Optimizations
 ---------------------------
 
@@ -57,11 +83,12 @@ LiquidCell
 
         Build backbone network layers.
 
-    .. py:method:: apply_backbone(x: mx.array) -> mx.array
+    .. py:method:: apply_backbone(x: mx.array, training: bool = True) -> mx.array
 
-        Apply backbone network to input.
+        Apply backbone network to input, respecting the current training mode.
 
         :param x: Input tensor
+        :param training: Whether to apply training-time behaviour such as dropout
         :return: Processed tensor
 
     .. py:method:: get_config() -> Dict[str, Any
@@ -383,4 +410,3 @@ wiring = NCP(
                                         - `Neural Circuit Policies Paper <https://arxiv.org/abs/2003.06567>`_
                                         - `MLX GitHub Repository <https://github.com/ml-explore/mlx>`_
                                         - `NCP GitHub Repository <https://github.com/mlech26l/ncps>`_
-

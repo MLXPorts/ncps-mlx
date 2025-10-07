@@ -2,6 +2,7 @@
 
 import mlx.core as mx
 import mlx.nn as nn
+import mlx.utils as mxu
 from typing import Optional, Tuple, List, Dict, Any, Union
 
 from .liquid_utils import get_activation, sigmoid
@@ -36,10 +37,12 @@ class CTGRUCell(nn.Module):
         self._units = units
         self._cell_clip = cell_clip
         self._epsilon = epsilon
-        self.built = False
 
-        # Get activation functions from centralized utilities
+        self.input_linear: Optional[nn.Linear] = None
+        self.recurrent_linear: Optional[nn.Linear] = None
         self._tanh = get_activation("tanh")
+        self.tau = None
+        self._input_dim: Optional[int] = None
 
     @property
     def state_size(self):
@@ -51,24 +54,20 @@ class CTGRUCell(nn.Module):
         """Return the size of the cell output."""
         return self._units
 
-    def build(self, input_shape: Tuple[int, ...]):
-        """Build the cell parameters.
-        
-        Args:
-            input_shape: Shape of the input tensor
-        """
-        input_dim = input_shape[-1]
-        
-        # Initialize weights with proper MLX operations using Xavier initialization
-        scale = mx.sqrt(2.0 / (input_dim + self._units))
-        self.kernel = scale * mx.random.normal((input_dim, self._units))
-        self.recurrent_kernel = scale * mx.random.normal((self._units, self._units))
-        self.bias = 0.1 * mx.ones((self._units,))
-        
-        # Initialize time constant
-        self.tau = 0.1 * mx.ones((self._units,))  # Smaller time constant for faster dynamics
-        
-        self.built = True
+    def _ensure_parameters(self, input_dim: int) -> None:
+        """Construct projection layers to match the provided input dimension."""
+        self._input_dim = input_dim
+        if self.input_linear is None or self.input_linear.weight.shape[1] != input_dim:
+            self.input_linear = nn.Linear(input_dim, 3 * self._units, bias=False)
+            scale = mx.sqrt(2.0 / (input_dim + self._units))
+            self.input_linear.weight = scale * mx.random.normal(self.input_linear.weight.shape)
+        if self.recurrent_linear is None:
+            self.recurrent_linear = nn.Linear(self._units, 3 * self._units, bias=True)
+            scale = mx.sqrt(2.0 / (2 * self._units))
+            self.recurrent_linear.weight = scale * mx.random.normal(self.recurrent_linear.weight.shape)
+            self.recurrent_linear.bias = 0.1 * mx.ones((3 * self._units,))
+        if self.tau is None or self.tau.shape[-1] != self._units:
+            self.tau = 0.1 * mx.ones((self._units,))
 
     def __call__(
         self,
@@ -88,24 +87,19 @@ class CTGRUCell(nn.Module):
         Returns:
             Tuple of (output, new_state) as MLX arrays
         """
-        if not self.built:
-            self.build(inputs.shape)
+        self._ensure_parameters(inputs.shape[-1])
         
-        # Compute gates with proper MLX operations
-        net = mx.matmul(inputs, self.kernel)
-        net = net + mx.matmul(state, self.recurrent_kernel)
-        net = net + self.bias
-        
-        # Split activation for different purposes using centralized functions
-        z = sigmoid(net)  # Update gate
-        r = sigmoid(net)  # Reset gate
-        c = self._tanh(net)  # Candidate state
+        gates = self.input_linear(inputs) + self.recurrent_linear(state)
+        z, r, c_pre = mx.split(gates, 3, axis=-1)
+        z = sigmoid(z)
+        r = sigmoid(r)
+        c = self._tanh(c_pre)
         
         # Compute target state
         target_state = (1 - z) * state + z * (r * c)
         
         # Update state using continuous-time dynamics with fixed time constant
-        d_state = (-state + target_state) / (self.tau + self._epsilon)  # Add epsilon for stability
+        d_state = (-state + target_state) / (self.tau + self._epsilon)
         output = state + time * d_state
         
         # Apply cell clipping if specified
@@ -113,3 +107,40 @@ class CTGRUCell(nn.Module):
             output = mx.clip(output, -self._cell_clip, self._cell_clip)
         
         return output, output
+
+    def state_dict(self) -> Dict[str, Any]:
+        parameters = mxu.tree_map(lambda arr: mx.array(arr), self.parameters())
+        return {
+            'config': {
+                'units': self._units,
+                'cell_clip': self._cell_clip,
+                'epsilon': self._epsilon,
+                'input_dim': self._input_dim,
+            },
+            'parameters': parameters,
+            'buffers': {'tau': self.tau},
+        }
+
+    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+        config = state_dict.get('config', {})
+        if config:
+            self._units = config['units']
+            self._cell_clip = config['cell_clip']
+            self._epsilon = config['epsilon']
+            self._input_dim = config.get('input_dim', self._input_dim)
+        buffers = state_dict.get('buffers', {})
+        if 'tau' in buffers:
+            self.tau = buffers['tau']
+        # Build layers before loading parameters
+        params = state_dict.get('parameters', {})
+        if params:
+            input_dim = self._input_dim
+            if input_dim is None:
+                sample_weight = params.get('input_linear.weight')
+                if sample_weight is not None:
+                    input_dim = sample_weight.shape[1]
+                else:
+                    input_dim = self._units
+            self._ensure_parameters(input_dim)
+        if params:
+            self.update(params)

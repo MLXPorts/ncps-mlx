@@ -5,7 +5,6 @@ import mlx.nn as nn
 from typing import Optional, Tuple, List, Dict, Any
 
 from .base import LiquidCell
-from .liquid_utils import get_activation
 from .typing import InitializerCallable
 
 
@@ -38,7 +37,86 @@ class CfCCell(LiquidCell):
         allowed_modes = ["default", "pure", "no_gate"]
         if mode not in allowed_modes:
             raise ValueError(f"Unknown mode '{mode}', valid options are {str(allowed_modes)}")
+        self._effective_input_dim: Optional[int] = None
             
+    def _ensure_parameters(self, input_dim: int) -> None:
+        """Build or rebuild trainable parameters to match the input dimension."""
+        self.input_size = input_dim
+        concat_dim = self.input_size + self.hidden_size
+        self.backbone_input_dim = concat_dim
+        
+        if self.backbone_layers > 0 and self.backbone_units:
+            if self._backbone_built_for != concat_dim:
+                self.backbone_input_dim = concat_dim
+                self.build_backbone()
+                self._backbone_built_for = concat_dim
+            effective_dim = self.backbone_output_dim
+        else:
+            self._backbone_layers = []
+            self.backbone = None
+            self.backbone_output_dim = concat_dim
+            effective_dim = concat_dim
+        
+        rebuild_ff1 = (
+            not hasattr(self, 'ff1') or
+            self.ff1.weight.shape[1] != effective_dim or
+            self.ff1.weight.shape[0] != self.hidden_size
+        )
+        if rebuild_ff1:
+            self.ff1 = nn.Linear(effective_dim, self.hidden_size)
+            self.ff1.weight = self.initializer((self.hidden_size, effective_dim))
+            self.ff1.bias = mx.zeros((self.hidden_size,))
+        
+        if self.mode == "pure":
+            if not hasattr(self, 'w_tau') or self.w_tau.shape[-1] != self.hidden_size:
+                self.w_tau = mx.zeros((1, self.hidden_size))
+                self.A = mx.ones((1, self.hidden_size))
+            # Remove gated parameters if they exist
+            if hasattr(self, 'ff2'):
+                del self.ff2
+            if hasattr(self, 'time_a'):
+                del self.time_a
+            if hasattr(self, 'time_b'):
+                del self.time_b
+        else:
+            rebuild_ff2 = (
+                not hasattr(self, 'ff2') or
+                self.ff2.weight.shape[1] != effective_dim or
+                self.ff2.weight.shape[0] != self.hidden_size
+            )
+            if rebuild_ff2:
+                self.ff2 = nn.Linear(effective_dim, self.hidden_size)
+                self.ff2.weight = self.initializer((self.hidden_size, effective_dim))
+                self.ff2.bias = mx.zeros((self.hidden_size,))
+            rebuild_time = (
+                not hasattr(self, 'time_a') or
+                self.time_a.weight.shape[1] != effective_dim
+            )
+            if rebuild_time:
+                self.time_a = nn.Linear(effective_dim, self.hidden_size)
+                self.time_a.weight = self.initializer((self.hidden_size, effective_dim))
+                self.time_a.bias = mx.zeros((self.hidden_size,))
+                self.time_b = nn.Linear(effective_dim, self.hidden_size)
+                self.time_b.weight = self.initializer((self.hidden_size, effective_dim))
+                self.time_b.bias = mx.zeros((self.hidden_size,))
+            if hasattr(self, 'w_tau'):
+                del self.w_tau
+            if hasattr(self, 'A'):
+                del self.A
+        
+        if self.wiring.output_dim != self.hidden_size:
+            need_output = (
+                not hasattr(self, 'output_proj') or
+                self.output_proj.weight.shape[0] != self.wiring.output_dim or
+                self.output_proj.weight.shape[1] != self.hidden_size
+            )
+            if need_output:
+                self.output_proj = nn.Linear(self.hidden_size, self.wiring.output_dim)
+                self.output_proj.weight = self.initializer((self.wiring.output_dim, self.hidden_size))
+                self.output_proj.bias = mx.zeros((self.wiring.output_dim,))
+        elif hasattr(self, 'output_proj'):
+            del self.output_proj
+
     def __call__(self, x: mx.array, state: mx.array, time: float = 1.0) -> Tuple[mx.array, mx.array]:
         """Process one step with the CfC cell.
         
@@ -50,34 +128,29 @@ class CfCCell(LiquidCell):
         Returns:
             Tuple of (output, new_state) tensors
         """
-        # Build lazy parameters if not built
-        if not hasattr(self, 'ff1_kernel'):
-            self._build(x.shape[-1])
-            
-        # Get input dimensions
-        batch_size = x.shape[0]
+        # Ensure parameters are built for the current input size
+        self._ensure_parameters(x.shape[-1])
         
         # Combine input and state
         concat_input = mx.concatenate([x, state], axis=-1)
         
         # Apply backbone if present
-        concat_input = self.apply_backbone(concat_input)
+        concat_input = self.apply_backbone(concat_input, training=self.training)
             
         # Apply main transformation
-        ff1 = mx.matmul(concat_input, self.ff1_kernel) + self.ff1_bias
+        ff1 = self.ff1(concat_input)
             
         if self.mode == "pure":
             if isinstance(time, mx.array):
                 time = time[:, None]  # Add dimension for broadcasting
             new_state = (
-                -self.A 
-                * mx.exp(-time * (mx.abs(self.w_tau) + mx.abs(ff1))) 
+                -self.A
+                * mx.exp(-time * (mx.abs(self.w_tau) + mx.abs(ff1)))
                 * ff1 
                 + self.A
             )
         else:
-            ff2 = mx.matmul(concat_input, self.ff2_kernel) + self.ff2_bias
-                
+            ff2 = self.ff2(concat_input)
             t_a = self.time_a(concat_input)
             t_b = self.time_b(concat_input)
             if isinstance(time, mx.array):
@@ -92,96 +165,21 @@ class CfCCell(LiquidCell):
         # Project to output dimension if different from hidden size
         output = new_state
         if self.wiring.output_dim != self.hidden_size:
-            output = mx.matmul(output, self.output_kernel) + self.output_bias
+            output = self.output_proj(output)
                 
         return output, new_state
         
-    def _build(self, input_dim: int) -> None:
-        """Build the cell parameters.
-        
-        Args:
-            input_dim: Dimension of the input features
-        """
-        # Set input dimension
-        self.input_size = input_dim
-        
-        # Get effective input dimension based on backbone
-        if self.backbone is not None:
-            input_dim = self.backbone_output_dim
-        else:
-            input_dim = self.input_size + self.hidden_size
-                
-        # Initialize main transformation weights
-        self.ff1_kernel = self.initializer((input_dim, self.hidden_size))
-        self.ff1_bias = mx.zeros((self.hidden_size,))
-        
-        if self.mode == "pure":
-            self.w_tau = mx.zeros((1, self.hidden_size))
-            self.A = mx.ones((1, self.hidden_size))
-        else:
-            # Initialize second transformation
-            self.ff2_kernel = self.initializer((input_dim, self.hidden_size))
-            self.ff2_bias = mx.zeros((self.hidden_size,))
-            
-            # Initialize time projection layers
-            self.time_a = nn.Linear(input_dim, self.hidden_size)
-            self.time_b = nn.Linear(input_dim, self.hidden_size)
-            
-            self.time_a.weight = self.initializer((self.hidden_size, input_dim))
-            self.time_a.bias = mx.zeros((self.hidden_size,))
-            self.time_b.weight = self.initializer((self.hidden_size, input_dim))
-            self.time_b.bias = mx.zeros((self.hidden_size,))
-            
-        # Initialize output projection if needed
-        if self.wiring.output_dim != self.hidden_size:
-            self.output_kernel = self.initializer((self.hidden_size, self.wiring.output_dim))
-            self.output_bias = mx.zeros((self.wiring.output_dim,))
-
+    def _build_from_config(self, config: Dict[str, Any]) -> None:
+        """Ensure modules exist when restoring from state."""
+        self.mode = config.get('mode', self.mode)
+        wiring_cfg = config.get('wiring', {})
+        input_dim = config.get('input_dim')
+        if input_dim is None:
+            input_dim = wiring_cfg.get('input_dim', self.input_size)
+        if input_dim is not None:
+            self._ensure_parameters(input_dim)
+    
     def state_dict(self) -> Dict[str, Any]:
-        """Return the cell's state dictionary."""
         state = super().state_dict()
-        state['mode'] = self.mode
-        
-        if hasattr(self, 'ff1_kernel'):
-            state['ff1_kernel'] = self.ff1_kernel
-            state['ff1_bias'] = self.ff1_bias
-            
-            if self.mode == 'pure':
-                state['w_tau'] = self.w_tau
-                state['A'] = self.A
-            else:
-                state['ff2_kernel'] = self.ff2_kernel
-                state['ff2_bias'] = self.ff2_bias
-                state['time_a'] = self.time_a.parameters()
-                state['time_b'] = self.time_b.parameters()
-                
-            if self.wiring.output_dim != self.hidden_size:
-                state['output_kernel'] = self.output_kernel
-                state['output_bias'] = self.output_bias
-                
+        state['config']['mode'] = self.mode
         return state
-
-    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
-        """Load the cell's state from a dictionary."""
-        super().load_state_dict(state_dict)
-        self.mode = state_dict['mode']
-        
-        if 'ff1_kernel' in state_dict:
-            self.ff1_kernel = state_dict['ff1_kernel']
-            self.ff1_bias = state_dict['ff1_bias']
-            
-            if self.mode == 'pure':
-                self.w_tau = state_dict['w_tau']
-                self.A = state_dict['A']
-            else:
-                self.ff2_kernel = state_dict['ff2_kernel']
-                self.ff2_bias = state_dict['ff2_bias']
-                input_dim = self.ff1_kernel.shape[0]
-                self.time_a = nn.Linear(input_dim, self.hidden_size)
-                self.time_b = nn.Linear(input_dim, self.hidden_size)
-                self.time_a.update(state_dict['time_a'])
-                self.time_b.update(state_dict['time_b'])
-                
-            if 'output_kernel' in state_dict:
-                self.output_kernel = state_dict['output_kernel']
-                self.output_bias = state_dict['output_bias']

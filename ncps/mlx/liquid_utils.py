@@ -150,6 +150,7 @@ def get_activation(name: str) -> Callable:
         "relu": nn.relu,
         "gelu": nn.gelu,
         "sigmoid": sigmoid,
+        "identity": lambda x: x,
     }
     
     if name not in activations:

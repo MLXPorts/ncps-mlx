@@ -79,7 +79,7 @@ class CfC(LiquidRNN):
         
         # Create forward layers
         self.forward_layers = []
-        for _ in range(num_layers):
+        for idx in range(num_layers):
             layer_cell = CfCCell(
                 wiring=type(wiring).from_config(wiring.get_config()),
                 mode=mode,
@@ -88,12 +88,13 @@ class CfC(LiquidRNN):
                 backbone_layers=backbone_layers,
                 backbone_dropout=backbone_dropout,
             )
+            setattr(self, f"forward_layer_{idx}", layer_cell)
             self.forward_layers.append(layer_cell)
         
         # Create backward layers if bidirectional
         if bidirectional:
             self.backward_layers = []
-            for _ in range(num_layers):
+            for idx in range(num_layers):
                 layer_cell = CfCCell(
                     wiring=type(wiring).from_config(wiring.get_config()),
                     mode=mode,
@@ -102,6 +103,7 @@ class CfC(LiquidRNN):
                     backbone_layers=backbone_layers,
                     backbone_dropout=backbone_dropout,
                 )
+                setattr(self, f"backward_layer_{idx}", layer_cell)
                 self.backward_layers.append(layer_cell)
     
     def __call__(
@@ -183,26 +185,27 @@ class CfC(LiquidRNN):
         return current_input
     
     def state_dict(self) -> Dict[str, Any]:
-        """Return the layer's state dictionary."""
         state = super().state_dict()
-        state.update({
-            'return_sequences': self.return_sequences,
-            'return_state': self.return_state,
+        config = state['config']
+        config.update({
+            'num_layers': self.num_layers,
+            'hidden_size': self.hidden_size,
             'forward_layers': [layer.state_dict() for layer in self.forward_layers],
         })
         if self.bidirectional:
-            state['backward_layers'] = [layer.state_dict() for layer in self.backward_layers]
+            config['backward_layers'] = [layer.state_dict() for layer in self.backward_layers]
         return state
     
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
-        """Load the layer's state from a dictionary."""
         super().load_state_dict(state_dict)
-        self.return_sequences = state_dict['return_sequences']
-        self.return_state = state_dict['return_state']
-        
-        # Load layer states
-        for layer, layer_state in zip(self.forward_layers, state_dict['forward_layers']):
-            layer.load_state_dict(layer_state)
-        if self.bidirectional:
-            for layer, layer_state in zip(self.backward_layers, state_dict['backward_layers']):
+        config = state_dict.get('config', {})
+        if config:
+            self.num_layers = config.get('num_layers', self.num_layers)
+            self.hidden_size = config.get('hidden_size', self.hidden_size)
+            forward_states = config.get('forward_layers', [])
+            for layer, layer_state in zip(self.forward_layers, forward_states):
                 layer.load_state_dict(layer_state)
+            if self.bidirectional:
+                backward_states = config.get('backward_layers', [])
+                for layer, layer_state in zip(self.backward_layers, backward_states):
+                    layer.load_state_dict(layer_state)

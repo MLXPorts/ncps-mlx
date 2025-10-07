@@ -81,17 +81,9 @@ class Layer(ABC):
 Create MLX implementations and register them:
 
 ```python
-# ncps/mlx/layers.py
-from ncps.backend import NCPSBackend
-from ncps.layers.base import Layer
+from mlx import nn
 
-class MLXDense(Layer):
-    def __init__(self, units, **kwargs):
-        # MLX-specific implementation
-        pass
-
-# Register implementation
-NCPSBackend.register("mlx", "Dense", MLXDense)
+NCPSBackend.register("mlx", "Dense", nn.Linear)
 ```
 
 ### 2. Default Backend Configuration
@@ -139,16 +131,10 @@ class Dense:
 Organize backend implementations:
 
 ```python
-# ncps/mlx/layers/dense.py
-import mlx.core as mx
-from ncps.layers.base import Layer
+from mlx import nn
 
-class MLXDense(Layer):
-    # MLX-specific implementation
-    pass
-
-# Register with backend
-NCPSBackend.register("mlx", "Dense", MLXDense)
+# Register the native MLX layer directly
+NCPSBackend.register("mlx", "Dense", nn.Linear)
 ```
 
 ## Usage Examples

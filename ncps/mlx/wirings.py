@@ -1,9 +1,9 @@
 """Neural Circuit Policy wiring patterns implemented for MLX."""
 
+from typing import List, Optional, Dict, Any
+
 import mlx.core as mx
 import mlx.nn as nn
-import numpy as np
-from typing import List, Optional, Dict, Any, Tuple
 
 
 class Wiring(nn.Module):
@@ -18,6 +18,7 @@ class Wiring(nn.Module):
         self.input_dim = None
         self.output_dim = None
         self.state_size = units
+        self._key: Optional[mx.array] = None
 
     @property
     def num_layers(self) -> int:
@@ -40,6 +41,46 @@ class Wiring(nn.Module):
             )
         if self.input_dim is None:
             self.set_input_dim(input_dim)
+
+    # ------------------------------------------------------------------
+    # Random helpers
+    # ------------------------------------------------------------------
+    def _init_random_state(self, seed: int):
+        self._key = mx.random.key(seed)
+
+    def _split_key(self) -> mx.array:
+        if self._key is None:
+            raise RuntimeError("Random key is not initialised.")
+        self._key, subkey = mx.random.split(self._key, 2)
+        return subkey
+
+    def _choice(
+        self,
+        population,
+        size: int,
+        *,
+        replace: bool,
+    ):
+        pop = list(population)
+        if size == 0:
+            return []
+        if not replace and size > len(pop):
+            raise ValueError("Cannot sample more elements than population without replacement")
+
+        subkey = self._split_key()
+        if replace:
+            indices = mx.random.randint(0, len(pop), shape=(size,), key=subkey).tolist()
+            return [pop[int(idx)] for idx in indices]
+
+        scores = mx.random.uniform(shape=(len(pop),), key=subkey)
+        order = mx.argsort(scores)
+        return [pop[int(idx)] for idx in order[:size].tolist()]
+
+    def _choice_one(self, population, *, replace: bool) -> int:
+        return self._choice(population, 1, replace=replace)[0]
+
+    def _sample_polarity(self) -> int:
+        return self._choice([-1, 1, 1], 1, replace=True)[0]
 
     def erev_initializer(self) -> mx.array:
         """Initialize reversal potentials for internal connections."""
@@ -73,10 +114,7 @@ class Wiring(nn.Module):
         if polarity not in [-1, 1]:
             raise ValueError(f"Invalid polarity {polarity}")
         
-        # Convert to numpy for modification then back to MLX
-        adj_matrix = self.adjacency_matrix.tolist()
-        adj_matrix[src][dest] = float(polarity)  # Convert to float
-        self.adjacency_matrix = mx.array(adj_matrix, dtype=mx.float32)
+        self.adjacency_matrix[src, dest] = float(polarity)
 
     def add_sensory_synapse(self, src: int, dest: int, polarity: int):
         """Add a synapse from sensory input to internal neuron."""
@@ -89,10 +127,7 @@ class Wiring(nn.Module):
         if polarity not in [-1, 1]:
             raise ValueError(f"Invalid polarity {polarity}")
         
-        # Convert to numpy for modification then back to MLX
-        sensory_matrix = self.sensory_adjacency_matrix.tolist()
-        sensory_matrix[src][dest] = float(polarity)  # Convert to float
-        self.sensory_adjacency_matrix = mx.array(sensory_matrix, dtype=mx.float32)
+        self.sensory_adjacency_matrix[src, dest] = float(polarity)
 
     def get_config(self) -> Dict[str, Any]:
         """Get configuration for serialization."""
@@ -121,12 +156,14 @@ class Wiring(nn.Module):
     @property
     def synapse_count(self) -> int:
         """Count internal synapses."""
-        return int(mx.sum(mx.abs(self.adjacency_matrix)))
+        return int(mx.sum(mx.abs(self.adjacency_matrix)).tolist())
 
     @property
     def sensory_synapse_count(self) -> int:
         """Count sensory synapses."""
-        return int(mx.sum(mx.abs(self.sensory_adjacency_matrix)))
+        if self.sensory_adjacency_matrix is None:
+            return 0
+        return int(mx.sum(mx.abs(self.sensory_adjacency_matrix)).tolist())
 
 
 class FullyConnected(Wiring):
@@ -144,14 +181,14 @@ class FullyConnected(Wiring):
             output_dim = units
         self.self_connections = self_connections
         self.set_output_dim(output_dim)
-        self._rng = np.random.default_rng(erev_init_seed)
         self._erev_init_seed = erev_init_seed
-        
+        self._init_random_state(erev_init_seed)
+
         for src in range(self.units):
             for dest in range(self.units):
                 if src == dest and not self_connections:
                     continue
-                polarity = self._rng.choice([-1, 1, 1])
+                polarity = self._sample_polarity()
                 self.add_synapse(src, dest, polarity)
 
     def build(self, input_dim: int):
@@ -159,7 +196,7 @@ class FullyConnected(Wiring):
         super().build(input_dim)
         for src in range(self.input_dim):
             for dest in range(self.units):
-                polarity = self._rng.choice([-1, 1, 1])
+                polarity = self._sample_polarity()
                 self.add_sensory_synapse(src, dest, polarity)
 
     def get_config(self) -> Dict[str, Any]:
@@ -203,23 +240,22 @@ class Random(Wiring):
 
         if not 0.0 <= sparsity_level < 1.0:
             raise ValueError(f"Invalid sparsity level {sparsity_level}")
-            
-        self._rng = np.random.default_rng(random_seed)
-        self._random_seed = random_seed
 
-        number_of_synapses = int(np.round(units * units * (1 - sparsity_level)))
+        self._random_seed = random_seed
+        self._init_random_state(random_seed)
+
+        number_of_synapses = int(round(units * units * (1 - sparsity_level)))
         all_synapses = [(src, dest) for src in range(units) for dest in range(units)]
-        
-        used_synapses = self._rng.choice(all_synapses, size=number_of_synapses, replace=False)
-        for src, dest in used_synapses:
-            polarity = self._rng.choice([-1, 1, 1])
+
+        for src, dest in self._choice(all_synapses, number_of_synapses, replace=False):
+            polarity = self._sample_polarity()
             self.add_synapse(src, dest, polarity)
 
     def build(self, input_dim: int):
         """Build random sensory connections."""
         super().build(input_dim)
         number_of_sensory_synapses = int(
-            np.round(self.input_dim * self.units * (1 - self.sparsity_level))
+            round(self.input_dim * self.units * (1 - self.sparsity_level))
         )
         all_sensory_synapses = [
             (src, dest) 
@@ -227,13 +263,12 @@ class Random(Wiring):
             for dest in range(self.units)
         ]
         
-        used_sensory_synapses = self._rng.choice(
-            all_sensory_synapses, 
-            size=number_of_sensory_synapses, 
-            replace=False
-        )
-        for src, dest in used_sensory_synapses:
-            polarity = self._rng.choice([-1, 1, 1])
+        for src, dest in self._choice(
+            all_sensory_synapses,
+            number_of_sensory_synapses,
+            replace=False,
+        ):
+            polarity = self._sample_polarity()
             self.add_sensory_synapse(src, dest, polarity)
 
     def get_config(self) -> Dict[str, Any]:
@@ -275,7 +310,7 @@ class NCP(Wiring):
     ):
         super().__init__(inter_neurons + command_neurons + motor_neurons)
         self.set_output_dim(motor_neurons)
-        self._rng = np.random.RandomState(seed)
+        self._init_random_state(seed)
         self._num_inter_neurons = inter_neurons
         self._num_command_neurons = command_neurons
         self._num_motor_neurons = motor_neurons
@@ -356,13 +391,13 @@ class NCP(Wiring):
         unreachable = set(self._inter_neurons)
         
         for src in self._sensory_neurons:
-            for dest in self._rng.choice(
-                self._inter_neurons, 
-                size=self._sensory_fanout, 
-                replace=False
+            for dest in self._choice(
+                self._inter_neurons,
+                self._sensory_fanout,
+                replace=False,
             ):
                 unreachable.discard(dest)
-                polarity = self._rng.choice([-1, 1])
+                polarity = self._choice([-1, 1], 1, replace=True)[0]
                 self.add_sensory_synapse(src, dest, polarity)
 
         # Connect any unreached neurons
@@ -372,12 +407,12 @@ class NCP(Wiring):
                 1
             )
             for dest in unreachable:
-                for src in self._rng.choice(
+                for src in self._choice(
                     self._sensory_neurons,
-                    size=min(mean_fanin, self._num_sensory_neurons),
-                    replace=False
+                    min(mean_fanin, self._num_sensory_neurons),
+                    replace=False,
                 ):
-                    polarity = self._rng.choice([-1, 1])
+                    polarity = self._choice([-1, 1], 1, replace=True)[0]
                     self.add_sensory_synapse(src, dest, polarity)
 
     def _build_inter_to_command_layer(self):
@@ -385,13 +420,13 @@ class NCP(Wiring):
         unreachable = set(self._command_neurons)
         
         for src in self._inter_neurons:
-            for dest in self._rng.choice(
+            for dest in self._choice(
                 self._command_neurons,
-                size=self._inter_fanout,
-                replace=False
+                self._inter_fanout,
+                replace=False,
             ):
                 unreachable.discard(dest)
-                polarity = self._rng.choice([-1, 1])
+                polarity = self._choice([-1, 1], 1, replace=True)[0]
                 self.add_synapse(src, dest, polarity)
 
         # Connect any unreached neurons
@@ -401,20 +436,20 @@ class NCP(Wiring):
                 1
             )
             for dest in unreachable:
-                for src in self._rng.choice(
+                for src in self._choice(
                     self._inter_neurons,
-                    size=min(mean_fanin, self._num_inter_neurons),
-                    replace=False
+                    min(mean_fanin, self._num_inter_neurons),
+                    replace=False,
                 ):
-                    polarity = self._rng.choice([-1, 1])
+                    polarity = self._choice([-1, 1], 1, replace=True)[0]
                     self.add_synapse(src, dest, polarity)
 
     def _build_recurrent_command_layer(self):
         """Build recurrent connections in command layer."""
         for _ in range(self._recurrent_command_synapses):
-            src = self._rng.choice(self._command_neurons)
-            dest = self._rng.choice(self._command_neurons)
-            polarity = self._rng.choice([-1, 1])
+            src = self._choice(self._command_neurons, 1, replace=True)[0]
+            dest = self._choice(self._command_neurons, 1, replace=True)[0]
+            polarity = self._choice([-1, 1], 1, replace=True)[0]
             self.add_synapse(src, dest, polarity)
 
     def _build_command_to_motor_layer(self):
@@ -422,13 +457,13 @@ class NCP(Wiring):
         unreachable = set(self._command_neurons)
         
         for dest in self._motor_neurons:
-            for src in self._rng.choice(
+            for src in self._choice(
                 self._command_neurons,
-                size=self._motor_fanin,
-                replace=False
+                self._motor_fanin,
+                replace=False,
             ):
                 unreachable.discard(src)
-                polarity = self._rng.choice([-1, 1])
+                polarity = self._choice([-1, 1], 1, replace=True)[0]
                 self.add_synapse(src, dest, polarity)
 
         # Connect any unreached neurons
@@ -438,12 +473,12 @@ class NCP(Wiring):
                 1
             )
             for src in unreachable:
-                for dest in self._rng.choice(
+                for dest in self._choice(
                     self._motor_neurons,
-                    size=min(mean_fanout, self._num_motor_neurons),
-                    replace=False
+                    min(mean_fanout, self._num_motor_neurons),
+                    replace=False,
                 ):
-                    polarity = self._rng.choice([-1, 1])
+                    polarity = self._choice([-1, 1], 1, replace=True)[0]
                     self.add_synapse(src, dest, polarity)
 
     def get_config(self) -> Dict[str, Any]:
