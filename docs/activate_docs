@@ -1,0 +1,4 @@
+#!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/.venv/bin/activate"
+export PATH="$PATH:$(dirname "${BASH_SOURCE[0]}")/tools"
+echo "Documentation environment activated. Use 'doctools' to manage documentation."

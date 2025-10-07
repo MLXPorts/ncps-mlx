@@ -1,0 +1,17 @@
+sphinx>=4.5.0
+sphinx-rtd-theme>=1.0.0
+sphinx-copybutton>=0.5.0
+sphinx-design>=0.3.0
+sphinx-gallery>=0.11.0
+sphinx-autodoc-typehints>=1.19.0
+myst-parser>=0.18.0
+numpydoc>=1.4.0
+numpy>=1.21.0
+pandas>=1.4.0
+loky>=3.0.0
+tqdm>=4.65.0
+distributed>=2023.3.0
+furo>=2023.3.27
+torch>=2.0.0
+tensorflow>=2.12.0
+mlx>=0.0.8  # Added for MLX support

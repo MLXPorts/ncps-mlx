@@ -1,0 +1,10 @@
+mlx>=0.1.0
+numpy>=1.19.2
+
+# Optional dependencies for visualization
+matplotlib>=3.0.0
+networkx>=2.5
+
+# Development dependencies
+pytest>=6.0
+flake8>=3.8

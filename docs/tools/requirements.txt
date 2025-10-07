@@ -1,0 +1,32 @@
+# Documentation tools dependencies
+sphinx>=4.5.0
+sphinx-rtd-theme>=1.0.0
+sphinx-copybutton>=0.5.0
+sphinx-design>=0.3.0
+sphinx-gallery>=0.11.0
+sphinx-autodoc-typehints>=1.19.0
+myst-parser>=0.18.0
+docutils>=0.18.0
+rst2pdf>=0.99
+pandoc>=2.19
+sphinx-autobuild>=2021.3.14
+
+# Code formatting dependencies
+black>=22.3.0
+jsbeautifier>=1.14.0
+cssbeautifier>=1.14.0
+sqlparse>=0.4.2
+yamllint>=1.26.3
+beautifulsoup4>=4.9.3
+shfmt-py>=0.2.0
+
+# Testing and validation
+pytest>=7.0.0
+mypy>=0.950
+pylint>=2.14.0
+coverage>=6.4.0
+
+# Utilities
+tqdm>=4.64.0
+colorama>=0.4.5
+watchdog>=2.1.9
