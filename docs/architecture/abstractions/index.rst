@@ -110,9 +110,8 @@ layer = Dense(
     64,
     layer_technology="mlx.nn",
     tensor_backend="mlx",
-platform="Metal"
-))))))))))))))))
-
+    platform="Metal"
+)
 Benefits
 --------
 
