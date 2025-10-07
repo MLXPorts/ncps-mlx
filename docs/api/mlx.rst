@@ -12,7 +12,7 @@ LiquidCell
 
     Base class for liquid neuron cells. Provides the foundational interface and shared functionality for implementing liquid neuron cells with wiring support.
 
-    .. py:method:: __init__(wiring, activation: str = "tanh", backbone_units: Optional[List[int = None, backbone_layers: int = 0, backbone_dropout: float = 0.0, initializer: Optional[InitializerCallable] = None
+    .. py:method:: __init__(wiring, activation: str = "tanh", backbone_units: Optional[List[int]] = None, backbone_layers: int = 0, backbone_dropout: float = 0.0, initializer: Optional[InitializerCallable] = None)
 
         Initialize the liquid cell.
 
