@@ -4,7 +4,6 @@ import json
 import time
 from typing import Dict, List, Optional, Union
 import matplotlib.pyplot as plt
-import numpy as np
 
 from ncps.tests.configs.device_configs import get_device_config
 
