@@ -16,12 +16,12 @@ from ncps.datasets.icra2020_lidar_collision_avoidance import load_data
 
 
 class LidarCfC(nn.Module):
-    def __init__(self, hidden_units: int = 64) -> None:
+    def __init__(self, input_dim: int, output_dim: int = 1, hidden_units: int = 64) -> None:
         super().__init__()
         self.rnn = CfC(
-            input_size=1,
+            input_size=input_dim,
             units=hidden_units,
-            proj_size=1,
+            proj_size=output_dim,
             return_sequences=True,
             batch_first=True,
         )
@@ -97,7 +97,12 @@ def run_experiment(
     else:
         train_x, train_y, test_x, test_y = dataset
 
-    model = LidarCfC()
+    train_x = train_x.reshape(train_x.shape[0], train_x.shape[1], -1)
+    train_y = train_y.reshape(train_y.shape[0], train_y.shape[1], -1)
+    test_x = test_x.reshape(test_x.shape[0], test_x.shape[1], -1)
+    test_y = test_y.reshape(test_y.shape[0], test_y.shape[1], -1)
+
+    model = LidarCfC(input_dim=train_x.shape[-1], output_dim=train_y.shape[-1])
     train_metrics = train_model(model, train_x, train_y, epochs=epochs, batch_size=batch_size)
     test_rmse = evaluate(model, test_x, test_y)
     print(f"Test RMSE: {test_rmse:.4f}")
