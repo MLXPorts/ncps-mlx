@@ -9,12 +9,13 @@ import mlx.nn as nn
 
 from .hyperprofiles import HyperProfile, load_profile
 
-class LTCSECell(nn.Module):
-"""MLX implementation of the LTC-SE LTCCell (Bidollahkhani et al., 2023).
 
-This derivative work reimplements the TensorFlow LTCCell published in
-the LTC-SE repository (Apache-2.0, Hasani & Bidollahkhani et al.).
-"""
+class LTCSECell(nn.Module):
+    """MLX implementation of the LTC-SE LTCCell (Bidollahkhani et al., 2023).
+
+    This derivative work reimplements the TensorFlow LTCCell published in
+    the LTC-SE repository (Apache-2.0, Hasani & Bidollahkhani et al.).
+    """
 
     def __init__(
         self,

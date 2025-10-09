@@ -17,6 +17,7 @@ from .ltc4_cell import LTC4Cell
 from .ltc4 import LTC4
 from .ltcse_cell import LTCSECell
 from .hyperprofiles import load_profile, HyperProfile
+from .node import NODE
 from .node_se_cell import NODESECell
 from . import wirings
 
@@ -37,6 +38,7 @@ __all__ = [
     "LTC4Cell",
     "LTC4",
     "LTCSECell",
+    "NODE",
     "NODESECell",
     "HyperProfile",
     "load_profile",

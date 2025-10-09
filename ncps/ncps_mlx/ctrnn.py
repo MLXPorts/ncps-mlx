@@ -7,7 +7,7 @@ from typing import Optional
 import mlx.core as mx
 import mlx.nn as nn
 
-from .ctrnn_cell import CTRNNCell
+from .ctrnn_se_cell import CTRNNSECell
 
 
 class CTRNN(nn.Module):
@@ -24,7 +24,8 @@ class CTRNN(nn.Module):
         self.batch_first = batch_first
         self.return_sequences = return_sequences
         self.return_state = return_state
-        self.cell = CTRNNCell(units=units, activation=activation, input_dim=input_size)
+        self.cell = CTRNNSECell(units=units)
+        self.cell._ensure_parameters(input_size)
 
     def __call__(self, inputs: mx.array, hx: Optional[mx.array] = None, timespans: Optional[mx.array] = None):
         is_batched = inputs.ndim == 3
@@ -47,15 +48,14 @@ class CTRNN(nn.Module):
         outputs = []
         for t in range(seq_len):
             step_input = inputs[:, t, :] if self.batch_first else inputs[t, :, :]
-            ts = 1.0 if timespans is None else (timespans[:, t] if self.batch_first else timespans[t, :])
-            h_state, _ = self.cell(step_input, h_state, time=ts)
+            output, h_state = self.cell(step_input, h_state)
             if self.return_sequences:
-                outputs.append(h_state)
+                outputs.append(output)
 
         if self.return_sequences:
             readout = mx.stack(outputs, axis=seq_dim)
         else:
-            readout = h_state
+            readout = output
 
         if not is_batched:
             readout = mx.squeeze(readout, axis=batch_dim)
