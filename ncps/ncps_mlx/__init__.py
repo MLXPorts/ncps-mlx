@@ -4,6 +4,7 @@ from .ltc_cell import LTCCell
 from .ltc import LTC
 from .cfc_cell import CfCCell
 from .cfc import CfC
+from .cfc_profiled import CfCProfiled
 from .wired_cfc_cell import WiredCfCCell
 from .ctgru_cell import CTGRUCell
 from .ctgru import CTGRU
@@ -26,6 +27,7 @@ __all__ = [
     "LTC",
     "CfCCell",
     "CfC",
+    "CfCProfiled",
     "WiredCfCCell",
     "CTGRUCell",
     "CTGRU",

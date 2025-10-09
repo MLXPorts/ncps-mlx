@@ -11,28 +11,21 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps import CfC
+from ncps import CfCProfiled
 from ncps.datasets.icra2020_lidar_collision_avoidance import load_data
 
 
 class LidarCfC(nn.Module):
-    def __init__(self, input_dim: int, output_dim: int = 1, hidden_units: int = 64) -> None:
+    def __init__(self, input_dim: int, output_dim: int = 1) -> None:
         super().__init__()
-        self.rnn = CfC(
-            input_size=input_dim,
-            units=hidden_units,
-            proj_size=output_dim,
-            return_sequences=True,
-            batch_first=True,
-        )
+        overrides = {"proj_size": output_dim}
+        self.model = CfCProfiled(input_size=input_dim, profile="cfc_icra", overrides=overrides)
 
     def __call__(self, inputs: mx.array) -> mx.array:
-        outputs, _ = self.rnn(inputs)
-        return outputs
+        return self.model(inputs)
 
     def apply_constraints(self) -> None:
-        if hasattr(self.rnn.rnn_cell, "apply_weight_constraints"):
-            self.rnn.rnn_cell.apply_weight_constraints()
+        self.model.apply_constraints()
 
 
 def prepare_dataset(seq_len: int = 32) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
