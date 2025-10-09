@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Union
 
 import mlx.core as mx
 import mlx.nn as nn
 
 from .ctgru_se_cell import CTGRUSECell
+from .hyperprofiles import HyperProfile
 
 
 class CTGRU(nn.Module):
@@ -19,12 +20,13 @@ class CTGRU(nn.Module):
         return_state: bool = False,
         batch_first: bool = True,
         cell_clip: Optional[float] = None,
+        profile: Optional[Union[str, HyperProfile]] = None,
     ) -> None:
         super().__init__()
         self.batch_first = batch_first
         self.return_sequences = return_sequences
         self.return_state = return_state
-        self.cell = CTGRUSECell(units=units, profile=None)
+        self.cell = CTGRUSECell(units=units, profile=profile)
         self.cell._ensure_parameters(input_size)
 
     def __call__(self, inputs: mx.array, hx: Optional[mx.array] = None, timespans: Optional[mx.array] = None):

@@ -5,8 +5,8 @@ Original code released under Apache-2.0 in the LTC-SE repository.
 
 from __future__ import annotations
 
-import numpy as np
 from typing import Optional
+import math
 
 import mlx.core as mx
 import mlx.nn as nn
@@ -32,18 +32,19 @@ class CTGRUSECell(nn.Module):
         self.linear_tau_s: Optional[nn.Linear] = None
         self.linear_detect: Optional[nn.Linear] = None
         self._input_dim: Optional[int] = None
+        self._softmax = nn.Softmax()
 
         # Pre-compute ln(tau) table and decay factors
         tau = 1.0
         ln_tau_values = []
         for _ in range(self.M):
-            ln_tau_values.append(np.log(tau))
+            ln_tau_values.append(math.log(tau))
             tau = tau * (10.0 ** 0.5)
-        self._ln_tau_table_np = np.array(ln_tau_values, dtype=np.float32)
-        self._ln_tau_table = mx.array(self._ln_tau_table_np.reshape(1, 1, self.M))
-        with np.errstate(divide="ignore"):
-            decay = np.exp(-1.0 / self._ln_tau_table_np)
-        self._decay = mx.array(decay.reshape(1, 1, self.M))
+        ln_tau_table = mx.array([[ln_tau_values]], dtype=mx.float32)  # [1,1,M]
+        self._ln_tau_table = ln_tau_table
+        # decay = exp(-1 / ln_tau) with safe handling when ln_tau==0 (not the case here)
+        decay_vals = [math.exp(-1.0 / v) if v != 0.0 else 0.0 for v in ln_tau_values]
+        self._decay = mx.array([[decay_vals]], dtype=mx.float32)
 
     def _ensure_parameters(self, input_dim: int) -> None:
         if self._input_dim == input_dim and self.linear_tau_r is not None:
@@ -70,7 +71,7 @@ class CTGRUSECell(nn.Module):
         ln_tau_r = self.linear_tau_r(fused_input)
         ln_tau_r = mx.reshape(ln_tau_r, (batch_size, self.units, self.M))
         sf_input_r = -(ln_tau_r - self._ln_tau_table) ** 2
-        rki = mx.softmax(sf_input_r, axis=2)
+        rki = self._softmax(sf_input_r)
 
         q_input = mx.sum(rki * h_hat, axis=2)
         reset_value = mx.concatenate([inputs, q_input], axis=1)
@@ -80,7 +81,7 @@ class CTGRUSECell(nn.Module):
         ln_tau_s = self.linear_tau_s(fused_input)
         ln_tau_s = mx.reshape(ln_tau_s, (batch_size, self.units, self.M))
         sf_input_s = -(ln_tau_s - self._ln_tau_table) ** 2
-        ski = mx.softmax(sf_input_s, axis=2)
+        ski = self._softmax(sf_input_s)
 
         h_hat_next = ((1 - ski) * h_hat + ski * qk) * self._decay
 

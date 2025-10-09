@@ -39,11 +39,19 @@ class CfCProfiled(nn.Module):
             **config,
         )
 
-    def __call__(self, inputs: mx.array) -> mx.array:
-        outputs, _ = self.model(inputs)
+    def __call__(
+        self,
+        inputs: mx.array,
+        hx: Optional[mx.array] = None,
+        timespans: Optional[mx.array] = None,
+        *,
+        return_state: bool = False,
+    ):
+        outputs, state = self.model(inputs, hx=hx, timespans=timespans)
+        if return_state:
+            return outputs, state
         return outputs
 
     def apply_constraints(self) -> None:
         if hasattr(self.model, "rnn_cell") and hasattr(self.model.rnn_cell, "apply_weight_constraints"):
             self.model.rnn_cell.apply_weight_constraints()
-

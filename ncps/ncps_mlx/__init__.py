@@ -18,6 +18,7 @@ from .ltc4_cell import LTC4Cell
 from .ltc4 import LTC4
 from .ltcse_cell import LTCSECell
 from .hyperprofiles import load_profile, HyperProfile
+from .icra_cfc_cell import IcraCfCCell
 from .node import NODE
 from .node_se_cell import NODESECell
 from . import wirings
@@ -45,4 +46,5 @@ __all__ = [
     "HyperProfile",
     "load_profile",
     "wirings",
+    "IcraCfCCell",
 ]

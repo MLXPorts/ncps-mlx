@@ -94,11 +94,13 @@ class WiredCfCCell(nn.Module):
 
     @property
     def synapse_count(self) -> int:
-        return int(mx.sum(mx.abs(self._wiring.adjacency_matrix)).item())
+        # Device scalar (no host conversion)
+        return mx.sum(mx.abs(self._wiring.adjacency_matrix))
 
     @property
     def sensory_synapse_count(self) -> int:
-        return int(mx.sum(mx.abs(self._wiring.adjacency_matrix)).item())
+        # Device scalar (no host conversion)
+        return mx.sum(mx.abs(self._wiring.adjacency_matrix))
 
     def __call__(self, inputs: mx.array, hx: mx.array, timespans) -> tuple[mx.array, mx.array]:
         new_states = []

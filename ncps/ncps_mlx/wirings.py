@@ -222,13 +222,13 @@ class Wiring:
     # ------------------------------------------------------------------
     @property
     def synapse_count(self) -> int:
-        return int(mx.sum(mx.abs(self.adjacency_matrix)).item())
+        return mx.sum(mx.abs(self.adjacency_matrix))
 
     @property
     def sensory_synapse_count(self) -> int:
         if self.sensory_adjacency_matrix is None:
-            return 0
-        return int(mx.sum(mx.abs(self.sensory_adjacency_matrix)).item())
+            return mx.array(0, dtype=mx.int32)
+        return mx.sum(mx.abs(self.sensory_adjacency_matrix))
 
 
 class FullyConnected(Wiring):

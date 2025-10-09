@@ -48,13 +48,14 @@ def train_for_epochs(
     value_and_grad = nn.value_and_grad(state.model, _loss_fn)
 
     for _ in range(epochs):
-        total_loss = 0.0
+        total_loss = mx.array(0.0, dtype=mx.float32)
         count = 0
         for inputs, targets in dataset:
             loss, grads = value_and_grad(state.model, inputs, targets)
             state.optimizer.update(state.model, grads)
             mx.eval(state.model.parameters(), state.optimizer.state)
-            total_loss += float(loss.item())
+            total_loss = total_loss + loss
             count += 1
-        mean_loss = total_loss / max(1, count)
+        denom = mx.array(max(1, count), dtype=mx.float32)
+        mean_loss = total_loss / denom
         yield mean_loss

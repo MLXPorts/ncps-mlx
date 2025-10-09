@@ -5,7 +5,7 @@ Based on Bidollahkhani et al., 2023 (Apache-2.0, LTC-SE repository).
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Union
 
 import mlx.core as mx
 import mlx.nn as nn
@@ -17,11 +17,16 @@ class CTRNNSECell(nn.Module):
     def __init__(
         self,
         units: int,
-        profile: Optional[HyperProfile] = None,
+        profile: Optional[Union[str, HyperProfile]] = None,
     ) -> None:
         super().__init__()
         self.units = units
-        self._profile = profile or load_profile("ctrnn_tf")
+        if profile is None:
+            self._profile = load_profile("ctrnn_tf")
+        elif isinstance(profile, str):
+            self._profile = load_profile(profile)
+        else:
+            self._profile = profile
         extras = self._profile.extras
 
         self._unfolds = int(self._profile.ode_unfolds or extras.get("unfolds", 6))

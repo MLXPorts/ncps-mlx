@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Union
 
 import mlx.core as mx
 import mlx.nn as nn
 
 from .ctrnn_se_cell import CTRNNSECell
+from .hyperprofiles import HyperProfile
 
 
 class CTRNN(nn.Module):
@@ -19,12 +20,13 @@ class CTRNN(nn.Module):
         return_sequences: bool = True,
         return_state: bool = False,
         batch_first: bool = True,
+        profile: Optional[Union[str, HyperProfile]] = None,
     ) -> None:
         super().__init__()
         self.batch_first = batch_first
         self.return_sequences = return_sequences
         self.return_state = return_state
-        self.cell = CTRNNSECell(units=units)
+        self.cell = CTRNNSECell(units=units, profile=profile)
         self.cell._ensure_parameters(input_size)
 
     def __call__(self, inputs: mx.array, hx: Optional[mx.array] = None, timespans: Optional[mx.array] = None):
