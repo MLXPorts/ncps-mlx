@@ -1,4 +1,7 @@
-"""Continuous-time GRU matching the LTC-SE TensorFlow implementation."""
+"""Continuous-time GRU ported from LTC-SE (Bidollahkhani et al., 2023).
+
+Original code released under Apache-2.0 in the LTC-SE repository.
+"""
 
 from __future__ import annotations
 
@@ -88,4 +91,3 @@ class CTGRUSECell(nn.Module):
         state_next = mx.reshape(h_hat_next, (batch_size, self.units * self.M))
 
         return h_next, state_next
-

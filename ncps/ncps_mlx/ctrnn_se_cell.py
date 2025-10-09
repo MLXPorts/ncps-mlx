@@ -1,4 +1,7 @@
-"""CTRNN cell implementation matching the LTC-SE TensorFlow code."""
+"""MLX CTRNN mirroring LTC-SE's TensorFlow implementation.
+
+Based on Bidollahkhani et al., 2023 (Apache-2.0, LTC-SE repository).
+"""
 
 from __future__ import annotations
 
@@ -72,4 +75,3 @@ class CTRNNSECell(nn.Module):
                 state = mx.clip(state, -self._cell_clip, self._cell_clip)
 
         return state, state
-

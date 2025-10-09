@@ -1,4 +1,7 @@
-"""Neural ODE cell mirroring the LTC-SE TensorFlow implementation."""
+"""MLX Neural-ODE cell derived from the LTC-SE TensorFlow code.
+
+Attribution: Bidollahkhani et al., 2023 (Apache-2.0).
+"""
 
 from __future__ import annotations
 
@@ -58,4 +61,3 @@ class NODESECell(nn.Module):
                 state = mx.clip(state, -self._cell_clip, self._cell_clip)
 
         return state, state
-
