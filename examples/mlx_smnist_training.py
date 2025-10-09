@@ -18,8 +18,8 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps.mlx import LTC
-from ncps.mlx.wirings import FullyConnected
+from ncps import LTC
+from ncps.wirings import FullyConnected
 
 MNIST_URL = "https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz"
 DATA_ROOT = Path("datasets/data/smnist")
@@ -125,24 +125,26 @@ class SMnistLTCClassifier(nn.Module):
         input_mapping: str = "affine",
     ) -> None:
         super().__init__()
+        if solver not in {"semi_implicit", "explicit", "rk4"}:
+            raise ValueError(f"Unsupported solver '{solver}' for MLX LTC port")
+
         wiring = FullyConnected(units=hidden_dim, output_dim=hidden_dim)
         wiring.build(input_dim)
         self.ltc = LTC(
-            wiring=wiring,
+            input_size=input_dim,
+            units=wiring,
             return_sequences=False,
-            return_state=False,
-            ode_solver=solver,
-            ode_solver_unfolds=ode_unfolds,
             input_mapping=input_mapping,
+            ode_unfolds=ode_unfolds,
         )
         self.readout = nn.Linear(hidden_dim, num_classes)
 
     def __call__(self, inputs: mx.array) -> mx.array:
-        features = self.ltc(inputs)
+        features, _ = self.ltc(inputs)
         return self.readout(features)
 
     def apply_constraints(self) -> None:
-        self.ltc.apply_constraints()
+        self.ltc.apply_weight_constraints()
 
 
 def accuracy_from_logits(logits: mx.array, labels: mx.array) -> float:

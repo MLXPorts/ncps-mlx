@@ -1,0 +1,11 @@
+{
+  "name": "tensorflow_ctgru",
+  "description": "CTGRU configuration matching experiments_with_ltcs/ctrnn_model.py",
+  "ode_unfolds": null,
+  "initializers": {},
+  "constraints": {},
+  "extras": {
+    "M": 8,
+    "cell_clip": -1.0
+  }
+}

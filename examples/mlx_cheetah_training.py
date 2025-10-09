@@ -19,8 +19,8 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps.mlx import CfC
-from ncps.mlx.wirings import FullyConnected
+from ncps import CfC
+from ncps.wirings import FullyConnected
 
 DATA_ROOT = Path("datasets/data/cheetah")
 
@@ -118,19 +118,22 @@ class CheetahPredictor(nn.Module):
     def __init__(self, hidden_dim: int = 128, output_dim: int = 17, input_dim: int = 17) -> None:
         super().__init__()
         wiring = FullyConnected(units=hidden_dim, output_dim=output_dim)
-        wiring.build(input_dim=input_dim)
+        wiring.build(input_dim)
         self.cfc = CfC(
-            wiring=wiring,
+            input_size=input_dim,
+            units=wiring,
             return_sequences=True,
-            backbone_units=[hidden_dim],
+            backbone_units=hidden_dim,
             backbone_layers=1,
             backbone_dropout=0.0,
         )
         _ = self.cfc(mx.zeros((1, 1, input_dim)))
-        mx.eval(self.cfc.parameters())
+        self.readout = nn.Linear(hidden_dim, output_dim)
+        mx.eval(self.cfc.parameters(), self.readout.parameters())
 
     def __call__(self, inputs: mx.array) -> mx.array:
-        return self.cfc(inputs)
+        outputs, _ = self.cfc(inputs)
+        return self.readout(outputs)
 
 
 def mse_loss(predictions: mx.array, targets: mx.array) -> mx.array:
