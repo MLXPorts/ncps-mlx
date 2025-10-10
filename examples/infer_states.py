@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import mlx.core as mx
 
-from ncps_mlx import CfC
-from ncps_mlx.wirings import AutoNCP
+from ncps.mlx import CfC
+from ncps.wirings import AutoNCP
 
 from mlx_common import make_sine_dataset
 

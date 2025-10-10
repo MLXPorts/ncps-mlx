@@ -1,7 +1,7 @@
 import mlx.core as mx
 import mlx.nn as nn
 
-from ncps_mlx import (
+from ncps.mlx import (
     LTCCell,
     LTC,
     CfCCell,
@@ -13,7 +13,7 @@ from ncps_mlx import (
     LTC4Cell,
     LTC4,
 )
-from ncps_mlx.wirings import AutoNCP, FullyConnected
+from ncps.wirings import AutoNCP, FullyConnected
 
 
 def test_ltc_cell_forward():

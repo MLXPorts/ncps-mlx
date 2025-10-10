@@ -14,7 +14,7 @@ import mlx.core as mx
 import mlx.nn as nn
 
 from ncps import IcraCfCCell
-from ncps.ncps_mlx.datasets.icra2020_lidar_collision_avoidance import load_data
+from ncps.mlx.datasets.icra2020_lidar_collision_avoidance import load_data
 
 
 def build_model(total_input_dim: int) -> IcraCfCCell:

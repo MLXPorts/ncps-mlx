@@ -1,10 +1,6 @@
 """Shared utilities for MLX LTC regression examples."""
 
-from __future__ import annotations
-
 from typing import Callable, Generator, Optional, Tuple
-
-import numpy as np
 
 import mlx.core as mx
 import mlx.nn as nn
@@ -13,11 +9,11 @@ import mlx.optimizers as optim
 from ncps import LTC, wirings
 
 
-ArrayPair = Tuple[np.ndarray, np.ndarray]
+ArrayPair = Tuple[mx.array, mx.array]
 
 
 def series_to_windows(
-    series: np.ndarray,
+    series: mx.array,
     look_back: int,
     horizon: int = 1,
 ) -> ArrayPair:
@@ -34,9 +30,9 @@ def series_to_windows(
         shape [num_samples, horizon].
     """
 
-    data = np.asarray(series, dtype=np.float32)
+    data = mx.array(series, dtype=mx.float32)
     if data.ndim == 1:
-        data = data[:, None]
+        data = mx.expand_dims(data, axis=1)
 
     num_steps, num_features = data.shape
     if num_steps <= look_back + horizon:
@@ -47,31 +43,34 @@ def series_to_windows(
         window = data[idx : idx + look_back]
         future = data[idx + look_back : idx + look_back + horizon]
         inputs.append(window)
-        targets.append(future.squeeze(-1))
+        if future.shape[-1] == 1:
+            targets.append(mx.squeeze(future, axis=-1))
+        else:
+            targets.append(future)
 
-    inputs_arr = np.stack(inputs, axis=0)
-    targets_arr = np.stack(targets, axis=0)
+    inputs_arr = mx.stack(inputs, axis=0)
+    targets_arr = mx.stack(targets, axis=0)
     if targets_arr.ndim == 1:
-        targets_arr = targets_arr[:, None]
-    return inputs_arr, targets_arr.astype(np.float32)
+        targets_arr = mx.expand_dims(targets_arr, axis=1)
+    return inputs_arr, targets_arr.astype(mx.float32)
 
 
 def train_val_split(
-    inputs: np.ndarray,
-    targets: np.ndarray,
+    inputs: mx.array,
+    targets: mx.array,
     ratio: float = 0.8,
 ) -> Tuple[ArrayPair, ArrayPair]:
     """Split windowed data into train/validation sets without shuffling."""
 
-    split_idx = int(len(inputs) * ratio)
+    split_idx = int(inputs.shape[0] * ratio)
     train = (inputs[:split_idx], targets[:split_idx])
     val = (inputs[split_idx:], targets[split_idx:])
     return train, val
 
 
 def batch_iterator(
-    inputs: np.ndarray,
-    targets: np.ndarray,
+    inputs: mx.array,
+    targets: mx.array,
     batch_size: int,
     shuffle: bool = True,
     seed: int = 0,
@@ -79,14 +78,15 @@ def batch_iterator(
     """Yield mini-batches as MLX arrays."""
 
     num_samples = inputs.shape[0]
-    indices = np.arange(num_samples)
-    rng = np.random.default_rng(seed)
+    indices = mx.arange(num_samples)
     if shuffle:
-        rng.shuffle(indices)
+        mx.random.seed(seed)
+        indices = mx.random.permutation(num_samples)
 
     for start in range(0, num_samples, batch_size):
-        batch_idx = indices[start : start + batch_size]
-        yield mx.array(inputs[batch_idx]), mx.array(targets[batch_idx])
+        end = min(start + batch_size, num_samples)
+        batch_idx = indices[start:end]
+        yield inputs[batch_idx], targets[batch_idx]
 
 
 def make_regression_loop(
@@ -98,7 +98,7 @@ def make_regression_loop(
 
     def loss_fn(mdl: nn.Module, xb: mx.array, yb: mx.array) -> mx.array:
         preds = mdl(xb)
-        return mx.mean((preds - yb) ** 2)
+        return mx.mean(mx.power(preds - yb, 2.0))
 
     value_and_grad = nn.value_and_grad(model, loss_fn)
 
@@ -141,12 +141,12 @@ def train_sequence_regressor(
             losses.append(train_step(xb, yb))
 
         if epoch % log_interval == 0 or epoch == 1:
-            train_loss = float(np.mean(losses)) if losses else 0.0
+            train_loss = float(mx.mean(mx.array(losses)).item()) if losses else 0.0
             log_line = f"epoch {epoch:03d} train_loss={train_loss:.6f}"
 
-            if val_inputs is not None and len(val_inputs) > 0:
-                preds = model(mx.array(val_inputs).astype(mx.float32))
-                val_loss = mx.mean((preds - mx.array(val_targets)) ** 2)
+            if val_inputs is not None and val_inputs.shape[0] > 0:
+                preds = model(val_inputs.astype(mx.float32))
+                val_loss = mx.mean(mx.power(preds - val_targets, 2.0))
                 log_line += f" val_loss={float(val_loss.item()):.6f}"
             print(log_line)
 

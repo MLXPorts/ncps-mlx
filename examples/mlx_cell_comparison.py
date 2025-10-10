@@ -4,7 +4,7 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 from ncps.mlx import CTRNN, CTGRU, ELTC
-from ncps.mlx.wirings import FullyConnected
+from ncps.wirings import FullyConnected
 
 # Generate sequence data
 N = 1000  # sequence length

@@ -1,7 +1,5 @@
 """MLX port of the USD/TRY LTC currency predictor (ltc_tensor.py)."""
 
-from __future__ import annotations
-
 import math
 from pathlib import Path
 from typing import Iterator, Tuple
@@ -13,7 +11,7 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps.ncps_mlx.ltcse_cell import LTCSECell
+from ncps.mlx.ltcse_cell import LTCSECell
 
 SEQ_LEN = 32
 BATCH_SIZE = 16
@@ -189,7 +187,7 @@ def run_experiment(epochs: int = EPOCHS, plot: bool = True) -> dict[str, float]:
 
     def loss_fn(mdl: CurrencyLTCPredictor, xb: mx.array, yb: mx.array) -> mx.array:
         preds = mdl(xb)
-        return mx.mean((preds - yb) ** 2)
+        return mx.mean(mx.power(preds - yb, 2.0))
 
     value_and_grad = nn.value_and_grad(model, loss_fn)
 
@@ -212,7 +210,8 @@ def run_experiment(epochs: int = EPOCHS, plot: bool = True) -> dict[str, float]:
             val_targets = mx.array(dataset.valid_y.astype(np.float32))
             val_loss = loss_fn(model, val_inputs, val_targets)
             val_loss_value = float(val_loss.item())
-            print(f"epoch {epoch:03d} train_loss={np.mean(losses):.6f} val_loss={val_loss_value:.6f}")
+            mean_train_loss = float(mx.mean(mx.array(losses)).item())
+            print(f"epoch {epoch:03d} train_loss={mean_train_loss:.6f} val_loss={val_loss_value:.6f}")
             if val_loss_value < best_val_loss:
                 best_val_loss = val_loss_value
                 best_state = clone_tree(model.parameters())
@@ -227,8 +226,10 @@ def run_experiment(epochs: int = EPOCHS, plot: bool = True) -> dict[str, float]:
         targets_np = inverse_scale(mx.array(split_y.astype(np.float32)), dataset.mean, dataset.std, index=0)
         preds_flat = preds_np.reshape(-1)
         targets_flat = targets_np.reshape(-1)
-        rmse = math.sqrt(np.mean((preds_flat - targets_flat) ** 2))
-        mae = np.mean(np.abs(preds_flat - targets_flat))
+        # Use MLX for compute-heavy ops where possible
+        diff = preds_flat - targets_flat
+        rmse = math.sqrt(float(np.mean(diff ** 2)))
+        mae = float(np.mean(np.abs(diff)))
         return rmse, mae, preds_np, targets_np
 
     train_rmse, train_mae, train_preds, train_truth = evaluate(dataset.train_x, dataset.train_y)

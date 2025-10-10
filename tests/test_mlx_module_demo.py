@@ -4,7 +4,7 @@ import math
 
 import mlx.core as mx
 
-from ncps.ncps_mlx.module_training_demo import (
+from ncps.mlx.module_training_demo import (
     TrainingState,
     create_training_state,
     train_for_epochs,

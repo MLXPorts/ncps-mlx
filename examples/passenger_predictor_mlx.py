@@ -8,13 +8,10 @@ Matches the historical TensorFlow script:
 - Single LTC4 cell (32 units) feeding a dense readout
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Tuple
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
@@ -23,7 +20,7 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps.ncps_mlx.ltc4_cell import LTC4Cell
+from ncps.mlx.ltc4_cell import LTC4Cell
 
 
 LOOK_BACK = 3
@@ -34,19 +31,20 @@ UNITS = 32
 VALIDATION_SPLIT = 0.1
 
 
-def load_series() -> np.ndarray:
+def load_series() -> mx.array:
     url = "https://raw.githubusercontent.com/jbrownlee/Datasets/master/airline-passengers.csv"
     dataframe = pd.read_csv(url, usecols=[1], engine="python")
-    return dataframe.values.astype("float32")
+    return mx.array(dataframe.values.astype("float32"))
 
 
-def create_dataset(sequence: np.ndarray, look_back: int) -> Tuple[np.ndarray, np.ndarray]:
+def create_dataset(sequence: mx.array, look_back: int) -> Tuple[mx.array, mx.array]:
     data_x, data_y = [], []
-    for i in range(len(sequence) - look_back - 1):
-        window = sequence[i : i + look_back, 0]
+    sequence_list = sequence.tolist()
+    for i in range(len(sequence_list) - look_back - 1):
+        window = sequence_list[i : i + look_back]
         data_x.append(window)
-        data_y.append(sequence[i + look_back, 0])
-    return np.array(data_x), np.array(data_y)
+        data_y.append(sequence_list[i + look_back])
+    return mx.array(data_x), mx.array(data_y)
 
 
 class PassengerLTCModel(nn.Module):
@@ -60,10 +58,10 @@ class PassengerLTCModel(nn.Module):
     def _init_readout(self) -> None:
         fan_in = self.readout.weight.shape[1]
         fan_out = self.readout.weight.shape[0]
-        limit = np.sqrt(6.0 / (fan_in + fan_out))
+        limit = mx.sqrt(mx.array(6.0 / (fan_in + fan_out)))
         self.readout.weight = mx.random.uniform(
-            low=-limit,
-            high=limit,
+            low=-float(limit.item()),
+            high=float(limit.item()),
             shape=self.readout.weight.shape,
         )
         self.readout.bias = mx.zeros(self.readout.bias.shape, dtype=mx.float32)
@@ -90,18 +88,19 @@ class DataBundle:
 
 def prepare_data() -> DataBundle:
     raw = load_series()
+    raw_list = [[x] for x in raw.tolist()]
     scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled = scaler.fit_transform(raw)
+    scaled = scaler.fit_transform(raw_list)
 
     train_size = int(len(scaled) * 0.67)
-    train_raw = scaled[:train_size]
-    test_raw = scaled[train_size:]
+    train_raw = mx.array(scaled[:train_size])
+    test_raw = mx.array(scaled[train_size:])
 
     train_x, train_y = create_dataset(train_raw, LOOK_BACK)
     test_x, test_y = create_dataset(test_raw, LOOK_BACK)
 
-    train_x = train_x.reshape((train_x.shape[0], LOOK_BACK, 1)).astype(np.float32)
-    test_x = test_x.reshape((test_x.shape[0], LOOK_BACK, 1)).astype(np.float32)
+    train_x = mx.reshape(train_x, (train_x.shape[0], LOOK_BACK, 1)).astype(mx.float32)
+    test_x = mx.reshape(test_x, (test_x.shape[0], LOOK_BACK, 1)).astype(mx.float32)
 
     val_start = int(train_x.shape[0] * (1 - VALIDATION_SPLIT))
     val_inputs = train_x[val_start:]
@@ -111,12 +110,12 @@ def prepare_data() -> DataBundle:
 
     return DataBundle(
         scaler=scaler,
-        train_inputs=mx.array(train_inputs),
-        train_targets=mx.array(train_targets),
-        val_inputs=mx.array(val_inputs),
-        val_targets=mx.array(val_targets),
-        test_inputs=mx.array(test_x),
-        test_targets=mx.array(test_y),
+        train_inputs=train_inputs,
+        train_targets=train_targets,
+        val_inputs=val_inputs,
+        val_targets=val_targets,
+        test_inputs=test_x,
+        test_targets=test_y,
     )
 
 
@@ -132,17 +131,17 @@ def train_model(model: PassengerLTCModel, data: DataBundle, epochs: int) -> None
 
     def loss_fn(mdl: PassengerLTCModel, xb: mx.array, yb: mx.array) -> mx.array:
         preds = mdl(xb)
-        return mx.mean((preds - yb) ** 2)
+        return mx.mean(mx.power(preds - yb, 2.0))
 
     value_and_grad = nn.value_and_grad(model, loss_fn)
 
     num_samples = train_inputs.shape[0]
 
     for epoch in range(1, epochs + 1):
-        permutation = np.random.permutation(num_samples)
+        permutation = mx.random.permutation(num_samples)
         epoch_losses = []
-        for idx in permutation:
-            i = int(idx)
+        for idx in range(num_samples):
+            i = int(permutation[idx].item())
             xb = train_inputs[i : i + 1]
             yb = train_targets[i : i + 1]
             loss, grads = value_and_grad(model, xb, yb)
@@ -152,41 +151,44 @@ def train_model(model: PassengerLTCModel, data: DataBundle, epochs: int) -> None
 
         if data.val_inputs.shape[0] > 0:
             val_loss = loss_fn(model, data.val_inputs, data.val_targets)
+            mean_train_loss = float(mx.mean(mx.array(epoch_losses)).item())
             print(
-                f"epoch {epoch:03d} train_loss={np.mean(epoch_losses):.6f} "
+                f"epoch {epoch:03d} train_loss={mean_train_loss:.6f} "
                 f"val_loss={float(val_loss.item()):.6f}"
             )
 
 
 def evaluate(model: PassengerLTCModel, data: DataBundle, scaler: MinMaxScaler):
-    def predict(inputs: mx.array) -> np.ndarray:
+    def predict(inputs: mx.array) -> mx.array:
         outputs = []
         for idx in range(inputs.shape[0]):
             preds = model(inputs[idx : idx + 1])
             outputs.append(float(preds.item()))
-        return np.array(outputs, dtype=np.float32)
+        return mx.array(outputs)
 
     train_preds = predict(data.train_inputs)
     test_preds = predict(data.test_inputs)
 
-    train_targets = np.array(data.train_targets.tolist(), dtype=np.float32)
-    test_targets = np.array(data.test_targets.tolist(), dtype=np.float32)
+    train_targets_list = [[t] for t in data.train_targets.tolist()]
+    test_targets_list = [[t] for t in data.test_targets.tolist()]
+    train_preds_list = [[p] for p in train_preds.tolist()]
+    test_preds_list = [[p] for p in test_preds.tolist()]
 
-    train_denorm = scaler.inverse_transform(train_preds.reshape(-1, 1))
-    test_denorm = scaler.inverse_transform(test_preds.reshape(-1, 1))
-    train_target_denorm = scaler.inverse_transform(train_targets.reshape(-1, 1))
-    test_target_denorm = scaler.inverse_transform(test_targets.reshape(-1, 1))
+    train_denorm = scaler.inverse_transform(train_preds_list)
+    test_denorm = scaler.inverse_transform(test_preds_list)
+    train_target_denorm = scaler.inverse_transform(train_targets_list)
+    test_target_denorm = scaler.inverse_transform(test_targets_list)
 
-    train_rmse = np.sqrt(mean_squared_error(train_target_denorm[:, 0], train_denorm[:, 0]))
-    test_rmse = np.sqrt(mean_squared_error(test_target_denorm[:, 0], test_denorm[:, 0]))
+    train_rmse = mean_squared_error([t[0] for t in train_target_denorm], [t[0] for t in train_denorm], squared=False)
+    test_rmse = mean_squared_error([t[0] for t in test_target_denorm], [t[0] for t in test_denorm], squared=False)
 
     return {
         "train_rmse": float(train_rmse),
         "test_rmse": float(test_rmse),
-        "train_predictions": train_denorm.squeeze(-1),
-        "train_targets": train_target_denorm.squeeze(-1),
-        "test_predictions": test_denorm.squeeze(-1),
-        "test_targets": test_target_denorm.squeeze(-1),
+        "train_predictions": mx.array([t[0] for t in train_denorm]),
+        "train_targets": mx.array([t[0] for t in train_target_denorm]),
+        "test_predictions": mx.array([t[0] for t in test_denorm]),
+        "test_targets": mx.array([t[0] for t in test_target_denorm]),
     }
 
 

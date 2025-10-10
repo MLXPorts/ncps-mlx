@@ -1,4 +1,4 @@
-"""Saving and loading MLX CfC weights."""
+"""Saving and loading MLX CfC weights (port of the original Keras example)."""
 
 from __future__ import annotations
 

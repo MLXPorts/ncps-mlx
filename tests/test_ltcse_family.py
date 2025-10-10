@@ -1,6 +1,6 @@
 import mlx.core as mx
 
-from ncps.ncps_mlx import (
+from ncps.mlx import (
     CTRNNSECell,
     NODESECell,
     CTGRUSECell,

@@ -1,7 +1,6 @@
 """Tests for visualization extensions."""
 
 import unittest
-import numpy as np
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from PIL import Image
@@ -11,9 +10,8 @@ import os
 import tempfile
 
 import mlx.core as mx
-import mlx.nn as nn
 from ncps.mlx import CfC
-from ncps.mlx.wirings import Random, NCP
+from ncps.wirings import Random, NCP
 from ncps.mlx.visualization import WiringVisualizer, PerformanceVisualizer
 
 
@@ -163,7 +161,7 @@ class TestPerformanceMonitor(unittest.TestCase):
         """Test metric tracking."""
         # Add metrics
         for i in range(100):
-            self.monitor.add_metric('loss', np.random.random())
+            self.monitor.add_metric('loss', float(mx.random.uniform().item()))
         
         self.assertEqual(len(self.monitor.history['loss']), 100)
     

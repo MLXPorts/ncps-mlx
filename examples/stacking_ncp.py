@@ -8,8 +8,8 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps_mlx import LTC
-from ncps_mlx.wirings import AutoNCP
+from ncps.mlx import LTC
+from ncps.wirings import AutoNCP
 
 
 def make_lidar_batch(batch: int, time_steps: int, num_bins: int) -> mx.array:
