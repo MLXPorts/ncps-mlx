@@ -12,7 +12,7 @@ import mlx.nn as nn
 import mlx.optimizers as optim
 
 from ncps import IcraCfCCell
-from ncps.mlx.datasets.icra2020_lidar_collision_avoidance import load_data
+from datasets.icra2020_lidar_collision_avoidance import load_data
 
 
 class LidarModel(nn.Module):

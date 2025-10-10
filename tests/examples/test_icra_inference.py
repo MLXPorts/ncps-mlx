@@ -1,7 +1,7 @@
 import mlx.core as mx
 
 from examples.icra_lidar_infer import build_model, predict_sequence
-from ncps.datasets.icra2020_lidar_collision_avoidance import load_data
+from datasets.icra2020_lidar_collision_avoidance import load_data
 
 
 def test_icra_inference_sequence():

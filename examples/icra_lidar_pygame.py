@@ -33,7 +33,7 @@ except Exception as e:  # pragma: no cover
     raise SystemExit("Pygame is required: pip install pygame") from e
 
 from ncps import IcraCfCCell
-from ncps.mlx.datasets.icra2020_lidar_collision_avoidance import load_data
+from datasets.icra2020_lidar_collision_avoidance import load_data
 
 
 ARTIFACTS = "artifacts/icra_cfc"
