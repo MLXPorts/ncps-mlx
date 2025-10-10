@@ -137,15 +137,15 @@ class LTCCell(nn.Module):
 
     def _sigmoid(self, potentials: mx.array, mu: mx.array, sigma: mx.array) -> mx.array:
         potentials = mx.expand_dims(potentials, axis=-1)
-        x = sigma * (potentials - mu)
-        return 1.0 / (1.0 + mx.exp(-x))
+        x = mx.multiply(sigma, mx.subtract(potentials, mu))
+        return mx.divide(1.0, mx.add(1.0, mx.exp(mx.negative(x))))
 
     def _map_inputs(self, inputs: mx.array) -> mx.array:
         mapped = inputs
         if self._input_mapping in ("affine", "linear"):
-            mapped = mapped * self.input_w
+            mapped = mx.multiply(mapped, self.input_w)
         if self._input_mapping == "affine":
-            mapped = mapped + self.input_b
+            mapped = mx.add(mapped, self.input_b)
         return mapped
 
     def _map_outputs(self, state: mx.array) -> mx.array:
@@ -153,9 +153,9 @@ class LTCCell(nn.Module):
         if self.motor_size < self.state_size:
             output = output[:, : self.motor_size]
         if self._output_mapping in ("affine", "linear"):
-            output = output * self.output_w
+            output = mx.multiply(output, self.output_w)
         if self._output_mapping == "affine":
-            output = output + self.output_b
+            output = mx.add(output, self.output_b)
         return output
 
     def apply_weight_constraints(self) -> None:
@@ -175,21 +175,25 @@ class LTCCell(nn.Module):
         if not isinstance(elapsed_time, mx.array):
             elapsed_time = mx.array(elapsed_time, dtype=mx.float32)
         if elapsed_time.ndim == 0:
-            dt = elapsed_time / self._ode_unfolds
+            dt = mx.divide(elapsed_time, self._ode_unfolds)
             dt = mx.reshape(dt, (1, 1))
         else:
-            dt = mx.reshape(elapsed_time / self._ode_unfolds, (-1, 1))
+            dt = mx.reshape(mx.divide(elapsed_time, self._ode_unfolds), (-1, 1))
 
         sensory_activation = self._sigmoid(inputs, self.sensory_mu, self.sensory_sigma)
-        sensory_w_activation = self._make_positive(self.sensory_w) * sensory_activation
-        sensory_w_activation = sensory_w_activation * self._sensory_sparsity_mask
-        sensory_rev_activation = sensory_w_activation * self._sensory_erev
+        sensory_w_activation = mx.multiply(
+            self._make_positive(self.sensory_w), sensory_activation
+        )
+        sensory_w_activation = mx.multiply(
+            sensory_w_activation, self._sensory_sparsity_mask
+        )
+        sensory_rev_activation = mx.multiply(sensory_w_activation, self._sensory_erev)
 
         w_numerator_sensory = mx.sum(sensory_rev_activation, axis=1)
         w_denominator_sensory = mx.sum(sensory_w_activation, axis=1)
 
         cm = mx.expand_dims(self._make_positive(self.cm), axis=0)
-        cm_t = cm / dt
+        cm_t = mx.divide(cm, dt)
 
         w_param = self._make_positive(self.w)
         w_param = mx.expand_dims(w_param, axis=0)
@@ -198,16 +202,19 @@ class LTCCell(nn.Module):
 
         for _ in range(self._ode_unfolds):
             sigmoid = self._sigmoid(v_pre, self.mu, self.sigma)
-            w_activation = w_param * sigmoid
-            w_activation = w_activation * self._sparsity_mask
-            rev_activation = w_activation * self._erev
+            w_activation = mx.multiply(w_param, sigmoid)
+            w_activation = mx.multiply(w_activation, self._sparsity_mask)
+            rev_activation = mx.multiply(w_activation, self._erev)
 
-            w_numerator = mx.sum(rev_activation, axis=1) + w_numerator_sensory
-            w_denominator = mx.sum(w_activation, axis=1) + w_denominator_sensory
+            w_numerator = mx.add(mx.sum(rev_activation, axis=1), w_numerator_sensory)
+            w_denominator = mx.add(mx.sum(w_activation, axis=1), w_denominator_sensory)
 
-            numerator = cm_t * v_pre + gleak * vleak + w_numerator
-            denominator = cm_t + gleak + w_denominator
-            v_pre = numerator / (denominator + self._epsilon)
+            numerator = mx.add(
+                mx.add(mx.multiply(cm_t, v_pre), mx.multiply(gleak, vleak)),
+                w_numerator,
+            )
+            denominator = mx.add(mx.add(cm_t, gleak), w_denominator)
+            v_pre = mx.divide(numerator, mx.add(denominator, self._epsilon))
 
         return v_pre
 

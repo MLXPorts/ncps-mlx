@@ -84,8 +84,10 @@ class LTCSECell(nn.Module):
             dtype=mx.float32,
         )
         sensory_sign = mx.random.randint(0, 2, shape=(input_dim, self.units))
-        sensory_sign = sensory_sign * 2 - 1
-        self.sensory_erev = sensory_sign.astype(mx.float32) * self._erev_init_factor
+        sensory_sign = mx.subtract(mx.multiply(sensory_sign, 2), 1)
+        self.sensory_erev = mx.multiply(
+            sensory_sign.astype(mx.float32), self._erev_init_factor
+        )
 
         self.mu = mx.random.uniform(
             low=self._mu_init[0],
@@ -106,8 +108,8 @@ class LTCSECell(nn.Module):
             dtype=mx.float32,
         )
         erev_sign = mx.random.randint(0, 2, shape=(self.units, self.units))
-        erev_sign = erev_sign * 2 - 1
-        self.erev = erev_sign.astype(mx.float32) * self._erev_init_factor
+        erev_sign = mx.subtract(mx.multiply(erev_sign, 2), 1)
+        self.erev = mx.multiply(erev_sign.astype(mx.float32), self._erev_init_factor)
 
         self.vleak = mx.random.uniform(
             low=self._vleak_init[0],
@@ -130,33 +132,33 @@ class LTCSECell(nn.Module):
     def _map_inputs(self, inputs: mx.array) -> mx.array:
         result = inputs
         if self.input_w is not None:
-            result = result * self.input_w
+            result = mx.multiply(result, self.input_w)
         if self.input_b is not None:
-            result = result + self.input_b
+            result = mx.add(result, self.input_b)
         return result
 
     def _sigmoid(self, potentials: mx.array, mu: mx.array, sigma: mx.array) -> mx.array:
         potentials = mx.expand_dims(potentials, axis=2)
         mu_exp = mx.expand_dims(mu, axis=0)
         sigma_exp = mx.expand_dims(sigma, axis=0)
-        x = sigma_exp * (potentials - mu_exp)
-        return 1.0 / (1.0 + mx.exp(-x))
+        x = mx.multiply(sigma_exp, mx.subtract(potentials, mu_exp))
+        return mx.divide(1.0, mx.add(1.0, mx.exp(mx.negative(x))))
 
     def _sensory_activation(self, inputs: mx.array) -> mx.array:
         sig = self._sigmoid(inputs, self.sensory_mu, self.sensory_sigma)
         W = mx.expand_dims(self.sensory_W, axis=0)
-        return W * sig
+        return mx.multiply(W, sig)
 
     def _recurrent_activation(self, state: mx.array) -> mx.array:
         sig = self._sigmoid(state, self.mu, self.sigma)
         W = mx.expand_dims(self.W, axis=0)
-        return W * sig
+        return mx.multiply(W, sig)
 
     def _ode_step(self, inputs: mx.array, state: mx.array) -> mx.array:
         v_pre = state
         sensory_w_activation = self._sensory_activation(inputs)
-        sensory_rev_activation = sensory_w_activation * mx.expand_dims(
-            self.sensory_erev, axis=0
+        sensory_rev_activation = mx.multiply(
+            sensory_w_activation, mx.expand_dims(self.sensory_erev, axis=0)
         )
 
         w_num_sensory = mx.sum(sensory_rev_activation, axis=1)
@@ -168,14 +170,18 @@ class LTCSECell(nn.Module):
 
         for _ in range(self._ode_unfolds):
             w_activation = self._recurrent_activation(v_pre)
-            rev_activation = w_activation * mx.expand_dims(self.erev, axis=0)
+            rev_activation = mx.multiply(
+                w_activation, mx.expand_dims(self.erev, axis=0)
+            )
 
-            w_numerator = mx.sum(rev_activation, axis=1) + w_num_sensory
-            w_denominator = mx.sum(w_activation, axis=1) + w_den_sensory
+            w_numerator = mx.add(mx.sum(rev_activation, axis=1), w_num_sensory)
+            w_denominator = mx.add(mx.sum(w_activation, axis=1), w_den_sensory)
 
-            numerator = cm * v_pre + gleak * vleak + w_numerator
-            denominator = cm + gleak + w_denominator
-            v_pre = numerator / denominator
+            numerator = mx.add(
+                mx.add(mx.multiply(cm, v_pre), mx.multiply(gleak, vleak)), w_numerator
+            )
+            denominator = mx.add(mx.add(cm, gleak), w_denominator)
+            v_pre = mx.divide(numerator, denominator)
 
         return v_pre
 
@@ -188,20 +194,32 @@ class LTCSECell(nn.Module):
             w_activation = self._recurrent_activation(v_pre)
             w_reduced_synapse = mx.sum(w_activation, axis=1)
 
-            sensory_in = mx.expand_dims(self.sensory_erev, axis=0) * sensory_w_activation
-            synapse_in = mx.expand_dims(self.erev, axis=0) * w_activation
+            sensory_in = mx.multiply(
+                mx.expand_dims(self.sensory_erev, axis=0), sensory_w_activation
+            )
+            synapse_in = mx.multiply(mx.expand_dims(self.erev, axis=0), w_activation)
 
-            sum_in = (
-                mx.sum(sensory_in, axis=1)
-                - v_pre * w_reduced_synapse
-                + mx.sum(synapse_in, axis=1)
-                - v_pre * w_reduced_sensory
+            sum_in = mx.add(
+                mx.subtract(
+                    mx.add(
+                        mx.sum(sensory_in, axis=1),
+                        mx.subtract(
+                            mx.sum(synapse_in, axis=1),
+                            mx.multiply(v_pre, w_reduced_synapse),
+                        ),
+                    ),
+                    mx.multiply(v_pre, w_reduced_sensory),
+                ),
+                0.0,
             )
 
-            f_prime = 1.0 / self.cm_t * (
-                self.gleak * (self.vleak - v_pre) + sum_in
+            f_prime = mx.multiply(
+                mx.divide(1.0, self.cm_t),
+                mx.add(
+                    mx.multiply(self.gleak, mx.subtract(self.vleak, v_pre)), sum_in
+                ),
             )
-            v_pre = v_pre + 0.1 * f_prime
+            v_pre = mx.add(v_pre, mx.multiply(0.1, f_prime))
 
         return v_pre
 
@@ -212,27 +230,48 @@ class LTCSECell(nn.Module):
         w_activation = self._recurrent_activation(state)
         w_reduced_synapse = mx.sum(w_activation, axis=1)
 
-        sensory_in = mx.expand_dims(self.sensory_erev, axis=0) * sensory_w_activation
-        synapse_in = mx.expand_dims(self.erev, axis=0) * w_activation
+        sensory_in = mx.multiply(
+            mx.expand_dims(self.sensory_erev, axis=0), sensory_w_activation
+        )
+        synapse_in = mx.multiply(mx.expand_dims(self.erev, axis=0), w_activation)
 
-        sum_in = (
-            mx.sum(sensory_in, axis=1)
-            - state * w_reduced_synapse
-            + mx.sum(synapse_in, axis=1)
-            - state * w_reduced_sensory
+        sum_in = mx.add(
+            mx.subtract(
+                mx.add(
+                    mx.sum(sensory_in, axis=1),
+                    mx.subtract(
+                        mx.sum(synapse_in, axis=1),
+                        mx.multiply(state, w_reduced_synapse),
+                    ),
+                ),
+                mx.multiply(state, w_reduced_sensory),
+            ),
+            0.0,
         )
 
-        return 1.0 / self.cm_t * (self.gleak * (self.vleak - state) + sum_in)
+        return mx.multiply(
+            mx.divide(1.0, self.cm_t),
+            mx.add(mx.multiply(self.gleak, mx.subtract(self.vleak, state)), sum_in),
+        )
 
     def _ode_step_runge_kutta(self, inputs: mx.array, state: mx.array) -> mx.array:
         h = 0.1
         v = state
         for _ in range(self._ode_unfolds):
-            k1 = h * self._f_prime(inputs, v)
-            k2 = h * self._f_prime(inputs, v + 0.5 * k1)
-            k3 = h * self._f_prime(inputs, v + 0.5 * k2)
-            k4 = h * self._f_prime(inputs, v + k3)
-            v = v + (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
+            k1 = mx.multiply(h, self._f_prime(inputs, v))
+            k2 = mx.multiply(h, self._f_prime(inputs, mx.add(v, mx.multiply(0.5, k1))))
+            k3 = mx.multiply(h, self._f_prime(inputs, mx.add(v, mx.multiply(0.5, k2))))
+            k4 = mx.multiply(h, self._f_prime(inputs, mx.add(v, k3)))
+            v = mx.add(
+                v,
+                mx.divide(
+                    mx.add(
+                        mx.add(k1, mx.multiply(2, k2)),
+                        mx.add(mx.multiply(2, k3), k4),
+                    ),
+                    6.0,
+                ),
+            )
         return v
 
     def __call__(
