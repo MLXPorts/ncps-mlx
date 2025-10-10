@@ -1,21 +1,22 @@
-"""Tile-map navigation demo with simulated LIDAR (Pygame).
+"""Tile-map navigation demo with liquid neural network control (Pygame).
 
-This provides an actual environment (walls + corridors) and a simple robot
-that moves around in real time. LIDAR rays can be toggled on/off; control can
-be manual (keyboard), a tiny avoidance autopilot, or a trained liquid neural network.
+This demonstrates a robot navigating a maze environment using a trained
+Closed-form Continuous-time (CfC) liquid neural network. The network receives
+simulated LIDAR sensor data and outputs steering commands in real-time.
+
+The liquid neural network uses sensory-motor wiring with 64 neurons, where
+the first neuron acts as a motor neuron controlling steering direction.
 
 Usage:
   PYTHONPATH=. python examples/maze_nav_pygame.py
 
 Controls:
-  Arrow keys: steer (left/right) and throttle up/down (manual mode)
-  A:          toggle autopilot (simple obstacle avoidance)
-  M:          toggle liquid neuron model drive (requires trained weights)
-  L:          toggle LIDAR ray visualization
-  C:          clear the path trace
-  +/-:        speed down/up
-  [ / ]:      steering gain down/up
-  Q / Esc:    quit
+  Arrow keys: Manual override (left/right to steer)
+  L:          Toggle LIDAR ray visualization
+  C:          Clear the path trace
+  +/-:        Speed down/up
+  [ / ]:      Steering gain down/up
+  Q / Esc:    Quit
 
 Training:
   To train the liquid neuron model:
@@ -55,8 +56,38 @@ H = TILE * len(MAP_ASCII)
 def main() -> None:  # pragma: no cover
     pygame.init()
     screen = pygame.display.set_mode((min(W, 1200), min(H, 900)))
-    pygame.display.set_caption("Maze Navigation Demo (Pygame)")
+    pygame.display.set_caption("Liquid Neural Network Maze Navigation")
     clock = pygame.time.Clock()
+
+    # Initialize liquid neural network
+    print("Initializing liquid neural network...")
+    from examples.wiring_presets import make_sensory_motor_wiring
+    import os
+    
+    BINS = 181
+    input_dim = BINS + 2
+    wiring = make_sensory_motor_wiring(input_dim=input_dim, units=64, output_dim=1)
+    model = CfC(
+        input_size=input_dim,
+        units=wiring,
+        proj_size=None,  # Wiring defines motor neuron at index 0
+        return_sequences=True,
+        batch_first=True,
+        mode="default",
+        activation="lecun_tanh",
+    )
+    
+    # Load trained weights
+    weights_path = os.path.join("artifacts", "maze_cfc", "weights.npz")
+    if os.path.isfile(weights_path):
+        model.load_weights(weights_path)
+        print("✓ Loaded trained liquid neural network weights")
+    else:
+        print("⚠ Warning: No trained weights found!")
+        print("  Train first: python -m examples.maze_train_mlx")
+        print("  Continuing with random initialization...")
+    
+    hx = mx.zeros((1, 64), dtype=mx.float32)
 
     # Robot state
     rx, ry = TILE * 2.5, TILE * (len(MAP_ASCII) - 2.5)
@@ -64,17 +95,13 @@ def main() -> None:  # pragma: no cover
     speed = 120.0  # px/s
     steer_gain = 1.2
     show_rays = True
-    autopilot = True
-    model_drive = False
-    model = None
-    hx = None
+    manual_override = False
     trace = []  # path points
 
     # LIDAR parameters
     FOV = math.radians(270)
-    BINS = 181
-    ANG0 = -FOV / 2
     MAX_R = TILE * 12
+    ANG0 = -FOV / 2
 
     running = True
     while running:
@@ -87,37 +114,8 @@ def main() -> None:  # pragma: no cover
                     running = False
                 if event.key == pygame.K_l:
                     show_rays = not show_rays
-                if event.key == pygame.K_a:
-                    autopilot = not autopilot
                 if event.key == pygame.K_c:
                     trace.clear()
-                if event.key == pygame.K_m and CfC is not None:
-                    # Toggle model drive; lazy-init wired CfC with motor neuron and load weights if present
-                    if model is None:
-                        from examples.wiring_presets import make_sensory_motor_wiring
-                        input_dim = BINS + 2
-                        wiring = make_sensory_motor_wiring(input_dim=input_dim, units=64, output_dim=1)
-                        model = CfC(
-                            input_size=input_dim,
-                            units=wiring,
-                            proj_size=None,  # Wiring defines motor neuron at index 0
-                            return_sequences=True,
-                            batch_first=True,
-                            mode="default",
-                            activation="lecun_tanh",
-                        )
-                        import os
-                        w = os.path.join("artifacts", "maze_cfc", "weights.npz")
-                        if os.path.isfile(w):
-                            model.load_weights(w)
-                            print("✓ Loaded trained CfC weights for liquid neuron navigation")
-                        else:
-                            print("⚠ Warning: No trained weights found, using random initialization")
-                            print("  Train the model first: python -m examples.maze_train_mlx")
-                        hx = mx.zeros((1, 64), dtype=mx.float32)
-                    model_drive = not model_drive
-                    mode_str = "liquid neurons" if model_drive else "autopilot/manual"
-                    print(f"🧠 Control mode: {mode_str}")
                 if event.key in (pygame.K_PLUS, pygame.K_EQUALS):
                     speed = min(300.0, speed + 20.0)
                 if event.key == pygame.K_MINUS:
@@ -134,35 +132,26 @@ def main() -> None:  # pragma: no cover
             d = raycast(rx, ry, a, MAX_R)
             dists.append(d)
 
-        # Controller
-        steer_cmd = 0.0
-        throttle = 1.0
+        # Controller: Liquid neural network with manual override
         keys = pygame.key.get_pressed()
-        if model_drive and CfC is not None and model is not None and hx is not None:
+        manual_override = keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]
+        
+        if manual_override:
+            # Manual steering override
+            steer_cmd = 0.0
+            if keys[pygame.K_LEFT]:
+                steer_cmd -= 1.0
+            if keys[pygame.K_RIGHT]:
+                steer_cmd += 1.0
+        else:
+            # Liquid neural network control
             norm = [min(1.0, d / MAX_R) for d in dists]
             v = speed / (TILE * 4)
             x = mx.array([[norm + [v, 0.0]]], dtype=mx.float32)
             mu, hx = model(x, hx=hx)
             steer_cmd = float(mu[0, 0, 0].tolist())
-        elif not autopilot:
-            # Manual: arrows
-            if keys[pygame.K_LEFT]:
-                steer_cmd -= 1.0
-            if keys[pygame.K_RIGHT]:
-                steer_cmd += 1.0
-            if keys[pygame.K_UP]:
-                throttle = 1.0
-            elif keys[pygame.K_DOWN]:
-                throttle = 0.4
-        else:
-            # Tiny avoidance: compare left/right sectors + front clearance
-            mid = BINS // 2
-            left = sum(dists[:mid]) / mid
-            right = sum(dists[mid:]) / mid
-            front = min(dists[mid - 5: mid + 5])
-            steer_cmd = -0.8 if left < right else 0.8
-            if front > TILE * 4:
-                steer_cmd *= 0.3
+        
+        throttle = 1.0
 
         # Integrate motion
         heading += steer_gain * steer_cmd * dt
