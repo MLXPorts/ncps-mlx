@@ -102,7 +102,7 @@ In PyTorch, we can use the ``tensor.view(
 In TensorFlow, we can use the ``tf.keras.layers.Reshape`` layer.
 
 .. note::
-As pointed out by `@R-Liebert <https://github.com/R-Liebert>`_  Impala-style `convolutional blocks <https://github.com/mlech26l/ncps/issues/41>`_ are known to be more efficient than the one we use here.
+As pointed out by `@R-Liebert <https://github.com/R-Liebert>`_  Impala-style `convolutional blocks <https://github.com/mlech26l/ncps/issues/41>`_ are known to be more efficient than the one shown here (note: this references the original PyTorch/TensorFlow implementation).
 You can find a Tensorflow implementation of the Impala-style convolutional block `here (
 
 Next, we define the full model.
