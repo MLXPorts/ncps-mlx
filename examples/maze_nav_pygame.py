@@ -213,7 +213,7 @@ def main() -> None:  # pragma: no cover
         # Rays
         if show_rays:
             for i, d in enumerate(dists[::4]):  # draw fewer for speed
-                a = heading + ANG0 + FOV * ((i * 4) / (BINS - 1))
+                a = heading + ANG0 + FOV * ((i * 4) / (SIM_BINS - 1))
                 ex = rx + d * math.cos(a)
                 ey = ry + d * math.sin(a)
                 pygame.draw.aaline(screen, (90, 200, 140), (rx, ry), (ex, ey))
