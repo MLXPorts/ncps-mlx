@@ -167,18 +167,18 @@ def main() -> None:  # pragma: no cover
                 x_sim = np.linspace(0, 1, SIM_BINS)
                 x_icra = np.linspace(0, 1, ICRA_BINS)
                 lidar_interp = np.interp(x_icra, x_sim, lidar_np)
-                lidar_norm = mx.array([[lidar_interp.tolist()]], dtype=mx.float32)
+                lidar_1d = mx.array(lidar_interp.tolist(), dtype=mx.float32)
             else:
-                lidar_norm = mx.array([[lidar_norm_list]], dtype=mx.float32)
+                lidar_1d = mx.array(lidar_norm_list, dtype=mx.float32)
             
             # Vehicle state: [velocity, angular_velocity] normalized
             v_norm = speed / (TILE * 4)  # Normalize velocity
             w_norm = 0.0  # Angular velocity (not used in this simple sim)
-            state = mx.array([[v_norm, w_norm]], dtype=mx.float32)
+            state_1d = mx.array([v_norm, w_norm], dtype=mx.float32)
             
-            # Expand to time dimension [batch=1, time=1, features]
-            lidar_seq = mx.expand_dims(lidar_norm, axis=1)
-            state_seq = mx.expand_dims(state, axis=1)
+            # Expand to batch and time dimensions: [batch=1, time=1, features]
+            lidar_seq = mx.reshape(lidar_1d, (1, 1, ICRA_BINS))
+            state_seq = mx.reshape(state_1d, (1, 1, STATE_DIM))
             
             # Forward pass through ICRA CfC (returns [batch, time, 1])
             mu, hx = model(state_seq, lidar_seq, hx=hx, return_state=True)
