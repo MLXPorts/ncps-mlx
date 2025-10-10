@@ -409,4 +409,5 @@ wiring = NCP(
                                         - `MLX Documentation <https://ml-explore.github.io/mlx/build/html/index.html>`_
                                         - `Neural Circuit Policies Paper <https://arxiv.org/abs/2003.06567>`_
                                         - `MLX GitHub Repository <https://github.com/ml-explore/mlx>`_
-                                        - `NCP GitHub Repository <https://github.com/mlech26l/ncps>`_
+                                        - `ncps-mlx GitHub Repository <https://github.com/SolaceHarmony/ncps-mlx>`_
+                                        - `Original NCP Repository (PyTorch/TensorFlow) <https://github.com/mlech26l/ncps>`_

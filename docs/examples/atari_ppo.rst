@@ -313,7 +313,7 @@ if __name__ == "__main__"::
                                                                                         pass
                                                                                         break
 
-                                                                                        The full source code can be found `here <https://github.com/mlech26l/ncps/blob/master/examples/atari_ppo.py>`_.
+                                                                                        The full source code for the original TensorFlow implementation can be found `here <https://github.com/mlech26l/ncps/blob/master/examples/atari_ppo.py>`_. See the ncps-mlx examples directory for MLX versions.
 
                                                                                         .. note::
                                                                                         pass
