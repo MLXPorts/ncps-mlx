@@ -61,27 +61,27 @@ class LTC4Cell(nn.Module):
     def _glorot_init(self, linear: nn.Linear) -> None:
         fan_in = linear.weight.shape[1]
         fan_out = linear.weight.shape[0]
-        limit = math.sqrt(6.0 / (fan_in + fan_out))
+        limit = math.sqrt(mx.divide(6.0, mx.add(fan_in, fan_out)))
         linear.weight = mx.random.uniform(low=-limit, high=limit, shape=linear.weight.shape)
         if "bias" in linear:
             linear.bias = mx.zeros(linear.bias.shape, dtype=mx.float32)
 
     def _semi_implicit(self, prev: mx.array, net: mx.array) -> mx.array:
         act = self.activation_fn(net)
-        return prev + self.ode_unfolds * (act - prev)
+        return mx.add(prev, mx.multiply(self.ode_unfolds, mx.subtract(act, prev)))
 
     def _explicit(self, prev: mx.array, net: mx.array) -> mx.array:
         act = self.activation_fn(net)
-        return prev + self.ode_unfolds * act
+        return mx.add(prev, mx.multiply(self.ode_unfolds, act))
 
     def _rk4(self, prev: mx.array, net: mx.array) -> mx.array:
-        dt = 1.0 / self.ode_unfolds
+        dt = mx.divide(1.0, self.ode_unfolds)
         f = self.activation_fn
         k1 = f(net)
-        k2 = f(net + 0.5 * dt * k1)
-        k3 = f(net + 0.5 * dt * k2)
-        k4 = f(net + dt * k3)
-        return prev + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+        k2 = f(mx.add(net, mx.multiply(mx.multiply(0.5, dt), k1)))
+        k3 = f(mx.add(net, mx.multiply(mx.multiply(0.5, dt), k2)))
+        k4 = f(mx.add(net, mx.multiply(dt, k3)))
+        return mx.add(prev, mx.multiply(mx.divide(dt, 6.0), mx.add(mx.add(k1, mx.multiply(2.0, k2)), mx.add(mx.multiply(2.0, k3), k4))))
 
     def __call__(
         self,

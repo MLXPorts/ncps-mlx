@@ -16,7 +16,7 @@ class LeCunTanh(nn.Module):
         self._tanh = nn.Tanh()
 
     def __call__(self, x: mx.array) -> mx.array:
-        return 1.7159 * self._tanh(0.666 * x)
+        return mx.multiply(1.7159, self._tanh(mx.multiply(0.666, x)))
 
 
 def _create_activation(name: str) -> nn.Module:
@@ -71,7 +71,7 @@ class CfCCell(nn.Module):
             mask = mx.transpose(mask)
             self._sparsity_mask = mask
 
-        cat_dim = input_size + hidden_size
+        cat_dim = mx.add(input_size, hidden_size)
         if backbone_layers > 0:
             modules: list[nn.Module] = []
             activation_lookup = {}
@@ -129,8 +129,8 @@ class CfCCell(nn.Module):
     def _apply_linear(self, layer: nn.Linear, x: mx.array) -> mx.array:
         weight = layer.weight
         if self._sparsity_mask is not None:
-            weight = weight * self._sparsity_mask
-        return mx.matmul(x, mx.transpose(weight)) + layer.bias
+            weight = mx.multiply(weight, self._sparsity_mask)
+        return mx.add(mx.matmul(x, mx.transpose(weight)), layer.bias)
 
     # ------------------------------------------------------------------ #
     def __call__(self, inputs: mx.array, hx: mx.array, ts: float | mx.array) -> tuple[mx.array, mx.array]:
@@ -146,8 +146,8 @@ class CfCCell(nn.Module):
                 ts = mx.array(ts, dtype=mx.float32)
             ts = ts if ts.ndim > 0 else mx.reshape(ts, (1,))
             ts = mx.reshape(ts, (-1, 1))
-            decay = mx.exp(-ts * (w_tau_abs + ff1_abs))
-            new_hidden = -self.A * decay * ff1 + self.A
+            decay = mx.exp(mx.negative(mx.multiply(ts, mx.add(w_tau_abs, ff1_abs))))
+            new_hidden = mx.add(mx.multiply(mx.negative(self.A), mx.multiply(decay, ff1)), self.A)
         else:
             ff2 = self._apply_linear(self.ff2, x)
             t_a = self.time_a(x)
@@ -156,9 +156,9 @@ class CfCCell(nn.Module):
                 ts = mx.array(ts, dtype=mx.float32)
             ts = ts if ts.ndim > 0 else mx.reshape(ts, (1,))
             ts = mx.reshape(ts, (-1, 1))
-            t_interp = self._sigmoid(-t_a * ts + t_b)
+            t_interp = self._sigmoid(mx.add(mx.negative(mx.multiply(t_a, ts)), t_b))
             if self.mode == "no_gate":
-                new_hidden = ff1 + t_interp * ff2
+                new_hidden = mx.add(ff1, mx.multiply(t_interp, ff2))
             else:
-                new_hidden = ff1 * (1.0 - t_interp) + t_interp * ff2
+                new_hidden = mx.add(mx.multiply(ff1, mx.subtract(1.0, t_interp)), mx.multiply(t_interp, ff2))
         return new_hidden, new_hidden

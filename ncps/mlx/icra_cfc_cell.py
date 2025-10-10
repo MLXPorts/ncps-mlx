@@ -49,14 +49,14 @@ class IcraCfCCell(nn.Module):
         probe = mx.zeros((1, self.lidar_bins, 1), dtype=mx.float32)
         feature_dim = int(self.head(probe).shape[1])
         self.core = CfCProfiled(
-            input_size=feature_dim + self.state_dim,
+            input_size=mx.add(feature_dim, self.state_dim),
             profile=profile,
             overrides=overrides,
         )
 
     def _encode_lidar(self, lidar: mx.array) -> mx.array:
         batch, steps, bins = lidar.shape
-        x = mx.reshape(lidar, (batch * steps, bins, 1))
+        x = mx.reshape(lidar, (mx.multiply(batch, steps), bins, 1))
         x = self.head(x)
         x = mx.reshape(x, (batch, steps, -1))
         return x
