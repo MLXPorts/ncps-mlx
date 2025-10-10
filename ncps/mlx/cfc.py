@@ -1,208 +1,132 @@
-"""Closed-form Continuous-time (CfC) RNN implementation."""
+"""MLX implementation of the CfC recurrent module."""
+
+from __future__ import annotations
+
+from typing import Callable, Dict, Optional, Union
 
 import mlx.core as mx
 import mlx.nn as nn
-from typing import Optional, Tuple, List, Union, Dict, Any
 
-from .base import LiquidRNN
-from .liquid_utils import TimeAwareMixin
-from .cfc_cell_mlx import CfCCell
+from .. import wirings
+
+from .cfc_cell import CfCCell
+from .wired_cfc_cell import WiredCfCCell
 
 
-class CfC(LiquidRNN):
-    """A Closed-form Continuous-time (CfC) RNN layer."""
-    
+class CfC(nn.Module):
     def __init__(
         self,
-        input_size: Optional[int] = None,
-        hidden_size: Optional[int] = None,
-        wiring = None,
-        num_layers: int = 1,
-        bias: bool = True,
-        bidirectional: bool = False,
-        return_sequences: bool = True,  # Changed default to True to match test expectations
-        return_state: bool = False,
+        input_size: int,
+        units: Union[int, wirings.Wiring],
+        proj_size: Optional[int] = None,
+        return_sequences: bool = True,
+        batch_first: bool = True,
+        mixed_memory: bool = False,
         mode: str = "default",
         activation: str = "lecun_tanh",
-        backbone_units: Optional[Union[int, List[int]]] = None,
-        backbone_layers: int = 0,
-        backbone_dropout: float = 0.1,
-        sparsity_mask: Optional[mx.array] = None,
-    ):
-        """Initialize the CfC layer."""
-        if wiring is not None:
-            if input_size is not None or hidden_size is not None:
-                raise ValueError("Cannot specify both wiring and input_size/hidden_size")
-            if wiring.input_dim is None:
-                if input_size is None:
-                    raise ValueError("Must specify input_size when wiring.input_dim is None")
-                wiring.build(input_size)
-            input_size = wiring.input_dim
-            hidden_size = wiring.units
-            sparsity_mask = wiring.adjacency_matrix
-        elif input_size is None or hidden_size is None:
-            raise ValueError("Must specify either wiring or both input_size and hidden_size")
+        backbone_units: Optional[int] = None,
+        backbone_layers: Optional[int] = None,
+        backbone_dropout: Optional[float] = None,
+        custom_activations: Optional[Dict[str, Callable[[], nn.Module]]] = None,
+    ) -> None:
+        super().__init__()
 
-        # Create wiring if not provided
-        if wiring is None:
-            from .wirings import FullyConnected
-            wiring = FullyConnected(units=hidden_size, output_dim=hidden_size)
+        if mixed_memory:
+            raise NotImplementedError("mixed_memory is not supported in the MLX port yet.")
+
+        self.batch_first = batch_first
+        self.return_sequences = return_sequences
+
+        if isinstance(units, wirings.Wiring):
+            wiring = units
             wiring.build(input_size)
-
-        # Process backbone units
-        if backbone_units is None:
-            backbone_units = []
-        elif isinstance(backbone_units, int):
-            backbone_units = [backbone_units] * backbone_layers
-        elif len(backbone_units) == 1 and backbone_layers > 1:
-            backbone_units = backbone_units * backbone_layers
-
-        # Create CfC cell
-        cell = CfCCell(
-            wiring=wiring,
-            mode=mode,
-            activation=activation,
-            backbone_units=backbone_units,
-            backbone_layers=backbone_layers,
-            backbone_dropout=backbone_dropout,
-        )
-
-        self.num_layers = num_layers
-        self.hidden_size = wiring.units
-        super().__init__(
-            cell=cell,
-            return_sequences=return_sequences,
-            return_state=return_state,
-            bidirectional=bidirectional,
-            merge_mode="concat" if bidirectional else None,
-        )
-        
-        # Create forward layers
-        self.forward_layers = []
-        for _ in range(num_layers):
-            layer_cell = CfCCell(
-                wiring=type(wiring).from_config(wiring.get_config()),
+            self._wiring = wiring
+            self.state_size = wiring.units
+            self.output_size = wiring.output_dim
+            self.rnn_cell = WiredCfCCell(
+                input_size,
+                wiring,
+                mode=mode,
+                activation=activation,
+                custom_activations=custom_activations,
+            )
+        else:
+            hidden_units = units
+            backbone_units = 128 if backbone_units is None else backbone_units
+            backbone_layers = 1 if backbone_layers is None else backbone_layers
+            backbone_dropout = 0.0 if backbone_dropout is None else backbone_dropout
+            self.state_size = hidden_units
+            self.output_size = hidden_units
+            self.rnn_cell = CfCCell(
+                input_size,
+                hidden_units,
                 mode=mode,
                 activation=activation,
                 backbone_units=backbone_units,
                 backbone_layers=backbone_layers,
                 backbone_dropout=backbone_dropout,
+                custom_activations=custom_activations,
             )
-            self.forward_layers.append(layer_cell)
-        
-        # Create backward layers if bidirectional
-        if bidirectional:
-            self.backward_layers = []
-            for _ in range(num_layers):
-                layer_cell = CfCCell(
-                    wiring=type(wiring).from_config(wiring.get_config()),
-                    mode=mode,
-                    activation=activation,
-                    backbone_units=backbone_units,
-                    backbone_layers=backbone_layers,
-                    backbone_dropout=backbone_dropout,
-                )
-                self.backward_layers.append(layer_cell)
-    
-    def __call__(
-        self,
-        x: mx.array,
-        initial_states: Optional[List[mx.array]] = None,
-        time_delta: Optional[Union[float, mx.array]] = None,
-    ) -> Union[mx.array, Tuple[mx.array, List[mx.array]]]:
-        """Process a sequence through the CfC network.
-        
-        Args:
-            x: Input tensor of shape [batch_size, seq_len, input_size]
-            initial_states: Optional list of initial states for each layer
-            time_delta: Optional time steps between sequence elements
-            
-        Returns:
-            If return_sequences is True, returns sequences of shape [batch_size, seq_len, hidden_size],
-            otherwise returns the last output of shape [batch_size, hidden_size].
-            If return_state is True, also returns the final states.
-        """
-        batch_size, seq_len, _ = x.shape
-        
-        # Process time delta
-        if time_delta is not None:
-            time_delta = self.process_time_delta(time_delta, batch_size, seq_len)
-        
-        # Initialize states if not provided
-        if initial_states is None:
-            initial_states = []
-            for _ in range(self.num_layers):
-                initial_states.append(mx.zeros((batch_size, self.hidden_size)))
-                if self.bidirectional:
-                    initial_states.append(mx.zeros((batch_size, self.hidden_size)))
-        
-        # Process each layer
-        current_input = x
-        final_states = []
-        
-        for layer in range(self.num_layers):
-            forward_cell = self.forward_layers[layer]
-            backward_cell = self.backward_layers[layer] if self.bidirectional else None
-            
-            # Forward pass
-            forward_states = []
-            state = initial_states[layer * (2 if self.bidirectional else 1)]
-            
-            for t in range(seq_len):
-                dt = time_delta[:, t] if time_delta is not None else 1.0
-                output, state = forward_cell(current_input[:, t], state, time=dt)
-                forward_states.append(output)
-            
-            forward_output = mx.stack(forward_states, axis=1)
-            final_states.append(state)
-            
-            # Backward pass if bidirectional
-            if self.bidirectional:
-                backward_states = []
-                state = initial_states[layer * 2 + 1]
-                
-                for t in range(seq_len - 1, -1, -1):
-                    dt = time_delta[:, t] if time_delta is not None else 1.0
-                    output, state = backward_cell(current_input[:, t], state, time=dt)
-                    backward_states.append(output)
-                
-                backward_output = mx.stack(backward_states[::-1], axis=1)
-                final_states.append(state)
-                
-                # Combine forward and backward outputs
-                current_input = mx.concatenate([forward_output, backward_output], axis=-1)
+
+        if proj_size is None:
+            self._fc = None
+        else:
+            self._fc = nn.Linear(self.output_size, proj_size)
+            self.output_size = proj_size
+
+    # ------------------------------------------------------------------ #
+    def _apply_fc(self, tensor: mx.array) -> mx.array:
+        if self._fc is None:
+            return tensor
+        return self._fc(tensor)
+
+    # ------------------------------------------------------------------ #
+    def __call__(self, inputs: mx.array, hx: Optional[mx.array] = None, timespans=None):
+        is_batched = inputs.ndim == 3
+        batch_dim = 0 if self.batch_first else 1
+        seq_dim = 1 if self.batch_first else 0
+
+        if not is_batched:
+            inputs = mx.expand_dims(inputs, axis=batch_dim)
+            if timespans is not None:
+                timespans = mx.expand_dims(timespans, axis=batch_dim)
+
+        batch_size = inputs.shape[batch_dim]
+        seq_len = inputs.shape[seq_dim]
+
+        if hx is None:
+            h_state = mx.zeros((batch_size, self.state_size), dtype=mx.float32)
+        else:
+            if not is_batched and hx.ndim == 1:
+                h_state = mx.expand_dims(hx, axis=0)
             else:
-                current_input = forward_output
-        
-        # Prepare output
-        if not self.return_sequences:
-            current_input = current_input[:, -1]
-            
-        if self.return_state:
-            return current_input, final_states
-        return current_input
-    
-    def state_dict(self) -> Dict[str, Any]:
-        """Return the layer's state dictionary."""
-        state = super().state_dict()
-        state.update({
-            'return_sequences': self.return_sequences,
-            'return_state': self.return_state,
-            'forward_layers': [layer.state_dict() for layer in self.forward_layers],
-        })
-        if self.bidirectional:
-            state['backward_layers'] = [layer.state_dict() for layer in self.backward_layers]
-        return state
-    
-    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
-        """Load the layer's state from a dictionary."""
-        super().load_state_dict(state_dict)
-        self.return_sequences = state_dict['return_sequences']
-        self.return_state = state_dict['return_state']
-        
-        # Load layer states
-        for layer, layer_state in zip(self.forward_layers, state_dict['forward_layers']):
-            layer.load_state_dict(layer_state)
-        if self.bidirectional:
-            for layer, layer_state in zip(self.backward_layers, state_dict['backward_layers']):
-                layer.load_state_dict(layer_state)
+                h_state = hx
+
+        outputs = []
+        for t in range(seq_len):
+            if self.batch_first:
+                step_input = inputs[:, t, :]
+                ts = 1.0 if timespans is None else timespans[:, t]
+            else:
+                step_input = inputs[t, :, :]
+                ts = 1.0 if timespans is None else timespans[t, :]
+
+            if hasattr(self.rnn_cell, "layer_sizes"):
+                h_out, h_state = self.rnn_cell(step_input, h_state, ts)
+            else:
+                h_out, h_state = self.rnn_cell(step_input, h_state, ts)
+
+            if self.return_sequences:
+                outputs.append(self._apply_fc(h_out))
+
+        if self.return_sequences:
+            stacked = mx.stack(outputs, axis=seq_dim)
+            readout = stacked
+        else:
+            readout = self._apply_fc(h_out)
+
+        if not is_batched:
+            readout = mx.squeeze(readout, axis=batch_dim)
+            h_state = mx.squeeze(h_state, axis=0)
+
+        return readout, h_state

@@ -91,17 +91,10 @@ Create MLX implementations and register them:
 
 .. code:: python
 
-# ncps/mlx/layers.py
-from ncps.backend import NCPSBackend
-from ncps.layers.base import Layer
+# Direct MLX usage (updated design)
+from mlx import nn
 
-class MLXDense(Layer):
-    def __init__(self, units, **kwargs):
-        # MLX-specific implementation
-        pass
-
-# Register implementation
-NCPSBackend.register("mlx", "Dense", MLXDense)
+NCPSBackend.register("mlx", "Dense", nn.Linear)
 
 2. Default Backend Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,16 +149,10 @@ Organize backend implementations:
 
 .. code:: python
 
-# ncps/mlx/layers/dense.py
-import mlx.core as mx
-from ncps.layers.base import Layer
+# ncps/mlx backend now maps directly to MLX modules
+from mlx import nn
 
-class MLXDense(Layer):
-    # MLX-specific implementation
-    pass
-
-# Register with backend
-NCPSBackend.register("mlx", "Dense", MLXDense)
+NCPSBackend.register("mlx", "Dense", nn.Linear)
 
 Usage Examples
 --------------

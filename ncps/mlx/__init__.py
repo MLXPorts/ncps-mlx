@@ -1,44 +1,50 @@
-"""Neural Circuit Policies MLX Implementation."""
+"""MLX implementations of Neural Circuit Policies components."""
 
-from .base import LiquidCell, LiquidRNN
-from .cfc import CfC
-from .cfc_cell_mlx import CfCCell
-from .ltc import LTC
 from .ltc_cell import LTCCell
-from .eltc import ELTC
+from .ltc import LTC
+from .cfc_cell import CfCCell
+from .cfc import CfC
+from .cfc_profiled import CfCProfiled
+from .wired_cfc_cell import WiredCfCCell
+from .ctgru_cell import CTGRUCell
+from .ctgru import CTGRU
+from .ctgru_se_cell import CTGRUSECell
+from .ctrnn_cell import CTRNNCell
+from .ctrnn import CTRNN
+from .ctrnn_se_cell import CTRNNSECell
 from .eltc_cell import ELTCCell
-from .ctrnn import CTRNNCell
-from .ctrnn_rnn import CTRNN
-from .ctgru import CTGRUCell
-from .ctgru_rnn import CTGRU
-from .utils import save_model, load_model
+from .eltc import ELTC
+from .ltc4_cell import LTC4Cell
+from .ltc4 import LTC4
+from .ltcse_cell import LTCSECell
+from .hyperprofiles import load_profile, HyperProfile
+from .icra_cfc_cell import IcraCfCCell
+from .node import NODE
+from .node_se_cell import NODESECell
+from .. import wirings
 
 __all__ = [
-    # Base classes
-    'LiquidCell',
-    'LiquidRNN',
-    
-    # CfC implementations
-    'CfC',
-    'CfCCell',
-    
-    # LTC implementations
-    'LTC',
-    'LTCCell',
-    
-    # ELTC implementations
-    'ELTC',
-    'ELTCCell',
-    
-    # CTRNN implementations
-    'CTRNN',
-    'CTRNNCell',
-    
-    # CTGRU implementations
-    'CTGRU',
-    'CTGRUCell',
-    
-    # Utility functions
-    'save_model',
-    'load_model',
+    "LTCCell",
+    "LTC",
+    "CfCCell",
+    "CfC",
+    "CfCProfiled",
+    "WiredCfCCell",
+    "CTGRUCell",
+    "CTGRU",
+    "CTGRUSECell",
+    "CTRNNCell",
+    "CTRNN",
+    "CTRNNSECell",
+    "ELTCCell",
+    "ELTC",
+    "LTC4Cell",
+    "LTC4",
+    "LTCSECell",
+    "NODE",
+    "NODESECell",
+    "HyperProfile",
+    "load_profile",
+    "wirings",
+    "IcraCfCCell",
 ]

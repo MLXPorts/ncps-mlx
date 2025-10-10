@@ -1,0 +1,7 @@
+{
+  "epochs": 50,
+  "batch_size": 64,
+  "seq_len": 32,
+  "save_dir": "artifacts/icra_cfc"
+}
+

@@ -1,120 +1,66 @@
-"""Continuous-Time Recurrent Neural Network (CTRNN) implementation in MLX."""
+"""CTRNN recurrent layer using the MLX cell implementation."""
+
+from __future__ import annotations
+
+from typing import Optional, Union
 
 import mlx.core as mx
 import mlx.nn as nn
-from typing import Optional, Tuple, List, Union
 
-from .liquid_utils import get_activation
+from .ctrnn_se_cell import CTRNNSECell
+from .hyperprofiles import HyperProfile
 
 
-class CTRNNCell(nn.Module):
-    """A Continuous-Time Recurrent Neural Network (CTRNN) cell.
-    
-    This cell follows MLX's unified class library design:
-    1. Inherits from nn.Module for automatic parameter handling
-    2. Uses underscore prefix for non-trainable attributes
-    3. Direct attribute access for trainable parameters
-    4. Uses centralized activation handling
-    """
-    
+class CTRNN(nn.Module):
     def __init__(
         self,
+        input_size: int,
         units: int,
-        global_feedback: bool = False,
         activation: str = "tanh",
-        cell_clip: Optional[float] = None,
-        epsilon: float = 1e-8,
-        **kwargs
-    ):
-        """Initialize the CTRNN cell.
-        
-        Args:
-            units: Number of units in the cell
-            global_feedback: Whether to use global feedback
-            activation: Activation function name to use
-            cell_clip: Optional value to clip cell outputs
-            epsilon: Small value for numerical stability
-        """
+        return_sequences: bool = True,
+        return_state: bool = False,
+        batch_first: bool = True,
+        profile: Optional[Union[str, HyperProfile]] = None,
+    ) -> None:
         super().__init__()
-        # Store non-trainable attributes
-        self._units = units
-        self._global_feedback = global_feedback
-        self._activation_name = activation
-        self._cell_clip = cell_clip
-        self._epsilon = epsilon
-        self.built = False
+        self.batch_first = batch_first
+        self.return_sequences = return_sequences
+        self.return_state = return_state
+        self.cell = CTRNNSECell(units=units, profile=profile)
+        self.cell._ensure_parameters(input_size)
 
-        # Get activation function from centralized utilities
-        self._activation = get_activation(activation)
+    def __call__(self, inputs: mx.array, hx: Optional[mx.array] = None, timespans: Optional[mx.array] = None):
+        is_batched = inputs.ndim == 3
+        batch_dim = 0 if self.batch_first else 1
+        seq_dim = 1 if self.batch_first else 0
 
-    @property
-    def state_size(self):
-        """Return the size of the cell state."""
-        return self._units
+        if not is_batched:
+            inputs = mx.expand_dims(inputs, axis=batch_dim)
+            if timespans is not None:
+                timespans = mx.expand_dims(timespans, axis=batch_dim)
 
-    @property
-    def output_size(self):
-        """Return the size of the cell output."""
-        return self._units
+        batch_size = inputs.shape[batch_dim]
+        seq_len = inputs.shape[seq_dim]
 
-    def build(self, input_shape: Tuple[int, ...]):
-        """Build the cell parameters.
-        
-        Args:
-            input_shape: Shape of the input tensor
-        """
-        input_dim = input_shape[-1]
-        
-        # Initialize weights with proper MLX operations using Xavier initialization
-        scale = mx.sqrt(2.0 / (input_dim + self._units))
-        self.kernel = scale * mx.random.normal((input_dim, self._units))
-        
-        scale = mx.sqrt(2.0 / (2 * self._units))
-        self.recurrent_kernel = scale * mx.random.normal((self._units, self._units))
-        
-        # Initialize bias with small positive values for stability
-        self.bias = 0.1 * mx.ones((self._units,))
-        
-        # Initialize fixed time constant
-        self.tau = 0.1 * mx.ones((self._units,))  # Smaller time constant for faster dynamics
-        
-        self.built = True
+        if hx is None:
+            h_state = mx.zeros((batch_size, self.cell.units), dtype=mx.float32)
+        else:
+            h_state = hx if is_batched or hx.ndim == 2 else mx.expand_dims(hx, axis=0)
 
-    def __call__(
-        self,
-        inputs: mx.array,
-        state: mx.array,
-        time: float = 1.0,
-        **kwargs
-    ) -> Tuple[mx.array, mx.array]:
-        """Process one time step.
-        
-        Args:
-            inputs: Input tensor
-            state: Previous state tensor
-            time: Time step size
-            **kwargs: Additional arguments
-            
-        Returns:
-            Tuple of (output, new_state) as MLX arrays
-        """
-        if not self.built:
-            self.build(inputs.shape)
-        
-        # Compute net input with proper MLX operations
-        net = mx.matmul(inputs, self.kernel)
-        net = net + mx.matmul(state, self.recurrent_kernel)
-        net = net + self.bias
-        
-        # Apply activation to get target state
-        target_state = self._activation(net)
-        
-        # Update state using continuous-time dynamics with fixed time constant
-        d_state = (-state + target_state) / (self.tau + self._epsilon)  # Add epsilon for stability
-        output = state + time * d_state
-        
-        # Apply cell clipping if specified
-        if self._cell_clip is not None:
-            output = mx.clip(output, -self._cell_clip, self._cell_clip)
-        
-        return output, output
+        outputs = []
+        for t in range(seq_len):
+            step_input = inputs[:, t, :] if self.batch_first else inputs[t, :, :]
+            output, h_state = self.cell(step_input, h_state)
+            if self.return_sequences:
+                outputs.append(output)
+
+        if self.return_sequences:
+            readout = mx.stack(outputs, axis=seq_dim)
+        else:
+            readout = output
+
+        if not is_batched:
+            readout = mx.squeeze(readout, axis=batch_dim)
+            h_state = mx.squeeze(h_state, axis=0)
+
+        return readout, h_state

@@ -59,38 +59,38 @@ Key considerations:
 
 ### 2. Layer System
 
-MLX-specific layer implementations should inherit from a base MLX layer:
+MLX-specific layer implementations now inherit directly from `mlx.nn.Module`:
 
 ```python
-# ncps/mlx/layers/layer.py
-class Layer:
-    def __init__(self, dtype="float32"):
-        self.dtype = dtype
-        self.params = {}  # MLX parameters
-        
+from mlx import nn
+
+class Projector(nn.Module):
+    def __init__(self, in_dims, out_dims):
+        super().__init__()
+        self.linear = nn.Linear(in_dims, out_dims)
+    
     def __call__(self, x):
-        return self.call(x)
+        return nn.relu(self.linear(x))
 ```
 
 Benefits:
-- Clean separation from NumPy implementation
-- MLX-specific parameter management
-- Optimized for MLX's computation model
+- Leverages native MLX parameter/state management
+- Keeps the code aligned with upstream APIs
+- Reduces maintenance overhead
 
 ### 3. RNN Implementation
 
 The MLX RNN implementation should leverage MLX's capabilities:
 
 ```python
-# ncps/mlx/layers/rnn.py
-class RNN(Layer):
+class RNN(nn.Module):
     def __init__(self, cell, return_sequences=False):
+        super().__init__()
         self.cell = cell
         self.return_sequences = return_sequences
         
     def __call__(self, inputs):
-        # Use MLX's optimized operations
-        return self.call(inputs)
+        return self.cell(inputs)
 ```
 
 Features:
@@ -102,21 +102,7 @@ Features:
 
 MLX-specific liquid neuron implementations:
 
-```python
-# ncps/mlx/layers/liquid.py
-class LiquidCell(RNNCell):
-    def __init__(self, units, **kwargs):
-        super().__init__(units, **kwargs)
-        
-    def call(self, inputs, states):
-        # Use MLX ops for computations
-        return outputs, new_states
-```
-
-Optimizations:
-- MLX-specific backbone implementations
-- Efficient time-based computations
-- MLX-optimized state updates
+Liquid neuron implementations continue to subclass `mlx.nn.Module`, ensuring\n+compatibility with MLX optimizers and training utilities without extra shims.
 
 ## Testing Strategy
 

@@ -132,7 +132,7 @@ dmypy.json
 
 # Project-specific ignores
 testgemini.py
-test*.py
+# Unit tests are tracked under tests/
 *.mlx
 *.npz
 *.pkl
@@ -148,3 +148,8 @@ test*.py
 
 # OS
 Thumbs.db
+datasets/
+!ncps/datasets/
+!ncps/datasets/**
+artifacts/
+archive/

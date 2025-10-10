@@ -1,1 +1,0 @@
-"""NCPS test suite."""
