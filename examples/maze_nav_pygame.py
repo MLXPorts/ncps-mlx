@@ -1,11 +1,19 @@
 """Tile-map navigation demo with liquid neural network control (Pygame).
 
 This demonstrates a robot navigating a maze environment using a trained
-Closed-form Continuous-time (CfC) liquid neural network. The network receives
-simulated LIDAR sensor data and outputs steering commands in real-time.
+Closed-form Continuous-time (CfC) liquid neural network from the ICRA 2020
+paper "Gershgorin Loss Stabilizes the Recurrent Neural Network Compartment
+of an End-To-End Robot Learning Scheme".
 
-The liquid neural network uses sensory-motor wiring with 64 neurons, where
-the first neuron acts as a motor neuron controlling steering direction.
+The network was trained on real robot demonstrations with LIDAR sensor data
+and outputs steering commands in real-time. It uses a Conv1D backbone to
+process LIDAR readings and a CfC cell for temporal dynamics.
+
+Architecture:
+  - Conv1D(12, k=5, s=3) → Conv1D(16, k=5, s=3) → Conv1D(24, k=5, s=2) 
+    → Conv1D(1, k=1, s=1) → Flatten
+  - CfC with 64 units
+  - Output: steering command
 
 Usage:
   PYTHONPATH=. python examples/maze_nav_pygame.py
@@ -19,9 +27,9 @@ Controls:
   Q / Esc:    Quit
 
 Training:
-  To train the liquid neuron model:
-    python -m examples.maze_train_mlx
-  This will create weights in artifacts/maze_cfc/
+  To train the ICRA model on real robot demonstrations:
+    python examples/icra_lidar_mlx.py
+  This will create weights in artifacts/icra_cfc/
 """
 
 from __future__ import annotations
@@ -44,11 +52,6 @@ except Exception:
     # When run as module
     from .maze_env import MAP_ASCII, TILE, is_wall, raycast
 
-try:
-    from ncps import CfC
-except Exception:
-    CfC = None  # type: ignore
-
 W = TILE * len(MAP_ASCII[0])
 H = TILE * len(MAP_ASCII)
 
@@ -56,38 +59,47 @@ H = TILE * len(MAP_ASCII)
 def main() -> None:  # pragma: no cover
     pygame.init()
     screen = pygame.display.set_mode((min(W, 1200), min(H, 900)))
-    pygame.display.set_caption("Liquid Neural Network Maze Navigation")
+    pygame.display.set_caption("Liquid Neural Network Maze Navigation (ICRA)")
     clock = pygame.time.Clock()
 
-    # Initialize liquid neural network
-    print("Initializing liquid neural network...")
-    from examples.wiring_presets import make_sensory_motor_wiring
+    # Initialize liquid neural network from ICRA 2020 paper
+    # Uses Conv1D backbone + CfC trained on real robot demonstrations
+    print("Initializing ICRA liquid neural network...")
+    from ncps import IcraCfCCell
     import os
+    import json
     
-    BINS = 181
-    input_dim = BINS + 2
-    wiring = make_sensory_motor_wiring(input_dim=input_dim, units=64, output_dim=1)
-    model = CfC(
-        input_size=input_dim,
-        units=wiring,
-        proj_size=None,  # Wiring defines motor neuron at index 0
-        return_sequences=True,
-        batch_first=True,
-        mode="default",
-        activation="lecun_tanh",
-    )
+    # Load config to get correct LIDAR dimensions
+    config_path = os.path.join("artifacts", "icra_cfc", "config.json")
+    if os.path.isfile(config_path):
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+        ICRA_BINS = config['lidar_bins']
+        STATE_DIM = config['state_dim']
+        print(f"  Config: {ICRA_BINS} LIDAR bins, {STATE_DIM} state dims")
+    else:
+        # Fallback defaults from ICRA dataset
+        ICRA_BINS = 538
+        STATE_DIM = 2
+        print(f"  Using default: {ICRA_BINS} LIDAR bins, {STATE_DIM} state dims")
     
-    # Load trained weights
-    weights_path = os.path.join("artifacts", "maze_cfc", "weights.npz")
+    # Simulation LIDAR resolution
+    SIM_BINS = 181
+    
+    # Build ICRA CfC cell with Conv1D backbone
+    model = IcraCfCCell(lidar_bins=ICRA_BINS, state_dim=STATE_DIM, profile="cfc_icra")
+    
+    # Load trained weights from ICRA obstacle avoidance dataset
+    weights_path = os.path.join("artifacts", "icra_cfc", "weights.npz")
     if os.path.isfile(weights_path):
         model.load_weights(weights_path)
-        print("✓ Loaded trained liquid neural network weights")
+        print("✓ Loaded ICRA trained weights (real robot demonstrations)")
     else:
-        print("⚠ Warning: No trained weights found!")
-        print("  Train first: python -m examples.maze_train_mlx")
+        print("⚠ Warning: No ICRA weights found!")
+        print("  Train first: python examples/icra_lidar_mlx.py")
         print("  Continuing with random initialization...")
     
-    hx = mx.zeros((1, 64), dtype=mx.float32)
+    hx = model.zero_state(batch_size=1)
 
     # Robot state
     rx, ry = TILE * 2.5, TILE * (len(MAP_ASCII) - 2.5)
@@ -98,7 +110,7 @@ def main() -> None:  # pragma: no cover
     manual_override = False
     trace = []  # path points
 
-    # LIDAR parameters
+    # LIDAR parameters for simulation
     FOV = math.radians(270)
     MAX_R = TILE * 12
     ANG0 = -FOV / 2
@@ -125,10 +137,10 @@ def main() -> None:  # pragma: no cover
                 if event.key == pygame.K_RIGHTBRACKET:
                     steer_gain = min(2.5, steer_gain + 0.1)
 
-        # Simulate LIDAR in robot frame
+        # Simulate LIDAR in robot frame (at simulation resolution)
         dists: List[float] = []
-        for i in range(BINS):
-            a = heading + ANG0 + FOV * (i / (BINS - 1))
+        for i in range(SIM_BINS):
+            a = heading + ANG0 + FOV * (i / (SIM_BINS - 1))
             d = raycast(rx, ry, a, MAX_R)
             dists.append(d)
 
@@ -144,12 +156,33 @@ def main() -> None:  # pragma: no cover
             if keys[pygame.K_RIGHT]:
                 steer_cmd += 1.0
         else:
-            # Liquid neural network control
-            norm = [min(1.0, d / MAX_R) for d in dists]
-            v = speed / (TILE * 4)
-            x = mx.array([[norm + [v, 0.0]]], dtype=mx.float32)
-            mu, hx = model(x, hx=hx)
-            steer_cmd = float(mu[0, 0, 0].tolist())
+            # Liquid neural network control (ICRA CfC)
+            # Normalize LIDAR readings [0, 1]
+            lidar_norm_list = [min(1.0, d / MAX_R) for d in dists]
+            
+            # Interpolate from SIM_BINS to ICRA_BINS using numpy
+            if SIM_BINS != ICRA_BINS:
+                import numpy as np
+                lidar_np = np.array(lidar_norm_list, dtype=np.float32)
+                x_sim = np.linspace(0, 1, SIM_BINS)
+                x_icra = np.linspace(0, 1, ICRA_BINS)
+                lidar_interp = np.interp(x_icra, x_sim, lidar_np)
+                lidar_norm = mx.array([[lidar_interp.tolist()]], dtype=mx.float32)
+            else:
+                lidar_norm = mx.array([[lidar_norm_list]], dtype=mx.float32)
+            
+            # Vehicle state: [velocity, angular_velocity] normalized
+            v_norm = speed / (TILE * 4)  # Normalize velocity
+            w_norm = 0.0  # Angular velocity (not used in this simple sim)
+            state = mx.array([[v_norm, w_norm]], dtype=mx.float32)
+            
+            # Expand to time dimension [batch=1, time=1, features]
+            lidar_seq = mx.expand_dims(lidar_norm, axis=1)
+            state_seq = mx.expand_dims(state, axis=1)
+            
+            # Forward pass through ICRA CfC (returns [batch, time, 1])
+            mu, hx = model(state_seq, lidar_seq, hx=hx, return_state=True)
+            steer_cmd = float(mu[0, 0, 0].item())
         
         throttle = 1.0
 
