@@ -2,8 +2,7 @@
 
 This provides an actual environment (walls + corridors) and a simple robot
 that moves around in real time. LIDAR rays can be toggled on/off; control can
-be manual (keyboard) or a tiny avoidance autopilot. Model predictions can be
-overlayed as a debug arrow but do not drive motion by default.
+be manual (keyboard), a tiny avoidance autopilot, or a trained liquid neural network.
 
 Usage:
   PYTHONPATH=. python examples/maze_nav_pygame.py
@@ -11,11 +10,17 @@ Usage:
 Controls:
   Arrow keys: steer (left/right) and throttle up/down (manual mode)
   A:          toggle autopilot (simple obstacle avoidance)
+  M:          toggle liquid neuron model drive (requires trained weights)
   L:          toggle LIDAR ray visualization
   C:          clear the path trace
   +/-:        speed down/up
   [ / ]:      steering gain down/up
   Q / Esc:    quit
+
+Training:
+  To train the liquid neuron model:
+    python -m examples.maze_train_mlx
+  This will create weights in artifacts/maze_cfc/
 """
 
 from __future__ import annotations
@@ -95,7 +100,7 @@ def main() -> None:  # pragma: no cover
                         model = CfC(
                             input_size=input_dim,
                             units=wiring,
-                            proj_size=None,
+                            proj_size=None,  # Wiring defines motor neuron at index 0
                             return_sequences=True,
                             batch_first=True,
                             mode="default",
@@ -105,8 +110,14 @@ def main() -> None:  # pragma: no cover
                         w = os.path.join("artifacts", "maze_cfc", "weights.npz")
                         if os.path.isfile(w):
                             model.load_weights(w)
+                            print("✓ Loaded trained CfC weights for liquid neuron navigation")
+                        else:
+                            print("⚠ Warning: No trained weights found, using random initialization")
+                            print("  Train the model first: python -m examples.maze_train_mlx")
                         hx = mx.zeros((1, 64), dtype=mx.float32)
                     model_drive = not model_drive
+                    mode_str = "liquid neurons" if model_drive else "autopilot/manual"
+                    print(f"🧠 Control mode: {mode_str}")
                 if event.key in (pygame.K_PLUS, pygame.K_EQUALS):
                     speed = min(300.0, speed + 20.0)
                 if event.key == pygame.K_MINUS:
