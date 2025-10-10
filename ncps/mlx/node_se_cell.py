@@ -35,7 +35,7 @@ class NODESECell(nn.Module):
         if self._input_dim == input_dim and self.linear_step is not None:
             return
 
-        in_features = input_dim + self.units
+        in_features = input_dim + self.units  # Python int ops OK
         self.linear_step = nn.Linear(in_features, self.units, bias=True)
         self.linear_step.bias = mx.zeros((self.units,), dtype=mx.float32)
         self._input_dim = input_dim
@@ -51,11 +51,24 @@ class NODESECell(nn.Module):
             state = mx.zeros((inputs.shape[0], self.units), dtype=mx.float32)
 
         for _ in range(self._unfolds):
-            k1 = self._delta_t * self._f_prime(inputs, state)
-            k2 = self._delta_t * self._f_prime(inputs, state + 0.5 * k1)
-            k3 = self._delta_t * self._f_prime(inputs, state + 0.5 * k2)
-            k4 = self._delta_t * self._f_prime(inputs, state + k3)
-            state = state + (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
+            k1 = mx.multiply(self._delta_t, self._f_prime(inputs, state))
+            k2 = mx.multiply(
+                self._delta_t, self._f_prime(inputs, mx.add(state, mx.multiply(0.5, k1)))
+            )
+            k3 = mx.multiply(
+                self._delta_t, self._f_prime(inputs, mx.add(state, mx.multiply(0.5, k2)))
+            )
+            k4 = mx.multiply(self._delta_t, self._f_prime(inputs, mx.add(state, k3)))
+            state = mx.add(
+                state,
+                mx.divide(
+                    mx.add(
+                        mx.add(k1, mx.multiply(2, k2)),
+                        mx.add(mx.multiply(2, k3), k4),
+                    ),
+                    6.0,
+                ),
+            )
 
             if self._cell_clip > 0:
                 state = mx.clip(state, -self._cell_clip, self._cell_clip)

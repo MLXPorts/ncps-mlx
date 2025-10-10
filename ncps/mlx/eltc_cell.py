@@ -15,8 +15,8 @@ SolverName = Literal["semi_implicit", "explicit", "rk4"]
 
 def _masked_linear(layer: nn.Linear, mask: mx.array, x: mx.array) -> mx.array:
     """Apply a linear layer whose weights are masked by the wiring topology."""
-    weight = layer.weight * mask
-    return mx.matmul(x, mx.transpose(weight)) + layer.bias
+    weight = mx.multiply(layer.weight, mask)
+    return mx.add(mx.matmul(x, mx.transpose(weight)), layer.bias)
 
 
 class ELTCCell(nn.Module):
@@ -73,16 +73,16 @@ class ELTCCell(nn.Module):
 
         def dynamics(_, y: mx.array) -> mx.array:
             recurrent_proj = _masked_linear(self.recurrent_linear, self._recurrent_mask, y)
-            net = input_proj + recurrent_proj
-            return self._activation(net) - y
+            net = mx.add(input_proj, recurrent_proj)
+            return mx.subtract(self._activation(net), y)
 
         if not isinstance(time, mx.array):
             time = mx.array(time, dtype=mx.float32)
         if time.ndim == 0:
-            dt = time / self._ode_unfolds
+            dt = mx.divide(time, self._ode_unfolds)
             dt = mx.reshape(dt, (1, 1))
         else:
-            dt = mx.reshape(time / self._ode_unfolds, (-1, 1))
+            dt = mx.reshape(mx.divide(time, self._ode_unfolds), (-1, 1))
 
         y = state
         for _ in range(self._ode_unfolds):
