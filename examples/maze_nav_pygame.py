@@ -196,8 +196,9 @@ def main() -> None:  # pragma: no cover
 
         # HUD
         font = pygame.font.SysFont("monospace", 16)
-        txt = f"mode={'AUTO' if autopilot else 'MAN'} v={speed:.0f}px/s gain={steer_gain:.2f} rays={'on' if show_rays else 'off'}"
-        screen.blit(font.render(txt, True, (230, 230, 230)), (10, 10))
+        mode_txt = "MANUAL" if manual_override else "LIQUID NEURONS"
+        txt = f"{mode_txt} | speed={speed:.0f}px/s | gain={steer_gain:.2f} | rays={'on' if show_rays else 'off'}"
+        screen.blit(font.render(txt, True, (100, 255, 100)), (10, 10))
 
         pygame.display.flip()
 
