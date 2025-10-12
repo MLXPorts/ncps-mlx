@@ -6,6 +6,7 @@
 ![pyversion](misc/pybadge.svg)
 ![GitHub stars](https://img.shields.io/github/stars/SolaceHarmony/ncps-mlx)
 ![GitHub issues](https://img.shields.io/github/issues/SolaceHarmony/ncps-mlx)
+[![Documentation Status](https://readthedocs.org/projects/ncps-mlx/badge/?version=latest)](https://ncps-mlx.readthedocs.io/en/latest/?badge=latest)
 
 ## 🎯 About This Project
 
@@ -68,6 +69,22 @@ pip install -e .[viz]  # Includes matplotlib and networkx for visualization
 ```bash
 pip install mlx
 ```
+
+## 📚 Documentation
+
+Full documentation is available at [ReadTheDocs](https://ncps-mlx.readthedocs.io/) (coming soon) or can be built locally:
+
+```bash
+cd docs
+pip install -r ../.readthedocs-requirements.txt
+make html
+# Open docs/_build/html/index.html in your browser
+```
+
+The documentation includes:
+- **[Quickstart Guide](docs/quickstart.rst)** - Get started with NCPs and MLX
+- **[API Reference](docs/api/index.rst)** - Complete API documentation
+- **[Examples](docs/examples/index.rst)** - Detailed usage examples and tutorials
 
 ## 📚 Examples
 
