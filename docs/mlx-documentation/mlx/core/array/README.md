@@ -1,0 +1,66 @@
+# Core / array
+
+- Curated Guides:
+  - curated.ARRAYS.md
+  - curated.CONV_AND_SHAPES.md
+  - curated.INPLACE_AND_MUTABILITY.md
+  - curated.NUMPY_USERS.md
+  - curated.SAVE_LOAD.md
+  - curated.SHAPES_AND_BROADCASTING.md
+
+# Core / array
+
+- Contents:
+  - mlx.core.array.T.md
+  - mlx.core.array.abs.md
+  - mlx.core.array.all.md
+  - mlx.core.array.any.md
+  - mlx.core.array.argmax.md
+  - mlx.core.array.argmin.md
+  - mlx.core.array.astype.md
+  - mlx.core.array.at.md
+  - mlx.core.array.conj.md
+  - mlx.core.array.cos.md
+  - mlx.core.array.cummax.md
+  - mlx.core.array.cummin.md
+  - mlx.core.array.cumprod.md
+  - mlx.core.array.cumsum.md
+  - mlx.core.array.diag.md
+  - mlx.core.array.diagonal.md
+  - mlx.core.array.dtype.md
+  - mlx.core.array.exp.md
+  - mlx.core.array.flatten.md
+  - mlx.core.array.item.md
+  - mlx.core.array.itemsize.md
+  - mlx.core.array.log.md
+  - mlx.core.array.log10.md
+  - mlx.core.array.log1p.md
+  - mlx.core.array.log2.md
+  - mlx.core.array.logcumsumexp.md
+  - mlx.core.array.logsumexp.md
+  - mlx.core.array.max.md
+  - mlx.core.array.md
+  - mlx.core.array.mean.md
+  - mlx.core.array.min.md
+  - mlx.core.array.moveaxis.md
+  - mlx.core.array.nbytes.md
+  - mlx.core.array.ndim.md
+  - mlx.core.array.prod.md
+  - mlx.core.array.reciprocal.md
+  - mlx.core.array.reshape.md
+  - mlx.core.array.round.md
+  - mlx.core.array.rsqrt.md
+  - mlx.core.array.shape.md
+  - mlx.core.array.sin.md
+  - mlx.core.array.size.md
+  - mlx.core.array.split.md
+  - mlx.core.array.sqrt.md
+  - mlx.core.array.square.md
+  - mlx.core.array.squeeze.md
+  - mlx.core.array.std.md
+  - mlx.core.array.sum.md
+  - mlx.core.array.swapaxes.md
+  - mlx.core.array.tolist.md
+  - mlx.core.array.transpose.md
+  - mlx.core.array.var.md
+  - mlx.core.array.view.md
