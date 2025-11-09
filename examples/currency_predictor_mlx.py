@@ -11,7 +11,7 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps.mlx.ltcse_cell import LTCSECell
+from ncps.neurons.ltcse_cell import LTCSECell
 
 SEQ_LEN = 32
 BATCH_SIZE = 16

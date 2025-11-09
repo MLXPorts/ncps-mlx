@@ -3,8 +3,8 @@
 import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
-from ncps.mlx import CTRNN, CTGRU, ELTC
-from ncps.mlx.training import EnhancedLTCTrainer, TrainingConfig
+from ncps.neurons import CTRNN, CTGRU, ELTC
+from ncps.neurons.training import EnhancedLTCTrainer, TrainingConfig
 
 # Generate sequence data
 N = 1000  # sequence length

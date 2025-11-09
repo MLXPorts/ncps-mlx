@@ -149,7 +149,8 @@ testgemini.py
 # OS
 Thumbs.db
 datasets/
-!ncps/datasets/
-!ncps/datasets/**
+!examples/datasets/
+!examples/datasets/**
 artifacts/
 archive/
+/examples/datasets/icra2020_imitation_data_packed.npz

@@ -1,7 +1,5 @@
 """Pure-MLX wiring utilities for constructing sparse neural circuits."""
 
-from __future__ import annotations
-
 from random import Random as PyRandom
 from typing import Dict, Iterable, List, Optional
 
@@ -100,7 +98,7 @@ class Wiring:
 
     @classmethod
     def from_config(cls, config: Dict[str, object]) -> "Wiring":
-        wiring = cls(int(config["units"]))
+        wiring = cls(int(config['units']))
         wiring.adjacency_matrix = mx.array(
             config["adjacency_matrix"], dtype=mx.int32
         )
@@ -221,11 +219,11 @@ class Wiring:
 
     # ------------------------------------------------------------------
     @property
-    def synapse_count(self) -> int:
+    def synapse_count(self) -> mx.array:
         return mx.sum(mx.abs(self.adjacency_matrix))
 
     @property
-    def sensory_synapse_count(self) -> int:
+    def sensory_synapse_count(self) -> mx.array:
         if self.sensory_adjacency_matrix is None:
             return mx.array(0, dtype=mx.int32)
         return mx.sum(mx.abs(self.sensory_adjacency_matrix))
@@ -334,6 +332,8 @@ class NCP(Wiring):
         seed: int = 22222,
     ) -> None:
         super().__init__(inter_neurons + command_neurons + motor_neurons)
+        self._sensory_neurons = None
+        self._num_sensory_neurons = None
         self.set_output_dim(motor_neurons)
         self._rng = PyRandom(seed)
         self._seed = seed

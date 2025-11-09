@@ -40,7 +40,7 @@ class CTRNNSECell(nn.Module):
         self._input_dim: Optional[int] = None
         self.tau_param: Optional[mx.array] = None
 
-    def _ensure_parameters(self, input_dim: int) -> None:
+    def ensure_parameters(self, input_dim: int) -> None:
         if self._input_dim == input_dim and self.linear_step is not None:
             return
 
@@ -59,7 +59,7 @@ class CTRNNSECell(nn.Module):
         return softplus
 
     def __call__(self, inputs: mx.array, state: Optional[mx.array] = None) -> tuple[mx.array, mx.array]:
-        self._ensure_parameters(inputs.shape[-1])
+        self.ensure_parameters(inputs.shape[-1])
 
         if state is None:
             state = mx.zeros((inputs.shape[0], self.units), dtype=mx.float32)

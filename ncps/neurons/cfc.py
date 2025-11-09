@@ -1,7 +1,5 @@
 """MLX implementation of the CfC recurrent module."""
 
-from __future__ import annotations
-
 from typing import Callable, Dict, Optional, Union
 
 import mlx.core as mx

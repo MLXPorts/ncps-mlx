@@ -3,7 +3,7 @@
 import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
-from ncps.mlx import CTRNN, CTGRU, ELTC
+from ncps.neurons import CTRNN, CTGRU, ELTC
 from ncps.wirings import FullyConnected
 
 # Generate sequence data

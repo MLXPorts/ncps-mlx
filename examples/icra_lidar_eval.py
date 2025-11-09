@@ -15,10 +15,12 @@ import os
 import json
 
 import mlx.core as mx
-import mlx.nn as nn
 
-from ncps import IcraCfCCell
-from datasets.icra2020_lidar_collision_avoidance import load_data
+from ncps.neurons.icra_cfc_cell import IcraCfCCell
+try:
+    from datasets.icra2020_lidar_collision_avoidance import load_data
+except Exception:  # Fallback when running from repo root
+    from examples.datasets.icra2020_lidar_collision_avoidance import load_data
 
 
 def build_cell(total_input_dim: int) -> IcraCfCCell:

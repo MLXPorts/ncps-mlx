@@ -10,9 +10,9 @@ import os
 import tempfile
 
 import mlx.core as mx
-from ncps.mlx import CfC
+from ncps.neurons import CfC
 from ncps.wirings import Random, NCP
-from ncps.mlx.visualization import WiringVisualizer, PerformanceVisualizer
+from ncps.neurons.visualization import WiringVisualizer, PerformanceVisualizer
 
 
 class TestWiringVisualization(unittest.TestCase):

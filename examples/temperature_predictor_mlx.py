@@ -11,7 +11,7 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps.mlx.ltc4_cell import LTC4Cell
+from ncps.neurons.ltc4_cell import LTC4Cell
 
 LOOK_BACK = 3
 EPOCHS = 100

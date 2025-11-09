@@ -1,4 +1,5 @@
-from .mlx import *  # noqa: F401,F403
-from . import wirings  # noqa: F401
+# Re-export core neuron modules at the top-level for a clean public API
+from . import neurons
+from . import wirings
 
-__all__ = list(locals().get("__all__", [])) + ["wirings"]
+__all__ = ["wirings", "neurons"]

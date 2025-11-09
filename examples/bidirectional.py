@@ -5,7 +5,7 @@ from __future__ import annotations
 import mlx.core as mx
 import mlx.nn as nn
 
-from ncps.mlx import CfC
+from ncps.neurons import CfC
 from ncps.wirings import AutoNCP
 
 from mlx_common import make_sine_dataset, train_sequence_model

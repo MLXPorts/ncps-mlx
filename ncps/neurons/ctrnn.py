@@ -27,7 +27,7 @@ class CTRNN(nn.Module):
         self.return_sequences = return_sequences
         self.return_state = return_state
         self.cell = CTRNNSECell(units=units, profile=profile)
-        self.cell._ensure_parameters(input_size)
+        self.cell.ensure_parameters(input_size)
 
     def __call__(self, inputs: mx.array, hx: Optional[mx.array] = None, timespans: Optional[mx.array] = None):
         is_batched = inputs.ndim == 3

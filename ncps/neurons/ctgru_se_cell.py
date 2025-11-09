@@ -46,7 +46,7 @@ class CTGRUSECell(nn.Module):
         decay_vals = [math.exp(-1.0 / v) if v != 0.0 else 0.0 for v in ln_tau_values]
         self._decay = mx.array([[decay_vals]], dtype=mx.float32)
 
-    def _ensure_parameters(self, input_dim: int) -> None:
+    def ensure_parameters(self, input_dim: int) -> None:
         if self._input_dim == input_dim and self.linear_tau_r is not None:
             return
 
@@ -57,7 +57,7 @@ class CTGRUSECell(nn.Module):
         self._input_dim = input_dim
 
     def __call__(self, inputs: mx.array, state: Optional[mx.array] = None) -> tuple[mx.array, mx.array]:
-        self._ensure_parameters(inputs.shape[-1])
+        self.ensure_parameters(inputs.shape[-1])
 
         batch_size = inputs.shape[0]
         if state is None:

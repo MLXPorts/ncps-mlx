@@ -1,4 +1,4 @@
-from ncps.mlx import load_profile
+from ncps.neurons import load_profile
 
 
 def test_load_tf_profile():

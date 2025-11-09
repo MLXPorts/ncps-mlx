@@ -1,7 +1,7 @@
 import mlx.core as mx
 import mlx.nn as nn
 
-from ncps.mlx import (
+from ncps.neurons import (
     LTCCell,
     LTC,
     CfCCell,

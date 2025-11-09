@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ncps.mlx import LTC
+from ncps.neurons import LTC
 from ncps.wirings import AutoNCP
 
 from mlx_common import make_sine_dataset, train_sequence_model

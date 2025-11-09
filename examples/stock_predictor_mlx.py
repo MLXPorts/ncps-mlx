@@ -16,7 +16,7 @@ from pandas_datareader import data as pdr
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 
-from ncps.mlx import LTC4
+from ncps.neurons import LTC4
 
 
 def load_stock_data(symbol: str, start: str, end: str) -> np.ndarray:

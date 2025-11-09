@@ -158,10 +158,12 @@ wiring = FullyConnected(units=64, output_dim=64)
 wiring.build(input_size=20)
 model = LTC(input_size=20, units=wiring, return_sequences=True)
 
+
 # Define loss function
 def loss_fn(model, x, y):
     outputs, _ = model(x)
     return mx.mean((outputs - y) ** 2)
+
 
 # Training loop
 optimizer = optim.Adam(learning_rate=1e-3)
@@ -202,16 +204,18 @@ import mlx.nn as nn
 from ncps import CfC
 from ncps.wirings import AutoNCP
 
+
 class SequenceClassifier(nn.Module):
     def __init__(self, input_dim: int, hidden_dim: int, num_classes: int):
         super().__init__()
         wiring = AutoNCP(hidden_dim, num_classes)
         self.rnn = CfC(input_size=input_dim, units=wiring, return_sequences=False)
         self.output = nn.Linear(self.rnn.output_size, num_classes)
-    
+
     def __call__(self, x):
         features, _ = self.rnn(x)
         return self.output(features)
+
 
 # Create and use model
 model = SequenceClassifier(input_dim=20, hidden_dim=64, num_classes=10)

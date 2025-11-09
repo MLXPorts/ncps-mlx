@@ -10,7 +10,7 @@ authors = [{name = "NCPS Maintainers"}]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "mlx-core>=0.6.0",
+  "mlx>=0.6.0",
 ]
 
 [tool.setuptools.packages.find]
