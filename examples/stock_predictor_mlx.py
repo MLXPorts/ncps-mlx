@@ -64,9 +64,9 @@ def train(model: StockModel, train_x: mx.array, train_y: mx.array, epochs: int, 
             loss, grads = value_and_grad(model, batch_x, batch_y)
             optimizer.update(model, grads)
             mx.eval(model.parameters(), optimizer.state)
-            losses.append(float(loss.item()))
+            losses.append(loss.item())
         if (epoch + 1) % 10 == 0 or epoch == 0:
-            mean_loss = float(mx.mean(mx.array(losses)).item())
+            mean_loss = (sum(losses) / len(losses)) if losses else 0.0
             print(f"epoch {epoch + 1:03d} loss={mean_loss:.6f}")
 
 

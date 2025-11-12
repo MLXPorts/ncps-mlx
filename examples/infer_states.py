@@ -39,7 +39,7 @@ def main() -> None:
         (1, 5),
     )
     first_hidden = mx.reshape(first_hidden, (5,))
-    print("first output step:", float(first_step.item()))
+    print("first output step:", first_step.item())
     print("first five hidden activations:", first_hidden.tolist())
 
 

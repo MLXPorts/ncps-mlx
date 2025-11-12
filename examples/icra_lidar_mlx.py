@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import argparse
 import json
 import os
-from typing import Dict, Tuple
 
 import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps import IcraCfCCell
 from datasets.icra2020_lidar_collision_avoidance import load_data
+from ncps.neurons import IcraCfCCell, CTRNNCell
 
 
 class LidarModel(nn.Module):
@@ -31,7 +29,7 @@ class LidarModel(nn.Module):
         if kind == "cfc":
             self.cell = IcraCfCCell(lidar_bins=self.lidar_bins, state_dim=self.state_dim, profile="cfc_icra")
         elif kind == "ctrnn":
-            self.cell = IcraCTRNNCell(lidar_bins=self.lidar_bins, state_dim=self.state_dim, units=units, profile="ctrnn_tf")
+            self.cell = CTRNNCell(units=units, profile="ctrnn_tf")
         else:
             raise ValueError("kind must be 'cfc' or 'ctrnn'")
 
@@ -52,13 +50,13 @@ class LidarCfC(LidarModel):
         super().__init__(total_input_dim=total_input_dim, kind="cfc")
 
 
-def prepare_dataset(seq_len: int = 32) -> Tuple[mx.array, mx.array, mx.array, mx.array]:
+def prepare_dataset(seq_len: int = 32) -> tuple[mx.array, mx.array, mx.array, mx.array]:
     (train_x, train_y), (test_x, test_y) = load_data(seq_len=seq_len)
     # Already float32 MLX arrays
     return train_x, train_y, test_x, test_y
 
 
-def batch_iterator(inputs: mx.array, targets: mx.array, batch_size: int, seed: int) -> Tuple[mx.array, mx.array]:
+def batch_iterator(inputs: mx.array, targets: mx.array, batch_size: int, seed: int):
     n = int(inputs.shape[0])
     mx.random.seed(seed)
     idx = mx.random.permutation(n)
@@ -68,19 +66,19 @@ def batch_iterator(inputs: mx.array, targets: mx.array, batch_size: int, seed: i
 
 
 def train_model(
-    model: LidarModel,
-    train_inputs: mx.array,
-    train_targets: mx.array,
-    epochs: int = 50,
-    batch_size: int = 64,
-    learning_rate: float = 1e-3,
-    log_interval: int = 10,
-    *,
-    val_inputs: mx.array | None = None,
-    val_targets: mx.array | None = None,
-    log_csv_path: str | None = None,
-    best_path: str | None = None,
-) -> Dict[str, float]:
+        model: LidarModel,
+        train_inputs: mx.array,
+        train_targets: mx.array,
+        epochs: int = 50,
+        batch_size: int = 64,
+        learning_rate: float = 1e-3,
+        log_interval: int = 10,
+        *,
+        val_inputs: mx.array | None = None,
+        val_targets: mx.array | None = None,
+        log_csv_path: str | None = None,
+        best_path: str | None = None,
+) -> dict[str, mx.array]:
     optimizer = optim.Adam(learning_rate=learning_rate)
 
     def loss_fn(mdl: LidarModel, xb: mx.array, yb: mx.array) -> mx.array:
@@ -98,12 +96,13 @@ def train_model(
     except Exception:
         compiled_loss_and_grads = _loss_and_grads
 
-    metrics: Dict[str, mx.array] = {}
+    metrics: dict[str, mx.array] = {}
     if log_csv_path:
         os.makedirs(os.path.dirname(log_csv_path), exist_ok=True)
         with open(log_csv_path, "w", encoding="utf-8") as f:
             f.write("epoch,train_loss,train_mae,val_loss,val_mae\n")
-    best_mae = mx.array(float("inf"), dtype=mx.float32)
+    # Track best MAE as a Python float to avoid MLX/Python mixing
+    best_mae = float("inf")
     model.train(True)
     for epoch in range(1, epochs + 1):
         sum_loss = mx.array(0.0, dtype=mx.float32)
@@ -123,8 +122,11 @@ def train_model(
             n += 1
         if epoch % log_interval == 0 or epoch == 1:
             denom = mx.array(max(1, n), dtype=mx.float32)
-            metrics[f"epoch_{epoch:03d}"] = sum_loss / denom
-            print("epoch", f"{epoch:03d}", "train_loss=", metrics[f"epoch_{epoch:03d}"] , "train_mae=", (sum_mae/denom))
+            avg_loss = sum_loss / denom
+            avg_mae = sum_mae / denom
+            metrics[f"epoch_{epoch:03d}"] = avg_loss
+            mx.eval(avg_loss, avg_mae)
+            print(f"epoch {epoch:03d} train_loss= {avg_loss.item():.6f} train_mae= {avg_mae.item():.6f}")
         # Validation + best checkpoint per epoch
         val_loss = None
         val_mae = None
@@ -132,33 +134,37 @@ def train_model(
             evalm = evaluate(model, val_inputs, val_targets)
             val_loss = evalm["rmse"] * evalm["rmse"]
             val_mae = evalm["mae"]
-            if best_path is not None and val_mae < best_mae:
-                best_mae = val_mae
+            mx.eval(val_loss, val_mae)
+            if val_mae.item() < best_mae:
+                best_mae = val_mae.item()
                 model.cell.save_weights(best_path)
         if log_csv_path:
+            avg_loss_val = avg_loss.item()
+            avg_mae_val = avg_mae.item()
+            val_loss_val = val_loss.item() if val_loss is not None else 0.0
+            val_mae_val = val_mae.item() if val_mae is not None else 0.0
             with open(log_csv_path, "a", encoding="utf-8") as f:
-                f.write(
-                    f"{epoch},{float(metrics[f'epoch_{epoch:03d}'].tolist())},{float((sum_mae/denom).tolist())},{float((val_loss.tolist() if val_loss is not None else 0.0))},{float((val_mae.tolist() if val_mae is not None else 0.0))}\n"
-                )
+                f.write(f"{epoch},{avg_loss_val:.6f},{avg_mae_val:.6f},{val_loss_val:.6f},{val_mae_val:.6f}\n")
     return metrics
 
 
-def evaluate(model: LidarModel, inputs: mx.array, targets: mx.array) -> Dict[str, mx.array]:
+def evaluate(model: LidarModel, inputs: mx.array, targets: mx.array) -> dict[str, mx.array]:
     model.eval()
     preds = model(inputs).astype(mx.float32)
     mse = mx.mean((preds - targets) ** 2)
     rmse = mx.sqrt(mse)
     mae = mx.mean(mx.abs(preds - targets))
+    mx.eval(rmse, mae)
     return {"rmse": rmse, "mae": mae}
 
 
 def run_experiment(
-    epochs: int = 50,
-    batch_size: int = 64,
-    seq_len: int = 32,
-    dataset: Tuple[mx.array, mx.array, mx.array, mx.array] | None = None,
-    save_dir: str = "artifacts/icra_cfc",
-) -> Dict[str, float]:
+        epochs: int = 50,
+        batch_size: int = 64,
+        seq_len: int = 32,
+        dataset: tuple[mx.array, mx.array, mx.array, mx.array] | None = None,
+        save_dir: str = "artifacts/icra_cfc",
+) -> dict[str, mx.array]:
     if dataset is None:
         train_x, train_y, test_x, test_y = prepare_dataset(seq_len)
     else:
@@ -183,7 +189,7 @@ def run_experiment(
     tr_x = train_x[:-val_n]
     tr_y = train_y[:-val_n]
 
-    model = LidarCfC(total_input_dim=train_x.shape[-1])
+    model = LidarCfC(total_input_dim=int(train_x.shape[-1]))
 
     # Top-level seed for reproducibility
     mx.random.seed(42)
@@ -208,7 +214,7 @@ def run_experiment(
         model.cell.load_weights(best_path)
 
     eval_metrics = evaluate(model, test_x, test_y)
-    print("Test:", eval_metrics)
+    print(f"Test: RMSE={eval_metrics['rmse'].item():.6f} MAE={eval_metrics['mae'].item():.6f}")
 
     # Always save weights, hidden state snapshot, and config JSON
     weights_path = os.path.join(save_dir, "weights.npz")
@@ -220,6 +226,7 @@ def run_experiment(
     lidar_seq = sample[..., :lidar_bins]
     state_seq = sample[..., lidar_bins:lidar_bins + model.state_dim]
     _, hx_final = model.cell(state_seq, lidar_seq, return_state=True)
+    mx.eval(hx_final)
     mx.savez(os.path.join(save_dir, "hx.npz"), hx=hx_final)
 
     # Config JSON

@@ -161,7 +161,7 @@ class TestPerformanceMonitor(unittest.TestCase):
         """Test metric tracking."""
         # Add metrics
         for i in range(100):
-            self.monitor.add_metric('loss', float(mx.random.uniform().item()))
+            self.monitor.add_metric('loss', mx.random.uniform().item())
         
         self.assertEqual(len(self.monitor.history['loss']), 100)
     

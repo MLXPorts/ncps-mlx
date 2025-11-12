@@ -14,8 +14,13 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps import CfC, wirings
-from .wiring_presets import make_sensory_motor_wiring
+from ncps import wirings
+from ncps.neurons import CfC
+
+try:  # Script vs package import compatibility
+    from .wiring_presets import make_sensory_motor_wiring
+except ImportError:
+    from examples.wiring_presets import make_sensory_motor_wiring
 from examples.maze_env import SimConfig, make_batch
 
 

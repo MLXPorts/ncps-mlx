@@ -58,4 +58,4 @@ def train_sequence_model(
             apply_constraints()
         mx.eval(model.parameters(), optimizer.state)
         if epoch % log_interval == 0 or epoch == 1:
-            print(f"epoch {epoch:03d} loss={float(loss.item()):.6f}")
+            print(f"epoch {epoch:03d} loss={loss.item():.6f}")

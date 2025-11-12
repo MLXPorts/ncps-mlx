@@ -150,7 +150,7 @@ class SMnistLTCClassifier(nn.Module):
 def accuracy_from_logits(logits: mx.array, labels: mx.array) -> float:
     preds = mx.argmax(logits, axis=-1)
     acc = mx.mean((preds == labels).astype(mx.float32))
-    return float(acc.item())
+    return acc.item()
 
 
 def evaluate_model(model: SMnistLTCClassifier, batch: SMnistBatch, batch_size: int = 256) -> Tuple[float, float]:
@@ -164,7 +164,7 @@ def evaluate_model(model: SMnistLTCClassifier, batch: SMnistBatch, batch_size: i
         labels = batch.targets[start:end]
         logits = model(inputs)
         loss = nn.losses.cross_entropy(logits, labels, reduction="mean")
-        total_loss += float(loss.item()) * (end - start)
+        total_loss += loss.item() * (end - start)
         total_acc += accuracy_from_logits(logits, labels) * (end - start)
     normaliser = max(total, 1)
     return total_loss / normaliser, total_acc / normaliser
@@ -216,7 +216,7 @@ def train_ltc(
             model.apply_constraints()
             mx.eval(model.parameters(), optimizer.state)
 
-            running_loss += float(loss.item())
+            running_loss += loss.item()
             logits = model(batch.inputs)
             running_acc += accuracy_from_logits(logits, batch.targets)
             batches += 1

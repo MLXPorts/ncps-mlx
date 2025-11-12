@@ -39,7 +39,7 @@ def load_series() -> mx.array:
 
 def create_dataset(sequence: mx.array, look_back: int) -> Tuple[mx.array, mx.array]:
     data_x, data_y = [], []
-    sequence_list = sequence.tolist()
+    sequence_list = mx.reshape(sequence, (-1,)).tolist()
     for i in range(len(sequence_list) - look_back - 1):
         window = sequence_list[i : i + look_back]
         data_x.append(window)
@@ -59,11 +59,9 @@ class PassengerLTCModel(nn.Module):
         fan_in = self.readout.weight.shape[1]
         fan_out = self.readout.weight.shape[0]
         limit = mx.sqrt(mx.array(6.0 / (fan_in + fan_out)))
-        self.readout.weight = mx.random.uniform(
-            low=-float(limit.item()),
-            high=float(limit.item()),
-            shape=self.readout.weight.shape,
-        )
+        # Draw in MLX and scale/shift to [-limit, limit] without Python floats
+        u = mx.random.uniform(shape=self.readout.weight.shape)
+        self.readout.weight = (u * (2 * limit)) - limit
         self.readout.bias = mx.zeros(self.readout.bias.shape, dtype=mx.float32)
 
     def __call__(self, inputs: mx.array) -> mx.array:
@@ -88,7 +86,7 @@ class DataBundle:
 
 def prepare_data() -> DataBundle:
     raw = load_series()
-    raw_list = [[x] for x in raw.tolist()]
+    raw_list = [[x] for x in mx.reshape(raw, (-1,)).tolist()]
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled = scaler.fit_transform(raw_list)
 
@@ -147,14 +145,14 @@ def train_model(model: PassengerLTCModel, data: DataBundle, epochs: int) -> None
             loss, grads = value_and_grad(model, xb, yb)
             optimizer.update(model, grads)
             mx.eval(model.parameters(), optimizer.state)
-            epoch_losses.append(float(loss.item()))
+            epoch_losses.append(loss.item())
 
         if data.val_inputs.shape[0] > 0:
             val_loss = loss_fn(model, data.val_inputs, data.val_targets)
-            mean_train_loss = float(mx.mean(mx.array(epoch_losses)).item())
+            mean_train_loss = (sum(epoch_losses) / len(epoch_losses)) if epoch_losses else 0.0
             print(
                 f"epoch {epoch:03d} train_loss={mean_train_loss:.6f} "
-                f"val_loss={float(val_loss.item()):.6f}"
+                f"val_loss={val_loss.item():.6f}"
             )
 
 
@@ -163,7 +161,7 @@ def evaluate(model: PassengerLTCModel, data: DataBundle, scaler: MinMaxScaler):
         outputs = []
         for idx in range(inputs.shape[0]):
             preds = model(inputs[idx : idx + 1])
-            outputs.append(float(preds.item()))
+            outputs.append(preds.item())
         return mx.array(outputs)
 
     train_preds = predict(data.train_inputs)
@@ -179,8 +177,8 @@ def evaluate(model: PassengerLTCModel, data: DataBundle, scaler: MinMaxScaler):
     train_target_denorm = scaler.inverse_transform(train_targets_list)
     test_target_denorm = scaler.inverse_transform(test_targets_list)
 
-    train_rmse = mean_squared_error([t[0] for t in train_target_denorm], [t[0] for t in train_denorm], squared=False)
-    test_rmse = mean_squared_error([t[0] for t in test_target_denorm], [t[0] for t in test_denorm], squared=False)
+    train_rmse = mean_squared_error([t[0] for t in train_target_denorm], [t[0] for t in train_denorm]) ** 0.5
+    test_rmse = mean_squared_error([t[0] for t in test_target_denorm], [t[0] for t in test_denorm]) ** 0.5
 
     return {
         "train_rmse": float(train_rmse),
@@ -201,7 +199,8 @@ def run_experiment(plot: bool = False, epochs: int = EPOCHS):
     metrics = evaluate(model, data, data.scaler)
 
     if plot:
-        series = data.scaler.inverse_transform(load_series()).squeeze(-1)
+        series_raw = mx.reshape(load_series(), (-1,)).tolist()
+        series = data.scaler.inverse_transform([[x] for x in series_raw]).squeeze(-1)
         train_len = metrics["train_predictions"].shape[0]
         plt.figure(figsize=(12, 6))
         plt.plot(series, label="True Data")

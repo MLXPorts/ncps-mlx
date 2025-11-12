@@ -19,7 +19,7 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps import CfC
+from ncps.neurons import CfC
 from ncps.wirings import FullyConnected
 
 DATA_ROOT = Path("datasets/data/cheetah")

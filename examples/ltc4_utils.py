@@ -108,7 +108,7 @@ def make_regression_loop(
         if apply_constraints is not None:
             apply_constraints()
         mx.eval(model.parameters(), optimizer.state)
-        return float(loss.item())
+        return loss.item()
 
     return step
 
@@ -141,13 +141,13 @@ def train_sequence_regressor(
             losses.append(train_step(xb, yb))
 
         if epoch % log_interval == 0 or epoch == 1:
-            train_loss = float(mx.mean(mx.array(losses)).item()) if losses else 0.0
+            train_loss = (sum(losses) / len(losses)) if losses else 0.0
             log_line = f"epoch {epoch:03d} train_loss={train_loss:.6f}"
 
             if val_inputs is not None and val_inputs.shape[0] > 0:
                 preds = model(val_inputs.astype(mx.float32))
                 val_loss = mx.mean(mx.power(preds - val_targets, 2.0))
-                log_line += f" val_loss={float(val_loss.item()):.6f}"
+                log_line += f" val_loss={val_loss.item():.6f}"
             print(log_line)
 
 

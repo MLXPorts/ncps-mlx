@@ -69,7 +69,7 @@ def main() -> None:
         model.rnn.apply_weight_constraints()
         mx.eval(model.parameters(), optimizer.state)
         if (epoch + 1) % 25 == 0:
-            print(f"epoch {epoch+1:03d} loss={float(loss.item()):.6f}")
+            print(f"epoch {epoch+1:03d} loss={loss.item():.6f}")
 
 
 if __name__ == "__main__":

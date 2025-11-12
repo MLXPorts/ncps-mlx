@@ -182,7 +182,7 @@ def main() -> None:  # pragma: no cover
             
             # Forward pass through ICRA CfC (returns [batch, time, 1])
             mu, hx = model(state_seq, lidar_seq, hx=hx, return_state=True)
-            steer_cmd = float(mu[0, 0, 0].item())
+            steer_cmd = mu[0, 0, 0].item()
         
         throttle = 1.0
 

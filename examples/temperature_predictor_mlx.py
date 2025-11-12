@@ -28,7 +28,7 @@ def load_series() -> mx.array:
 
 def create_dataset(dataset: mx.array, look_back: int) -> Tuple[mx.array, mx.array]:
     data_x, data_y = [], []
-    dataset_list = dataset.tolist()
+    dataset_list = mx.reshape(dataset, (-1,)).tolist()
     for i in range(len(dataset_list) - look_back - 1):
         data_x.append(dataset_list[i : i + look_back])
         data_y.append(dataset_list[i + look_back])
@@ -46,11 +46,9 @@ class TemperatureLTCModel(nn.Module):
         fan_in = self.readout.weight.shape[1]
         fan_out = self.readout.weight.shape[0]
         limit = mx.sqrt(mx.array(6.0 / (fan_in + fan_out)))
-        self.readout.weight = mx.random.uniform(
-            low=-float(limit.item()),
-            high=float(limit.item()),
-            shape=self.readout.weight.shape,
-        )
+        # Avoid mixing Python floats with MLX by scaling a 0..1 draw entirely in MLX
+        u = mx.random.uniform(shape=self.readout.weight.shape)
+        self.readout.weight = (u * (2 * limit)) - limit
         self.readout.bias = mx.zeros(self.readout.bias.shape, dtype=mx.float32)
 
     def __call__(self, inputs: mx.array) -> mx.array:
@@ -63,7 +61,7 @@ class TemperatureLTCModel(nn.Module):
 
 def prepare_data():
     raw = load_series()
-    raw_np = raw.tolist()
+    raw_np = mx.reshape(raw, (-1,)).tolist()
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled = scaler.fit_transform([[x] for x in raw_np])
 
@@ -111,14 +109,15 @@ def train_model(model: TemperatureLTCModel, train_inputs: mx.array, train_target
             loss, grads = value_and_grad(model, xb, yb)
             optimizer.update(model, grads)
             mx.eval(model.parameters(), optimizer.state)
-            epoch_losses.append(float(loss.item()))
-        print(f"epoch {epoch:03d} train_loss={mx.mean(mx.array(epoch_losses)).item():.6f}")
+            epoch_losses.append(loss.item())
+        mean_loss = (sum(epoch_losses) / len(epoch_losses)) if epoch_losses else 0.0
+        print(f"epoch {epoch:03d} train_loss={mean_loss:.6f}")
 
 
 def evaluate(model: TemperatureLTCModel, scaler: MinMaxScaler, inputs: mx.array, targets: mx.array):
     preds = []
     for idx in range(inputs.shape[0]):
-        preds.append(float(model(inputs[idx : idx + 1]).item()))
+        preds.append(model(inputs[idx : idx + 1]).item())
     
     # Convert to list for sklearn compatibility
     preds_list = [[p] for p in preds]
@@ -127,7 +126,7 @@ def evaluate(model: TemperatureLTCModel, scaler: MinMaxScaler, inputs: mx.array,
     preds_denorm = scaler.inverse_transform(preds_list)
     targets_denorm = scaler.inverse_transform(targets_list)
 
-    rmse = mean_squared_error(targets_denorm, preds_denorm, squared=False)
+    rmse = mean_squared_error(targets_denorm, preds_denorm) ** 0.5
     return rmse, mx.array([p[0] for p in preds_denorm]), mx.array([t[0] for t in targets_denorm])
 
 
@@ -143,7 +142,7 @@ def run_experiment(plot: bool = False, epochs: int = EPOCHS):
 
     if plot:
         full_series_raw = load_series()
-        full_series_list = [[x] for x in full_series_raw.tolist()]
+        full_series_list = [[x] for x in mx.reshape(full_series_raw, (-1,)).tolist()]
         full_series = scaler.inverse_transform(full_series_list)
         full_series = [x[0] for x in full_series]
         plt.figure(figsize=(12, 6))

@@ -70,7 +70,7 @@ def main() -> None:
         optimizer.update(model, grads)
         mx.eval(model.parameters(), optimizer.state)
         if (epoch + 1) % 10 == 0:
-            print(f"epoch {epoch+1:02d} loss={float(loss.item()):.4f}")
+            print(f"epoch {epoch+1:02d} loss={loss.item():.4f}")
 
 
 if __name__ == "__main__":

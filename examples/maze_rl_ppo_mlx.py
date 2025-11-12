@@ -20,7 +20,8 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ncps import CfC, wirings
+from ncps import wirings
+from ncps.neurons import CfC
 from examples.wiring_presets import make_sensory_motor_wiring
 from examples.maze_env import MAP_ASCII, TILE, is_wall, raycast
 
@@ -161,7 +162,7 @@ def rollout(env: MazeEnv, net: CfCActorCritic, cfg: PPOCfg):
         logp = mx.sum(logp, axis=-1)  # [1,1,1] -> [1,1]
 
         # Step env
-        obs2, r, d, _ = env.step(float(a[0, 0, 0].tolist()))
+        obs2, r, d, _ = env.step(a[0, 0, 0].item())
 
         obs_buf.append(obs[0])
         act_buf.append(a[0, 0])
@@ -171,7 +172,7 @@ def rollout(env: MazeEnv, net: CfCActorCritic, cfg: PPOCfg):
         done_buf.append(d)
 
         obs = obs2
-        if int(d.tolist()) == 1:
+        if d.item() == 1:
             obs = env.reset()
             hx = mx.zeros((1, 64), dtype=mx.float32)
 
@@ -190,7 +191,8 @@ def compute_gae(rew, val, done, cfg: PPOCfg):
     adv = mx.zeros((T,), dtype=mx.float32)
     lastgaelam = mx.array(0.0, dtype=mx.float32)
     for t in range(T - 1, -1, -1):
-        nonterminal = 1.0 - mx.array(float(done[t]), dtype=mx.float32)
+        # nonterminal = 1 - done[t] (keep in MLX, avoid float()/int() casts)
+        nonterminal = 1.0 - done[t].astype(mx.float32)
         delta = rew[t] + cfg.gamma * nonterminal * (val[t + 1] if t + 1 < T else 0.0) - val[t]
         lastgaelam = delta + cfg.gamma * cfg.lam * nonterminal * lastgaelam
         adv[t] = lastgaelam

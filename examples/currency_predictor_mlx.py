@@ -203,14 +203,14 @@ def run_experiment(epochs: int = EPOCHS, plot: bool = True) -> dict[str, float]:
             optimizer.update(model, grads)
             mx.eval(model.parameters(), optimizer.state)
             model.apply_constraints()
-            losses.append(float(loss.item()))
+            losses.append(loss.item())
 
         if epoch % LOG_PERIOD == 0 or epoch == 1:
             val_inputs = to_time_major(dataset.valid_x)
             val_targets = mx.array(dataset.valid_y.astype(np.float32))
             val_loss = loss_fn(model, val_inputs, val_targets)
-            val_loss_value = float(val_loss.item())
-            mean_train_loss = float(mx.mean(mx.array(losses)).item())
+            val_loss_value = val_loss.item()
+            mean_train_loss = (sum(losses) / len(losses)) if losses else 0.0
             print(f"epoch {epoch:03d} train_loss={mean_train_loss:.6f} val_loss={val_loss_value:.6f}")
             if val_loss_value < best_val_loss:
                 best_val_loss = val_loss_value
